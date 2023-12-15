@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BinanceUser_SetUser_FullMethodName = "/BinanceUser/SetUser"
+	BinanceUser_SetUser_FullMethodName        = "/BinanceUser/SetUser"
+	BinanceUser_PullUserStatus_FullMethodName = "/BinanceUser/PullUserStatus"
 )
 
 // BinanceUserClient is the client API for BinanceUser service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BinanceUserClient interface {
 	SetUser(ctx context.Context, in *SetUserRequest, opts ...grpc.CallOption) (*SetUserReply, error)
+	PullUserStatus(ctx context.Context, in *PullUserStatusRequest, opts ...grpc.CallOption) (*PullUserStatusReply, error)
 }
 
 type binanceUserClient struct {
@@ -46,11 +48,21 @@ func (c *binanceUserClient) SetUser(ctx context.Context, in *SetUserRequest, opt
 	return out, nil
 }
 
+func (c *binanceUserClient) PullUserStatus(ctx context.Context, in *PullUserStatusRequest, opts ...grpc.CallOption) (*PullUserStatusReply, error) {
+	out := new(PullUserStatusReply)
+	err := c.cc.Invoke(ctx, BinanceUser_PullUserStatus_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BinanceUserServer is the server API for BinanceUser service.
 // All implementations must embed UnimplementedBinanceUserServer
 // for forward compatibility
 type BinanceUserServer interface {
 	SetUser(context.Context, *SetUserRequest) (*SetUserReply, error)
+	PullUserStatus(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
 
@@ -60,6 +72,9 @@ type UnimplementedBinanceUserServer struct {
 
 func (UnimplementedBinanceUserServer) SetUser(context.Context, *SetUserRequest) (*SetUserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUser not implemented")
+}
+func (UnimplementedBinanceUserServer) PullUserStatus(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PullUserStatus not implemented")
 }
 func (UnimplementedBinanceUserServer) mustEmbedUnimplementedBinanceUserServer() {}
 
@@ -92,6 +107,24 @@ func _BinanceUser_SetUser_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_PullUserStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PullUserStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).PullUserStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_PullUserStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).PullUserStatus(ctx, req.(*PullUserStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BinanceUser_ServiceDesc is the grpc.ServiceDesc for BinanceUser service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +135,10 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetUser",
 			Handler:    _BinanceUser_SetUser_Handler,
+		},
+		{
+			MethodName: "PullUserStatus",
+			Handler:    _BinanceUser_PullUserStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

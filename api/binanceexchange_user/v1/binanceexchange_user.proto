@@ -13,6 +13,12 @@ service BinanceUser {
       body: "send_body"
     };
   };
+
+  rpc PullUserStatus (PullUserStatusRequest) returns (PullUserStatusReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/pull_user_status"
+    };
+  };
 }
 
 message SetUserRequest {
@@ -26,3 +32,8 @@ message SetUserRequest {
 }
 
 message SetUserReply {}
+
+message PullUserStatusRequest {}
+
+message PullUserStatusReply {}
+
