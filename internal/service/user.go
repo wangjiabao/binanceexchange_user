@@ -89,16 +89,17 @@ func pullStakeUserInfo(address string) (float64, error) {
 		usdtAmount float64 = -1
 	)
 
-	url1 := "https://bsc-testnet.publicnode.com"
+	url1 := "https://bsc-dataseed4.binance.org/"
 
 	for i := 0; i < 5; i++ {
 		client, err := ethclient.Dial(url1)
 		if err != nil {
+			url1 = "https://bsc-dataseed1.bnbchain.org"
 			continue
 			//return usdtAmount, err
 		}
 
-		tokenAddress := common.HexToAddress("0x289FE84c1b186D71A44b04ABfd8A05C75bfB94D9")
+		tokenAddress := common.HexToAddress("0x4E29c650a0c793A8e39B8E1234D49acDf06e4292")
 		instance, err := NewStake(tokenAddress, client)
 		if err != nil {
 			continue
@@ -108,7 +109,7 @@ func pullStakeUserInfo(address string) (float64, error) {
 		bal, err := instance.UserMaxTime(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
-			common.HexToAddress("0x9572BdA7949Ea57b06fD0c9DA626b32DA1F5fF2C"),
+			common.HexToAddress("0xf1a03B357849Cf0Fec27f8D9731a48aC0205A63D"),
 		)
 
 		if err != nil {
@@ -125,7 +126,7 @@ func pullStakeUserInfo(address string) (float64, error) {
 		bal2, err := instance.UserUsdtAmount(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
-			common.HexToAddress("0x9572BdA7949Ea57b06fD0c9DA626b32DA1F5fF2C"),
+			common.HexToAddress("0xf1a03B357849Cf0Fec27f8D9731a48aC0205A63D"),
 		)
 
 		if err != nil {
