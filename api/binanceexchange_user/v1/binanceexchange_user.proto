@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+option go_package = "binanceexchange_user/api/binanceexchange_user/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.binancedata.v1";
+
+service BinanceUser {
+  rpc SetUser (SetUserRequest) returns (SetUserReply) {
+    option (google.api.http) = {
+      post: "/api/binanceexchange_user/set_user"
+      body: "send_body"
+    };
+  };
+}
+
+message SetUserRequest {
+  message SendBody{
+    string address = 1;
+    string apikey = 2;
+    string apisecret = 3;
+  }
+
+  SendBody send_body = 1;
+}
+
+message SetUserReply {}
