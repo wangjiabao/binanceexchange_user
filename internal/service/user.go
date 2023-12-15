@@ -94,13 +94,15 @@ func pullStakeUserInfo(address string) (float64, error) {
 	for i := 0; i < 5; i++ {
 		client, err := ethclient.Dial(url1)
 		if err != nil {
-			return usdtAmount, err
+			continue
+			//return usdtAmount, err
 		}
 
 		tokenAddress := common.HexToAddress("0x289FE84c1b186D71A44b04ABfd8A05C75bfB94D9")
 		instance, err := NewStake(tokenAddress, client)
 		if err != nil {
-			return usdtAmount, err
+			continue
+			//return usdtAmount, err
 		}
 
 		bal, err := instance.UserMaxTime(
@@ -130,6 +132,7 @@ func pullStakeUserInfo(address string) (float64, error) {
 			fmt.Println(err)
 			continue
 		}
+
 		usdtAmount, _ = bal2.Float64()
 		break
 	}
