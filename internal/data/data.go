@@ -64,7 +64,7 @@ func (d *Data) DB(ctx context.Context) *gorm.DB {
 
 // NewDB .
 func NewDB(c *conf.Data) *gorm.DB {
-	f, err := os.OpenFile("./log/sql.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	f, err := os.OpenFile("../../log/sql.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Errorf("failed opening sql.log", err)
 		panic("failed opening sql.log")

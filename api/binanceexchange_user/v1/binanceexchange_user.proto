@@ -19,6 +19,12 @@ service BinanceUser {
       get: "/api/binanceexchange_user/pull_user_status"
     };
   };
+
+  rpc PullUserCredentialsBsc (PullUserCredentialsBscRequest) returns (PullUserCredentialsBscReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/pull_user_credentials_bsc"
+    };
+  };
 }
 
 message SetUserRequest {
@@ -36,4 +42,8 @@ message SetUserReply {}
 message PullUserStatusRequest {}
 
 message PullUserStatusReply {}
+
+message PullUserCredentialsBscRequest {}
+
+message PullUserCredentialsBscReply {}
 

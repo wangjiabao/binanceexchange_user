@@ -24,7 +24,7 @@ func NewBinanceDataService(buc *biz.BinanceUserUsecase) *BinanceUserService {
 }
 
 func (b *BinanceUserService) SetUser(ctx context.Context, req *v1.SetUserRequest) (*v1.SetUserReply, error) {
-	return b.buc.SetUser(ctx, req)
+	return nil, nil
 }
 
 func (b *BinanceUserService) PullUserStatus(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
@@ -139,4 +139,116 @@ func pullStakeUserInfo(address string) (float64, error) {
 	}
 
 	return usdtAmount, nil
+}
+
+func (b *BinanceUserService) PullUserCredentialsBsc(ctx context.Context, req *v1.PullUserCredentialsBscRequest) (*v1.PullUserCredentialsBscReply, error) {
+	var (
+		users []string
+		err   error
+	)
+
+	users, err = pullUsersBySystemRole()
+	if nil != err {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	for _, v := range users {
+		var (
+			apiKey    string
+			apiSecret string
+		)
+
+		apiKey, apiSecret, err = pullUserCredentialsBscBySystemRole(v)
+		if nil != err {
+			fmt.Println(err)
+			return nil, err
+		}
+
+		err = b.buc.SetUser(ctx, v, apiKey, apiSecret)
+		if nil != err {
+			fmt.Println(err)
+			return nil, err
+		}
+	}
+
+	return nil, nil
+}
+
+func pullUsersBySystemRole() ([]string, error) {
+	var (
+		users []string
+	)
+
+	url1 := "https://bsc-dataseed4.binance.org/"
+
+	for i := 0; i < 5; i++ {
+		client, err := ethclient.Dial(url1)
+		if err != nil {
+			url1 = "https://bsc-dataseed1.bnbchain.org"
+			continue
+			//return usdtAmount, err
+		}
+
+		tokenAddress := common.HexToAddress("0x3210dCf53A14aB370073286175EaD1aF7800C84d")
+		instance, err := NewUserCredentialsBsc(tokenAddress, client)
+		if err != nil {
+			fmt.Println(err)
+			return users, err
+		}
+		var (
+			addresses []common.Address
+		)
+
+		addresses, err = instance.GetUsersBySystemRole(&bind.CallOpts{
+			From: common.HexToAddress(""),
+		})
+		if err != nil {
+			return users, err
+		}
+
+		for _, v := range addresses {
+			users = append(users, v.String())
+		}
+
+		break
+	}
+
+	return users, nil
+}
+
+func pullUserCredentialsBscBySystemRole(address string) (string, string, error) {
+	var (
+		apiKey    string
+		apiSecret string
+	)
+
+	url1 := "https://bsc-dataseed4.binance.org/"
+
+	for i := 0; i < 5; i++ {
+		client, err := ethclient.Dial(url1)
+		if err != nil {
+			url1 = "https://bsc-dataseed1.bnbchain.org"
+			continue
+			//return usdtAmount, err
+		}
+
+		tokenAddress := common.HexToAddress("0x3210dCf53A14aB370073286175EaD1aF7800C84d")
+		instance, err := NewUserCredentialsBsc(tokenAddress, client)
+		if err != nil {
+			fmt.Println(err)
+			return apiKey, apiSecret, err
+		}
+
+		apiKey, apiSecret, err = instance.GetUserCredentialsBscBySystemRole(&bind.CallOpts{
+			From: common.HexToAddress(""),
+		}, common.HexToAddress(address))
+		if err != nil {
+			return apiKey, apiSecret, err
+		}
+
+		break
+	}
+
+	return apiKey, apiSecret, nil
 }

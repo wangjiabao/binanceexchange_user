@@ -19,10 +19,12 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationBinanceUserPullUserCredentialsBsc = "/BinanceUser/PullUserCredentialsBsc"
 const OperationBinanceUserPullUserStatus = "/BinanceUser/PullUserStatus"
 const OperationBinanceUserSetUser = "/BinanceUser/SetUser"
 
 type BinanceUserHTTPServer interface {
+	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
 	PullUserStatus(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error)
 	SetUser(context.Context, *SetUserRequest) (*SetUserReply, error)
 }
@@ -31,6 +33,7 @@ func RegisterBinanceUserHTTPServer(s *http.Server, srv BinanceUserHTTPServer) {
 	r := s.Route("/")
 	r.POST("/api/binanceexchange_user/set_user", _BinanceUser_SetUser0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/pull_user_status", _BinanceUser_PullUserStatus0_HTTP_Handler(srv))
+	r.GET("/api/binanceexchange_user/pull_user_credentials_bsc", _BinanceUser_PullUserCredentialsBsc0_HTTP_Handler(srv))
 }
 
 func _BinanceUser_SetUser0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
@@ -74,7 +77,27 @@ func _BinanceUser_PullUserStatus0_HTTP_Handler(srv BinanceUserHTTPServer) func(c
 	}
 }
 
+func _BinanceUser_PullUserCredentialsBsc0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PullUserCredentialsBscRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationBinanceUserPullUserCredentialsBsc)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PullUserCredentialsBsc(ctx, req.(*PullUserCredentialsBscRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PullUserCredentialsBscReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type BinanceUserHTTPClient interface {
+	PullUserCredentialsBsc(ctx context.Context, req *PullUserCredentialsBscRequest, opts ...http.CallOption) (rsp *PullUserCredentialsBscReply, err error)
 	PullUserStatus(ctx context.Context, req *PullUserStatusRequest, opts ...http.CallOption) (rsp *PullUserStatusReply, err error)
 	SetUser(ctx context.Context, req *SetUserRequest, opts ...http.CallOption) (rsp *SetUserReply, err error)
 }
@@ -85,6 +108,19 @@ type BinanceUserHTTPClientImpl struct {
 
 func NewBinanceUserHTTPClient(client *http.Client) BinanceUserHTTPClient {
 	return &BinanceUserHTTPClientImpl{client}
+}
+
+func (c *BinanceUserHTTPClientImpl) PullUserCredentialsBsc(ctx context.Context, in *PullUserCredentialsBscRequest, opts ...http.CallOption) (*PullUserCredentialsBscReply, error) {
+	var out PullUserCredentialsBscReply
+	pattern := "/api/binanceexchange_user/pull_user_credentials_bsc"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationBinanceUserPullUserCredentialsBsc))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *BinanceUserHTTPClientImpl) PullUserStatus(ctx context.Context, in *PullUserStatusRequest, opts ...http.CallOption) (*PullUserStatusReply, error) {

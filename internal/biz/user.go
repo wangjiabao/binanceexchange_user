@@ -7,25 +7,27 @@ import (
 )
 
 type LhBinanceUser struct {
-	ID        int64
+	ID        uint64
 	Address   string
 	ApiKey    string
 	ApiSecret string
 }
 
 type LhBinanceUserStatus struct {
-	ID        int64
-	UserId    int64
+	ID        uint64
+	UserId    uint64
 	Status    string
 	BaseMoney float64
 }
 
 type BinanceUserRepo interface {
 	InsertUser(ctx context.Context, lhBinanceUser *LhBinanceUser) (bool, error)
+	UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error)
 	InsertUserStatus(ctx context.Context, lhBinanceUserStatus *LhBinanceUserStatus) (bool, error)
-	UpdatesUserStatus(ctx context.Context, userId int64, baseMoney float64, status string) (bool, error)
+	UpdatesUserStatus(ctx context.Context, userId uint64, baseMoney float64, status string) (bool, error)
 	GetUsers() ([]*LhBinanceUser, error)
-	GetUserStatus(userId int64) (*LhBinanceUserStatus, error)
+	GetUserStatus(userId uint64) (*LhBinanceUserStatus, error)
+	GetUserByAddress(address string) (*LhBinanceUser, error)
 }
 
 // BinanceUserUsecase is a BinanceData usecase.
@@ -40,28 +42,48 @@ func NewBinanceDataUsecase(binanceUserRepo BinanceUserRepo, tx Transaction, logg
 	return &BinanceUserUsecase{binanceUserRepo: binanceUserRepo, tx: tx, log: log.NewHelper(logger)}
 }
 
-func (b *BinanceUserUsecase) SetUser(ctx context.Context, req *v1.SetUserRequest) (*v1.SetUserReply, error) {
+func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey string, apiSecret string) error {
 	var (
-		err error
+		lhBinanceUser *LhBinanceUser
+		err           error
 	)
 
-	if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-		_, err = b.binanceUserRepo.InsertUser(ctx, &LhBinanceUser{
-			Address:   req.SendBody.Address,
-			ApiKey:    req.SendBody.Apikey,
-			ApiSecret: req.SendBody.Apisecret,
-		})
-
-		if nil != err {
-			return err
-		}
-
-		return nil
-	}); err != nil {
-		b.log.Error(err)
+	lhBinanceUser, err = b.binanceUserRepo.GetUserByAddress(address)
+	if nil != err {
+		return err
 	}
 
-	return &v1.SetUserReply{}, nil
+	if nil == lhBinanceUser {
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.InsertUser(ctx, &LhBinanceUser{
+				Address:   address,
+				ApiKey:    apiKey,
+				ApiSecret: apiSecret,
+			})
+
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			b.log.Error(err)
+		}
+	} else if apiKey != lhBinanceUser.ApiKey || apiSecret != lhBinanceUser.ApiSecret {
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.UpdateUser(ctx, lhBinanceUser.ID, apiKey, apiSecret)
+
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			b.log.Error(err)
+		}
+	}
+
+	return nil
 }
 
 func (b *BinanceUserUsecase) PullUserStatus(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
@@ -69,22 +91,22 @@ func (b *BinanceUserUsecase) PullUserStatus(ctx context.Context, req *v1.PullUse
 	return &v1.PullUserStatusReply{}, nil
 }
 
-func (b *BinanceUserUsecase) GetUserStatus(userId int64) (*LhBinanceUserStatus, error) {
+func (b *BinanceUserUsecase) GetUserStatus(userId uint64) (*LhBinanceUserStatus, error) {
 	return b.binanceUserRepo.GetUserStatus(userId)
 }
 
-func (b *BinanceUserUsecase) InsertUserStatus(ctx context.Context, userId int64, baseMoney float64) (bool, error) {
+func (b *BinanceUserUsecase) InsertUserStatus(ctx context.Context, userId uint64, baseMoney float64) (bool, error) {
 	return b.binanceUserRepo.InsertUserStatus(ctx, &LhBinanceUserStatus{
 		UserId:    userId,
 		BaseMoney: baseMoney,
 	})
 }
 
-func (b *BinanceUserUsecase) UpdateUserStatusOpen(ctx context.Context, userId int64, baseMoney float64) (bool, error) {
+func (b *BinanceUserUsecase) UpdateUserStatusOpen(ctx context.Context, userId uint64, baseMoney float64) (bool, error) {
 	return b.binanceUserRepo.UpdatesUserStatus(ctx, userId, baseMoney, "open")
 }
 
-func (b *BinanceUserUsecase) UpdateUserStatusClose(ctx context.Context, userId int64) (bool, error) {
+func (b *BinanceUserUsecase) UpdateUserStatusClose(ctx context.Context, userId uint64) (bool, error) {
 	return b.binanceUserRepo.UpdatesUserStatus(ctx, userId, 0, "close")
 }
 

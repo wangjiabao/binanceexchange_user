@@ -9,15 +9,15 @@ import (
 )
 
 type LhBinanceUser struct {
-	ID        int64  `gorm:"primarykey;type:int"`
+	ID        uint64 `gorm:"primarykey;type:int"`
 	Address   string `gorm:"type:varchar(200)"`
 	ApiKey    string `gorm:"type:varchar(200)"`
 	ApiSecret string `gorm:"type:varchar(200)"`
 }
 
 type LhBinanceUserStatus struct {
-	ID        int64   `gorm:"primarykey;type:int"`
-	UserId    int64   `gorm:"type:int;not null"`
+	ID        uint64  `gorm:"primarykey;type:int"`
+	UserId    uint64  `gorm:"type:int;not null"`
 	Status    string  `gorm:"type:varchar(200)"`
 	BaseMoney float64 `gorm:"type:decimal(65,20);not null"`
 }
@@ -50,6 +50,18 @@ func (b *BinanceUserRepo) InsertUser(ctx context.Context, lhBinanceUser *biz.LhB
 	return true, nil
 }
 
+// UpdateUser .
+func (b *BinanceUserRepo) UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error) {
+	var err error
+
+	if err = b.data.DB(ctx).Table("lh_binance_user").Where("id=?", userId).
+		Updates(map[string]interface{}{"api_key": apiKey, "api_secret": apiSecret}).Error; nil != err {
+		return false, errors.NotFound("", "UPDATE_BINANCE_USER_STATUS_ERROR")
+	}
+
+	return true, nil
+}
+
 // InsertUserStatus .
 func (b *BinanceUserRepo) InsertUserStatus(ctx context.Context, lhBinanceUserStatus *biz.LhBinanceUserStatus) (bool, error) {
 	insertLhBinanceUserStatus := &LhBinanceUserStatus{
@@ -67,12 +79,12 @@ func (b *BinanceUserRepo) InsertUserStatus(ctx context.Context, lhBinanceUserSta
 }
 
 // UpdatesUserStatus .
-func (b *BinanceUserRepo) UpdatesUserStatus(ctx context.Context, userId int64, baseMoney float64, status string) (bool, error) {
+func (b *BinanceUserRepo) UpdatesUserStatus(ctx context.Context, userId uint64, baseMoney float64, status string) (bool, error) {
 	var err error
 
 	if err = b.data.DB(ctx).Table("lh_binance_user_status").Where("user_id=?", userId).
 		Updates(map[string]interface{}{"status": status, "base_money": baseMoney}).Error; nil != err {
-		return false, errors.NotFound("CLOSE_ORDER_POLICY_MACD_COMPARE_INFO_ERROR", "UPDATE_BINANCE_USER_STATUS_ERROR")
+		return false, errors.NotFound("UPDATE_BINANCE_USER_STATUS_ERROR", "UPDATE_BINANCE_USER_STATUS_ERROR")
 	}
 
 	return true, nil
@@ -103,9 +115,9 @@ func (b *BinanceUserRepo) GetUsers() ([]*biz.LhBinanceUser, error) {
 }
 
 // GetUserStatus .
-func (b *BinanceUserRepo) GetUserStatus(userId int64) (*biz.LhBinanceUserStatus, error) {
+func (b *BinanceUserRepo) GetUserStatus(userId uint64) (*biz.LhBinanceUserStatus, error) {
 	var lhBinanceUserStatus *LhBinanceUserStatus
-	if err := b.data.db.Table("lh_binance_user_status").Where("user_id>=?", userId).First(&lhBinanceUserStatus).Error; err != nil {
+	if err := b.data.db.Table("lh_binance_user_status").Where("user_id=?", userId).First(&lhBinanceUserStatus).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -118,5 +130,24 @@ func (b *BinanceUserRepo) GetUserStatus(userId int64) (*biz.LhBinanceUserStatus,
 		UserId:    lhBinanceUserStatus.UserId,
 		Status:    lhBinanceUserStatus.Status,
 		BaseMoney: lhBinanceUserStatus.BaseMoney,
+	}, nil
+}
+
+// GetUserByAddress .
+func (b *BinanceUserRepo) GetUserByAddress(address string) (*biz.LhBinanceUser, error) {
+	var lhBinanceUser *LhBinanceUser
+	if err := b.data.db.Table("lh_binance_user").Where("address=?", address).First(&lhBinanceUser).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ERROR", err.Error())
+	}
+
+	return &biz.LhBinanceUser{
+		ID:        lhBinanceUser.ID,
+		Address:   lhBinanceUser.Address,
+		ApiKey:    lhBinanceUser.ApiKey,
+		ApiSecret: lhBinanceUser.ApiSecret,
 	}, nil
 }
