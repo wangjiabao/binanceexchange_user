@@ -43,7 +43,7 @@ func (b *BinanceUserService) PullUserStatus(ctx context.Context, req *v1.PullUse
 			res        float64
 			userStatus *biz.LhBinanceUserStatus
 		)
-		res, err = pullStakeUserInfo(user.Address)
+		res, err = pullStakeUserInfo(user.Address, "0xf6E73f9dF438Bf59D647812DD9506678Ccd07236") // tdc
 		if nil != err {
 			fmt.Println(err)
 			continue
@@ -84,7 +84,64 @@ func (b *BinanceUserService) PullUserStatus(ctx context.Context, req *v1.PullUse
 	return b.buc.PullUserStatus(ctx, req)
 }
 
-func pullStakeUserInfo(address string) (float64, error) {
+func (b *BinanceUserService) PullUserStatus2(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
+	var (
+		err   error
+		users []*biz.LhBinanceUser
+	)
+	users, err = b.buc.GetUsers()
+	if nil != err {
+		fmt.Println(err)
+		return &v1.PullUserStatusReply{}, nil
+	}
+
+	for _, user := range users {
+		var (
+			res        float64
+			userStatus *biz.LhBinanceUserStatus
+		)
+		res, err = pullStakeUserInfo(user.Address, "0xa935EA5445ab1A30AecD639978136DB755478165") // ttdc
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+
+		if res < 0 {
+			continue
+		}
+
+		userStatus, err = b.buc.GetUserStatus(user.ID)
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+
+		if 0 < res {
+			// open
+			if nil == userStatus {
+				_, err = b.buc.InsertUserStatus(ctx, user.ID, res)
+			} else if res > userStatus.BaseMoney || res < userStatus.BaseMoney {
+				_, err = b.buc.UpdateUserStatusOpen(ctx, user.ID, res)
+			}
+		} else {
+			// close
+			if nil == userStatus {
+				continue
+			}
+
+			_, err = b.buc.UpdateUserStatusClose(ctx, user.ID)
+		}
+
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+	}
+
+	return b.buc.PullUserStatus(ctx, req)
+}
+
+func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 	var (
 		usdtAmount float64 = -1
 	)
@@ -99,7 +156,7 @@ func pullStakeUserInfo(address string) (float64, error) {
 			//return usdtAmount, err
 		}
 
-		tokenAddress := common.HexToAddress("0x4E29c650a0c793A8e39B8E1234D49acDf06e4292")
+		tokenAddress := common.HexToAddress("0x02226c139F83425CE0ac9EC1611Bf1728B99D4cF")
 		instance, err := NewStake(tokenAddress, client)
 		if err != nil {
 			continue
@@ -109,7 +166,7 @@ func pullStakeUserInfo(address string) (float64, error) {
 		bal, err := instance.UserMaxTime(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
-			common.HexToAddress("0xf1a03B357849Cf0Fec27f8D9731a48aC0205A63D"),
+			common.HexToAddress(addressToken),
 		)
 
 		if err != nil {
@@ -126,7 +183,7 @@ func pullStakeUserInfo(address string) (float64, error) {
 		bal2, err := instance.UserUsdtAmount(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
-			common.HexToAddress("0xf1a03B357849Cf0Fec27f8D9731a48aC0205A63D"),
+			common.HexToAddress(addressToken),
 		)
 
 		if err != nil {
@@ -190,7 +247,7 @@ func pullUsersBySystemRole() ([]string, error) {
 			//return usdtAmount, err
 		}
 
-		tokenAddress := common.HexToAddress("0x3210dCf53A14aB370073286175EaD1aF7800C84d")
+		tokenAddress := common.HexToAddress("0x4526Dbc1a86624f9A9bf99726F946278BCFb2e2B")
 		instance, err := NewUserCredentialsBsc(tokenAddress, client)
 		if err != nil {
 			fmt.Println(err)
@@ -233,7 +290,7 @@ func pullUserCredentialsBscBySystemRole(address string) (string, string, error) 
 			//return usdtAmount, err
 		}
 
-		tokenAddress := common.HexToAddress("0x3210dCf53A14aB370073286175EaD1aF7800C84d")
+		tokenAddress := common.HexToAddress("0x4526Dbc1a86624f9A9bf99726F946278BCFb2e2B")
 		instance, err := NewUserCredentialsBsc(tokenAddress, client)
 		if err != nil {
 			fmt.Println(err)
