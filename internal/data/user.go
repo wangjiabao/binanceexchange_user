@@ -93,7 +93,7 @@ func (b *BinanceUserRepo) UpdatesUserStatus(ctx context.Context, userId uint64, 
 // GetUsers .
 func (b *BinanceUserRepo) GetUsers() ([]*biz.LhBinanceUser, error) {
 	var lhBinanceUser []*LhBinanceUser
-	if err := b.data.db.Table("lh_binance_user").Find(&lhBinanceUser).Error; err != nil {
+	if err := b.data.db.Table("lh_binance_user").Where("status<=?", 1).Find(&lhBinanceUser).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
