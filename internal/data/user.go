@@ -161,7 +161,7 @@ func (b *BinanceUserRepo) GetUserByAddress(address string) (*biz.LhBinanceUser, 
 // GetUserApiErrByUserId .
 func (b *BinanceUserRepo) GetUserApiErrByUserId(userId uint64) (*biz.LhBinanceUserApiError, error) {
 	var lhBinanceUserApiError *LhBinanceUserApiError
-	if err := b.data.db.Table("lh_binance_user_api_err").Where("user_id=?", userId).First(&lhBinanceUserApiError).Error; err != nil {
+	if err := b.data.db.Table("lh_binance_user_api_error").Where("user_id=?", userId).First(&lhBinanceUserApiError).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

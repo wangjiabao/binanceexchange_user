@@ -129,6 +129,10 @@ func (b *BinanceUserUsecase) GetUser(ctx context.Context, req *v1.GetUserRequest
 		err                 error
 	)
 
+	if 0 >= len(req.Address) || 300 < len(req.Address) {
+		return &v1.GetUserReply{Status: status}, err
+	}
+
 	lhBinanceUser, err = b.binanceUserRepo.GetUserByAddress(req.Address)
 	if nil != err {
 		return nil, err
