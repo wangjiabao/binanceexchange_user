@@ -14,6 +14,12 @@ service BinanceUser {
     };
   };
 
+  rpc GetUser (GetUserRequest) returns (GetUserReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/get_user"
+    };
+  };
+
   rpc PullUserStatus (PullUserStatusRequest) returns (PullUserStatusReply) {
     option (google.api.http) = {
       get: "/api/binanceexchange_user/pull_user_status"
@@ -46,6 +52,14 @@ message SetUserRequest {
 message SetUserReply {}
 
 message PullUserStatusRequest {}
+
+message GetUserRequest {
+  string address = 1;
+}
+
+message GetUserReply {
+  string status = 1;
+}
 
 message PullUserStatusReply {}
 

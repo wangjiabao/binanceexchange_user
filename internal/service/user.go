@@ -27,6 +27,10 @@ func (b *BinanceUserService) SetUser(ctx context.Context, req *v1.SetUserRequest
 	return nil, nil
 }
 
+func (b *BinanceUserService) GetUser(ctx context.Context, req *v1.GetUserRequest) (*v1.GetUserReply, error) {
+	return b.buc.GetUser(ctx, req)
+}
+
 func (b *BinanceUserService) PullUserStatus(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
 	var (
 		err   error

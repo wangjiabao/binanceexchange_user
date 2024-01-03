@@ -20,6 +20,12 @@ type LhBinanceUserStatus struct {
 	BaseMoney float64
 }
 
+type LhBinanceUserApiError struct {
+	ID     uint64
+	UserId uint64
+	Msg    string
+}
+
 type BinanceUserRepo interface {
 	InsertUser(ctx context.Context, lhBinanceUser *LhBinanceUser) (bool, error)
 	UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error)
@@ -28,6 +34,7 @@ type BinanceUserRepo interface {
 	GetUsers() ([]*LhBinanceUser, error)
 	GetUserStatus(userId uint64) (*LhBinanceUserStatus, error)
 	GetUserByAddress(address string) (*LhBinanceUser, error)
+	GetUserApiErrByUserId(userId uint64) (*LhBinanceUserApiError, error)
 }
 
 // BinanceUserUsecase is a BinanceData usecase.
@@ -112,4 +119,29 @@ func (b *BinanceUserUsecase) UpdateUserStatusClose(ctx context.Context, userId u
 
 func (b *BinanceUserUsecase) GetUsers() ([]*LhBinanceUser, error) {
 	return b.binanceUserRepo.GetUsers()
+}
+
+func (b *BinanceUserUsecase) GetUser(ctx context.Context, req *v1.GetUserRequest) (*v1.GetUserReply, error) {
+	var (
+		lhBinanceUser       *LhBinanceUser
+		lhBinanceUserApiErr *LhBinanceUserApiError
+		status              string
+		err                 error
+	)
+
+	lhBinanceUser, err = b.binanceUserRepo.GetUserByAddress(req.Address)
+	if nil != err {
+		return nil, err
+	}
+
+	lhBinanceUserApiErr, err = b.binanceUserRepo.GetUserApiErrByUserId(lhBinanceUser.ID)
+	if nil != err {
+		return nil, err
+	}
+
+	if nil == lhBinanceUserApiErr {
+		status = "ok"
+	}
+
+	return &v1.GetUserReply{Status: status}, err
 }

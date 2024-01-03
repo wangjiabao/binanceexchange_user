@@ -22,6 +22,12 @@ type LhBinanceUserStatus struct {
 	BaseMoney float64 `gorm:"type:decimal(65,20);not null"`
 }
 
+type LhBinanceUserApiError struct {
+	ID     uint64 `gorm:"primarykey;type:int"`
+	UserId uint64 `gorm:"type:int;not null"`
+	Msg    string `gorm:"type:varchar(200)"`
+}
+
 type BinanceUserRepo struct {
 	data *Data
 	log  *log.Helper
@@ -149,5 +155,23 @@ func (b *BinanceUserRepo) GetUserByAddress(address string) (*biz.LhBinanceUser, 
 		Address:   lhBinanceUser.Address,
 		ApiKey:    lhBinanceUser.ApiKey,
 		ApiSecret: lhBinanceUser.ApiSecret,
+	}, nil
+}
+
+// GetUserApiErrByUserId .
+func (b *BinanceUserRepo) GetUserApiErrByUserId(userId uint64) (*biz.LhBinanceUserApiError, error) {
+	var lhBinanceUserApiError *LhBinanceUserApiError
+	if err := b.data.db.Table("lh_binance_user_api_err").Where("user_id=?", userId).First(&lhBinanceUserApiError).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_STATUS_ERROR", err.Error())
+	}
+
+	return &biz.LhBinanceUserApiError{
+		ID:     lhBinanceUserApiError.ID,
+		UserId: lhBinanceUserApiError.UserId,
+		Msg:    lhBinanceUserApiError.Msg,
 	}, nil
 }

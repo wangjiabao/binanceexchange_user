@@ -6,6 +6,29 @@ info:
     title: BinanceUser API
     version: 0.0.1
 paths:
+    /api/binanceexchange_user/get_user:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_GetUser
+            parameters:
+                - name: address
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/pull_user_credentials_bsc:
         get:
             tags:
@@ -86,6 +109,11 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
+        GetUserReply:
+            type: object
+            properties:
+                status:
+                    type: string
         GoogleProtobufAny:
             type: object
             properties:

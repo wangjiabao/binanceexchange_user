@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	BinanceUser_SetUser_FullMethodName                = "/BinanceUser/SetUser"
+	BinanceUser_GetUser_FullMethodName                = "/BinanceUser/GetUser"
 	BinanceUser_PullUserStatus_FullMethodName         = "/BinanceUser/PullUserStatus"
 	BinanceUser_PullUserStatus2_FullMethodName        = "/BinanceUser/PullUserStatus2"
 	BinanceUser_PullUserCredentialsBsc_FullMethodName = "/BinanceUser/PullUserCredentialsBsc"
@@ -30,6 +31,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BinanceUserClient interface {
 	SetUser(ctx context.Context, in *SetUserRequest, opts ...grpc.CallOption) (*SetUserReply, error)
+	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error)
 	PullUserStatus(ctx context.Context, in *PullUserStatusRequest, opts ...grpc.CallOption) (*PullUserStatusReply, error)
 	PullUserStatus2(ctx context.Context, in *PullUserStatusRequest, opts ...grpc.CallOption) (*PullUserStatusReply, error)
 	PullUserCredentialsBsc(ctx context.Context, in *PullUserCredentialsBscRequest, opts ...grpc.CallOption) (*PullUserCredentialsBscReply, error)
@@ -46,6 +48,15 @@ func NewBinanceUserClient(cc grpc.ClientConnInterface) BinanceUserClient {
 func (c *binanceUserClient) SetUser(ctx context.Context, in *SetUserRequest, opts ...grpc.CallOption) (*SetUserReply, error) {
 	out := new(SetUserReply)
 	err := c.cc.Invoke(ctx, BinanceUser_SetUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *binanceUserClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error) {
+	out := new(GetUserReply)
+	err := c.cc.Invoke(ctx, BinanceUser_GetUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +95,7 @@ func (c *binanceUserClient) PullUserCredentialsBsc(ctx context.Context, in *Pull
 // for forward compatibility
 type BinanceUserServer interface {
 	SetUser(context.Context, *SetUserRequest) (*SetUserReply, error)
+	GetUser(context.Context, *GetUserRequest) (*GetUserReply, error)
 	PullUserStatus(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error)
 	PullUserStatus2(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error)
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
@@ -96,6 +108,9 @@ type UnimplementedBinanceUserServer struct {
 
 func (UnimplementedBinanceUserServer) SetUser(context.Context, *SetUserRequest) (*SetUserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUser not implemented")
+}
+func (UnimplementedBinanceUserServer) GetUser(context.Context, *GetUserRequest) (*GetUserReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 func (UnimplementedBinanceUserServer) PullUserStatus(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PullUserStatus not implemented")
@@ -133,6 +148,24 @@ func _BinanceUser_SetUser_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BinanceUserServer).SetUser(ctx, req.(*SetUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BinanceUser_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_GetUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).GetUser(ctx, req.(*GetUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -201,6 +234,10 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetUser",
 			Handler:    _BinanceUser_SetUser_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _BinanceUser_GetUser_Handler,
 		},
 		{
 			MethodName: "PullUserStatus",
