@@ -158,6 +158,25 @@ func (b *BinanceUserRepo) GetUserByAddress(address string) (*biz.LhBinanceUser, 
 	}, nil
 }
 
+// GetUserByApiKeyAndApiSecret .
+func (b *BinanceUserRepo) GetUserByApiKeyAndApiSecret(key string, secret string) (*biz.LhBinanceUser, error) {
+	var lhBinanceUser *LhBinanceUser
+	if err := b.data.db.Table("lh_binance_user").Where("api_key=? or api_secret=?", key, secret).First(&lhBinanceUser).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ERROR", err.Error())
+	}
+
+	return &biz.LhBinanceUser{
+		ID:        lhBinanceUser.ID,
+		Address:   lhBinanceUser.Address,
+		ApiKey:    lhBinanceUser.ApiKey,
+		ApiSecret: lhBinanceUser.ApiSecret,
+	}, nil
+}
+
 // GetUserApiErrByUserId .
 func (b *BinanceUserRepo) GetUserApiErrByUserId(userId uint64) (*biz.LhBinanceUserApiError, error) {
 	var lhBinanceUserApiError *LhBinanceUserApiError

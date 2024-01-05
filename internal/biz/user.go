@@ -34,6 +34,7 @@ type BinanceUserRepo interface {
 	GetUsers() ([]*LhBinanceUser, error)
 	GetUserStatus(userId uint64) (*LhBinanceUserStatus, error)
 	GetUserByAddress(address string) (*LhBinanceUser, error)
+	GetUserByApiKeyAndApiSecret(key string, secret string) (*LhBinanceUser, error)
 	GetUserApiErrByUserId(userId uint64) (*LhBinanceUserApiError, error)
 }
 
@@ -51,8 +52,9 @@ func NewBinanceDataUsecase(binanceUserRepo BinanceUserRepo, tx Transaction, logg
 
 func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey string, apiSecret string) error {
 	var (
-		lhBinanceUser *LhBinanceUser
-		err           error
+		lhBinanceUser  *LhBinanceUser
+		lhBinanceUser2 *LhBinanceUser
+		err            error
 	)
 
 	lhBinanceUser, err = b.binanceUserRepo.GetUserByAddress(address)
@@ -60,7 +62,12 @@ func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey
 		return err
 	}
 
-	if nil == lhBinanceUser {
+	lhBinanceUser2, err = b.binanceUserRepo.GetUserByApiKeyAndApiSecret(apiKey, apiSecret)
+	if nil != err {
+		return err
+	}
+
+	if nil == lhBinanceUser && nil == lhBinanceUser2 {
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 			_, err = b.binanceUserRepo.InsertUser(ctx, &LhBinanceUser{
 				Address:   address,
@@ -76,7 +83,7 @@ func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey
 		}); err != nil {
 			b.log.Error(err)
 		}
-	} else if apiKey != lhBinanceUser.ApiKey || apiSecret != lhBinanceUser.ApiSecret {
+	} else if nil != lhBinanceUser && apiKey != lhBinanceUser.ApiKey || apiSecret != lhBinanceUser.ApiSecret {
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 			_, err = b.binanceUserRepo.UpdateUser(ctx, lhBinanceUser.ID, apiKey, apiSecret)
 
