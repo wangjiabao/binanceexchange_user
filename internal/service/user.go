@@ -167,6 +167,19 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 			//return usdtAmount, err
 		}
 
+		openStatus, err := instance.UserOpen(&bind.CallOpts{},
+			common.HexToAddress(address),
+			common.HexToAddress(addressToken),
+		)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if !openStatus {
+			break
+		}
+
 		bal, err := instance.UserMaxTime(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
