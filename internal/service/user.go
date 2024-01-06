@@ -283,7 +283,6 @@ func pullUsersBySystemRole() ([]string, error) {
 
 		for _, v := range addresses {
 			users = append(users, v.String())
-			fmt.Println(v)
 		}
 
 		break
