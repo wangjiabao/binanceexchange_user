@@ -145,6 +145,63 @@ func (b *BinanceUserService) PullUserStatus2(ctx context.Context, req *v1.PullUs
 	return b.buc.PullUserStatus(ctx, req)
 }
 
+func (b *BinanceUserService) PullUserStatus3(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
+	var (
+		err   error
+		users []*biz.LhBinanceUser
+	)
+	users, err = b.buc.GetUsers()
+	if nil != err {
+		fmt.Println(err)
+		return &v1.PullUserStatusReply{}, nil
+	}
+
+	for _, user := range users {
+		var (
+			res        float64
+			userStatus *biz.LhBinanceUserStatus
+		)
+		res, err = pullStakeUserInfo(user.Address, "0x0CA25ef27823356B314fBc57a32181f2A6a285e8") // ttdc新
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+
+		if res < 0 {
+			continue
+		}
+
+		userStatus, err = b.buc.GetUserStatus(user.ID)
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+
+		if 0 < res {
+			// open
+			if nil == userStatus {
+				_, err = b.buc.InsertUserStatus(ctx, user.ID, res)
+			} else if res > userStatus.BaseMoney || res < userStatus.BaseMoney {
+				_, err = b.buc.UpdateUserStatusOpen(ctx, user.ID, res)
+			}
+		} else {
+			// close
+			if nil == userStatus {
+				continue
+			}
+
+			_, err = b.buc.UpdateUserStatusClose(ctx, user.ID)
+		}
+
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+	}
+
+	return b.buc.PullUserStatus(ctx, req)
+}
+
 func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 	var (
 		usdtAmount float64 = -1
