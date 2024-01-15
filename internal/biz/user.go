@@ -3,7 +3,6 @@ package biz
 import (
 	v1 "binanceexchange_user/api/binanceexchange_user/v1"
 	"context"
-	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -68,7 +67,7 @@ func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey
 		return err
 	}
 
-	if nil == lhBinanceUser && nil == lhBinanceUser2 {
+	if nil == lhBinanceUser && nil == lhBinanceUser2 { // 地址和api信息都不存在
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 			_, err = b.binanceUserRepo.InsertUser(ctx, &LhBinanceUser{
 				Address:   address,
@@ -84,18 +83,21 @@ func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey
 		}); err != nil {
 			b.log.Error(err)
 		}
-	} else if nil != lhBinanceUser && (apiKey != lhBinanceUser.ApiKey || apiSecret != lhBinanceUser.ApiSecret) {
-		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-			_, err = b.binanceUserRepo.UpdateUser(ctx, lhBinanceUser.ID, apiKey, apiSecret)
+	} else if nil != lhBinanceUser { // 地址存在
+		if nil == lhBinanceUser2 || (lhBinanceUser2.ID == lhBinanceUser.ID) { // api不存在 或 地址和api指向相同ID(同一条记录)
+			if apiKey != lhBinanceUser.ApiKey || apiSecret != lhBinanceUser.ApiSecret { // api_key和api_secret发生了变化
+				if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+					_, err = b.binanceUserRepo.UpdateUser(ctx, lhBinanceUser.ID, apiKey, apiSecret)
 
-			if nil != err {
-				fmt.Println(lhBinanceUser.ID, apiKey, apiSecret)
-				return err
+					if nil != err {
+						return err
+					}
+
+					return nil
+				}); err != nil {
+					b.log.Error(err)
+				}
 			}
-
-			return nil
-		}); err != nil {
-			b.log.Error(err)
 		}
 	}
 
