@@ -104,64 +104,7 @@ func (b *BinanceUserService) PullUserStatus2(ctx context.Context, req *v1.PullUs
 			res        float64
 			userStatus *biz.LhBinanceUserStatus
 		)
-		res, err = pullStakeUserInfo(user.Address, "0xa935EA5445ab1A30AecD639978136DB755478165") // ttdc
-		if nil != err {
-			fmt.Println(err)
-			continue
-		}
-
-		if res < 0 {
-			continue
-		}
-
-		userStatus, err = b.buc.GetUserStatus(user.ID)
-		if nil != err {
-			fmt.Println(err)
-			continue
-		}
-
-		if 0 < res {
-			// open
-			if nil == userStatus {
-				_, err = b.buc.InsertUserStatus(ctx, user.ID, res)
-			} else if res > userStatus.BaseMoney || res < userStatus.BaseMoney {
-				_, err = b.buc.UpdateUserStatusOpen(ctx, user.ID, res)
-			}
-		} else {
-			// close
-			if nil == userStatus {
-				continue
-			}
-
-			_, err = b.buc.UpdateUserStatusClose(ctx, user.ID)
-		}
-
-		if nil != err {
-			fmt.Println(err)
-			continue
-		}
-	}
-
-	return b.buc.PullUserStatus(ctx, req)
-}
-
-func (b *BinanceUserService) PullUserStatus3(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
-	var (
-		err   error
-		users []*biz.LhBinanceUser
-	)
-	users, err = b.buc.GetUsers()
-	if nil != err {
-		fmt.Println(err)
-		return &v1.PullUserStatusReply{}, nil
-	}
-
-	for _, user := range users {
-		var (
-			res        float64
-			userStatus *biz.LhBinanceUserStatus
-		)
-		res, err = pullStakeUserInfo(user.Address, "0x0CA25ef27823356B314fBc57a32181f2A6a285e8") // ttdc新
+		res, err = pullStakeUserInfo(user.Address, "0x0CA25ef27823356B314fBc57a32181f2A6a285e8") // ttdc
 		if nil != err {
 			fmt.Println(err)
 			continue
@@ -224,18 +167,39 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 			//return usdtAmount, err
 		}
 
-		openStatus, err := instance.UserOpen(&bind.CallOpts{},
+		// 检测是否开启当前开启的
+		currentOpenToken, err := instance.UserCurrentOpen(
+			&bind.CallOpts{},
 			common.HexToAddress(address),
-			common.HexToAddress(addressToken),
 		)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		if !openStatus {
+		fmt.Println(currentOpenToken.String())
+		// 非认可代币
+		if "0xf6E73f9dF438Bf59D647812DD9506678Ccd07236" != currentOpenToken.String() && "0x0CA25ef27823356B314fBc57a32181f2A6a285e8" != currentOpenToken.String() {
+			return 0, nil
+		}
+
+		// 当前代币非本次查询的
+		if addressToken != currentOpenToken.String() {
 			break
 		}
+
+		//openStatus, err := instance.UserOpen(&bind.CallOpts{},
+		//	common.HexToAddress(address),
+		//	common.HexToAddress(addressToken),
+		//)
+		//if err != nil {
+		//	fmt.Println(err)
+		//	continue
+		//}
+		//
+		//if !openStatus {
+		//	break
+		//}
 
 		bal, err := instance.UserMaxTime(
 			&bind.CallOpts{},

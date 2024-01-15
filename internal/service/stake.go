@@ -30,7 +30,7 @@ var (
 
 // StakeMetaData contains all meta data concerning the Stake contract.
 var StakeMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"AccessControlBadConfirmation\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"neededRole\",\"type\":\"bytes32\"}],\"name\":\"AccessControlUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"close\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"burnTokenAmount\",\"type\":\"uint256\"}],\"name\":\"Close\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"usdtAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"open\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"usdtAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Open\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"callerConfirmation\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"add\",\"type\":\"bool\"}],\"name\":\"setToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"stake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"unStake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getTokens\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"updateTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userMaxTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userOpen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userOpenTokenRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userStakeAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userUsdtAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"AccessControlBadConfirmation\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"neededRole\",\"type\":\"bytes32\"}],\"name\":\"AccessControlUnauthorizedAccount\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"userMaxTime\",\"type\":\"uint256\"}],\"name\":\"closeCompleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"usdtAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"userMaxTime\",\"type\":\"uint256\"}],\"name\":\"openCompleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"userMaxTime\",\"type\":\"uint256\"}],\"name\":\"stakeCompleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"userMaxTime\",\"type\":\"uint256\"}],\"name\":\"unStakeCompleted\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"close\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getTokens\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"usdtAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token0\",\"type\":\"address\"}],\"name\":\"open\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"callerConfirmation\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"add\",\"type\":\"bool\"}],\"name\":\"setToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"stake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"unStake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"updateTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userCurrentOpen\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userMaxTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userOpen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userOpenTokenRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userStakeAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userUsdtAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // StakeABI is the input ABI used to generate the binding from.
@@ -365,6 +365,37 @@ func (_Stake *StakeCallerSession) UpdateTime(arg0 common.Address, arg1 common.Ad
 	return _Stake.Contract.UpdateTime(&_Stake.CallOpts, arg0, arg1)
 }
 
+// UserCurrentOpen is a free data retrieval call binding the contract method 0xe1098f14.
+//
+// Solidity: function userCurrentOpen(address ) view returns(address)
+func (_Stake *StakeCaller) UserCurrentOpen(opts *bind.CallOpts, arg0 common.Address) (common.Address, error) {
+	var out []interface{}
+	err := _Stake.contract.Call(opts, &out, "userCurrentOpen", arg0)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// UserCurrentOpen is a free data retrieval call binding the contract method 0xe1098f14.
+//
+// Solidity: function userCurrentOpen(address ) view returns(address)
+func (_Stake *StakeSession) UserCurrentOpen(arg0 common.Address) (common.Address, error) {
+	return _Stake.Contract.UserCurrentOpen(&_Stake.CallOpts, arg0)
+}
+
+// UserCurrentOpen is a free data retrieval call binding the contract method 0xe1098f14.
+//
+// Solidity: function userCurrentOpen(address ) view returns(address)
+func (_Stake *StakeCallerSession) UserCurrentOpen(arg0 common.Address) (common.Address, error) {
+	return _Stake.Contract.UserCurrentOpen(&_Stake.CallOpts, arg0)
+}
+
 // UserMaxTime is a free data retrieval call binding the contract method 0xf3f157e1.
 //
 // Solidity: function userMaxTime(address , address ) view returns(uint256)
@@ -562,25 +593,25 @@ func (_Stake *StakeTransactorSession) GrantRole(role [32]byte, account common.Ad
 	return _Stake.Contract.GrantRole(&_Stake.TransactOpts, role, account)
 }
 
-// Open is a paid mutator transaction binding the contract method 0x19bd950d.
+// Open is a paid mutator transaction binding the contract method 0x149e7cb9.
 //
-// Solidity: function open(uint256 usdtAmount, address token) returns()
-func (_Stake *StakeTransactor) Open(opts *bind.TransactOpts, usdtAmount *big.Int, token common.Address) (*types.Transaction, error) {
-	return _Stake.contract.Transact(opts, "open", usdtAmount, token)
+// Solidity: function open(uint256 usdtAmount, address token, address token0) returns()
+func (_Stake *StakeTransactor) Open(opts *bind.TransactOpts, usdtAmount *big.Int, token common.Address, token0 common.Address) (*types.Transaction, error) {
+	return _Stake.contract.Transact(opts, "open", usdtAmount, token, token0)
 }
 
-// Open is a paid mutator transaction binding the contract method 0x19bd950d.
+// Open is a paid mutator transaction binding the contract method 0x149e7cb9.
 //
-// Solidity: function open(uint256 usdtAmount, address token) returns()
-func (_Stake *StakeSession) Open(usdtAmount *big.Int, token common.Address) (*types.Transaction, error) {
-	return _Stake.Contract.Open(&_Stake.TransactOpts, usdtAmount, token)
+// Solidity: function open(uint256 usdtAmount, address token, address token0) returns()
+func (_Stake *StakeSession) Open(usdtAmount *big.Int, token common.Address, token0 common.Address) (*types.Transaction, error) {
+	return _Stake.Contract.Open(&_Stake.TransactOpts, usdtAmount, token, token0)
 }
 
-// Open is a paid mutator transaction binding the contract method 0x19bd950d.
+// Open is a paid mutator transaction binding the contract method 0x149e7cb9.
 //
-// Solidity: function open(uint256 usdtAmount, address token) returns()
-func (_Stake *StakeTransactorSession) Open(usdtAmount *big.Int, token common.Address) (*types.Transaction, error) {
-	return _Stake.Contract.Open(&_Stake.TransactOpts, usdtAmount, token)
+// Solidity: function open(uint256 usdtAmount, address token, address token0) returns()
+func (_Stake *StakeTransactorSession) Open(usdtAmount *big.Int, token common.Address, token0 common.Address) (*types.Transaction, error) {
+	return _Stake.Contract.Open(&_Stake.TransactOpts, usdtAmount, token, token0)
 }
 
 // RenounceRole is a paid mutator transaction binding the contract method 0x36568abe.
@@ -686,302 +717,6 @@ func (_Stake *StakeSession) UnStake(token common.Address, amount *big.Int) (*typ
 // Solidity: function unStake(address token, uint256 amount) returns()
 func (_Stake *StakeTransactorSession) UnStake(token common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _Stake.Contract.UnStake(&_Stake.TransactOpts, token, amount)
-}
-
-// StakeCloseIterator is returned from FilterClose and is used to iterate over the raw logs and unpacked data for Close events raised by the Stake contract.
-type StakeCloseIterator struct {
-	Event *StakeClose // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *StakeCloseIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(StakeClose)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(StakeClose)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *StakeCloseIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *StakeCloseIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// StakeClose represents a Close event raised by the Stake contract.
-type StakeClose struct {
-	Account         common.Address
-	Token           common.Address
-	Amount          *big.Int
-	Start           *big.Int
-	End             *big.Int
-	BurnTokenAmount *big.Int
-	Raw             types.Log // Blockchain specific contextual infos
-}
-
-// FilterClose is a free log retrieval operation binding the contract event 0x16c6b54deec0edb651071fe731b6562b31734855ec5673c9d9c20a205a0a7538.
-//
-// Solidity: event Close(address indexed account, address token, uint256 amount, uint256 start, uint256 end, uint256 burnTokenAmount)
-func (_Stake *StakeFilterer) FilterClose(opts *bind.FilterOpts, account []common.Address) (*StakeCloseIterator, error) {
-
-	var accountRule []interface{}
-	for _, accountItem := range account {
-		accountRule = append(accountRule, accountItem)
-	}
-
-	logs, sub, err := _Stake.contract.FilterLogs(opts, "Close", accountRule)
-	if err != nil {
-		return nil, err
-	}
-	return &StakeCloseIterator{contract: _Stake.contract, event: "Close", logs: logs, sub: sub}, nil
-}
-
-// WatchClose is a free log subscription operation binding the contract event 0x16c6b54deec0edb651071fe731b6562b31734855ec5673c9d9c20a205a0a7538.
-//
-// Solidity: event Close(address indexed account, address token, uint256 amount, uint256 start, uint256 end, uint256 burnTokenAmount)
-func (_Stake *StakeFilterer) WatchClose(opts *bind.WatchOpts, sink chan<- *StakeClose, account []common.Address) (event.Subscription, error) {
-
-	var accountRule []interface{}
-	for _, accountItem := range account {
-		accountRule = append(accountRule, accountItem)
-	}
-
-	logs, sub, err := _Stake.contract.WatchLogs(opts, "Close", accountRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(StakeClose)
-				if err := _Stake.contract.UnpackLog(event, "Close", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseClose is a log parse operation binding the contract event 0x16c6b54deec0edb651071fe731b6562b31734855ec5673c9d9c20a205a0a7538.
-//
-// Solidity: event Close(address indexed account, address token, uint256 amount, uint256 start, uint256 end, uint256 burnTokenAmount)
-func (_Stake *StakeFilterer) ParseClose(log types.Log) (*StakeClose, error) {
-	event := new(StakeClose)
-	if err := _Stake.contract.UnpackLog(event, "Close", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// StakeOpenIterator is returned from FilterOpen and is used to iterate over the raw logs and unpacked data for Open events raised by the Stake contract.
-type StakeOpenIterator struct {
-	Event *StakeOpen // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *StakeOpenIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(StakeOpen)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(StakeOpen)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *StakeOpenIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *StakeOpenIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// StakeOpen represents a Open event raised by the Stake contract.
-type StakeOpen struct {
-	Account    common.Address
-	Token      common.Address
-	UsdtAmount *big.Int
-	Amount     *big.Int
-	Raw        types.Log // Blockchain specific contextual infos
-}
-
-// FilterOpen is a free log retrieval operation binding the contract event 0xb9aba9f4d62bd39b7bb05295d6a99344107c7583361bc94361f27b84d6ac54d9.
-//
-// Solidity: event Open(address indexed account, address token, uint256 usdtAmount, uint256 amount)
-func (_Stake *StakeFilterer) FilterOpen(opts *bind.FilterOpts, account []common.Address) (*StakeOpenIterator, error) {
-
-	var accountRule []interface{}
-	for _, accountItem := range account {
-		accountRule = append(accountRule, accountItem)
-	}
-
-	logs, sub, err := _Stake.contract.FilterLogs(opts, "Open", accountRule)
-	if err != nil {
-		return nil, err
-	}
-	return &StakeOpenIterator{contract: _Stake.contract, event: "Open", logs: logs, sub: sub}, nil
-}
-
-// WatchOpen is a free log subscription operation binding the contract event 0xb9aba9f4d62bd39b7bb05295d6a99344107c7583361bc94361f27b84d6ac54d9.
-//
-// Solidity: event Open(address indexed account, address token, uint256 usdtAmount, uint256 amount)
-func (_Stake *StakeFilterer) WatchOpen(opts *bind.WatchOpts, sink chan<- *StakeOpen, account []common.Address) (event.Subscription, error) {
-
-	var accountRule []interface{}
-	for _, accountItem := range account {
-		accountRule = append(accountRule, accountItem)
-	}
-
-	logs, sub, err := _Stake.contract.WatchLogs(opts, "Open", accountRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(StakeOpen)
-				if err := _Stake.contract.UnpackLog(event, "Open", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseOpen is a log parse operation binding the contract event 0xb9aba9f4d62bd39b7bb05295d6a99344107c7583361bc94361f27b84d6ac54d9.
-//
-// Solidity: event Open(address indexed account, address token, uint256 usdtAmount, uint256 amount)
-func (_Stake *StakeFilterer) ParseOpen(log types.Log) (*StakeOpen, error) {
-	event := new(StakeOpen)
-	if err := _Stake.contract.UnpackLog(event, "Open", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
 }
 
 // StakeRoleAdminChangedIterator is returned from FilterRoleAdminChanged and is used to iterate over the raw logs and unpacked data for RoleAdminChanged events raised by the Stake contract.
@@ -1464,6 +1199,594 @@ func (_Stake *StakeFilterer) WatchRoleRevoked(opts *bind.WatchOpts, sink chan<- 
 func (_Stake *StakeFilterer) ParseRoleRevoked(log types.Log) (*StakeRoleRevoked, error) {
 	event := new(StakeRoleRevoked)
 	if err := _Stake.contract.UnpackLog(event, "RoleRevoked", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// StakeCloseCompletedIterator is returned from FilterCloseCompleted and is used to iterate over the raw logs and unpacked data for CloseCompleted events raised by the Stake contract.
+type StakeCloseCompletedIterator struct {
+	Event *StakeCloseCompleted // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *StakeCloseCompletedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(StakeCloseCompleted)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(StakeCloseCompleted)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *StakeCloseCompletedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *StakeCloseCompletedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// StakeCloseCompleted represents a CloseCompleted event raised by the Stake contract.
+type StakeCloseCompleted struct {
+	Account     common.Address
+	Token       common.Address
+	UserMaxTime *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterCloseCompleted is a free log retrieval operation binding the contract event 0xea0d9b8d6dd79197e355e14c6cad606ca1a03a643fcb79d7b0562349d98b40b1.
+//
+// Solidity: event closeCompleted(address indexed account, address token, uint256 userMaxTime)
+func (_Stake *StakeFilterer) FilterCloseCompleted(opts *bind.FilterOpts, account []common.Address) (*StakeCloseCompletedIterator, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.FilterLogs(opts, "closeCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return &StakeCloseCompletedIterator{contract: _Stake.contract, event: "closeCompleted", logs: logs, sub: sub}, nil
+}
+
+// WatchCloseCompleted is a free log subscription operation binding the contract event 0xea0d9b8d6dd79197e355e14c6cad606ca1a03a643fcb79d7b0562349d98b40b1.
+//
+// Solidity: event closeCompleted(address indexed account, address token, uint256 userMaxTime)
+func (_Stake *StakeFilterer) WatchCloseCompleted(opts *bind.WatchOpts, sink chan<- *StakeCloseCompleted, account []common.Address) (event.Subscription, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.WatchLogs(opts, "closeCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(StakeCloseCompleted)
+				if err := _Stake.contract.UnpackLog(event, "closeCompleted", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseCloseCompleted is a log parse operation binding the contract event 0xea0d9b8d6dd79197e355e14c6cad606ca1a03a643fcb79d7b0562349d98b40b1.
+//
+// Solidity: event closeCompleted(address indexed account, address token, uint256 userMaxTime)
+func (_Stake *StakeFilterer) ParseCloseCompleted(log types.Log) (*StakeCloseCompleted, error) {
+	event := new(StakeCloseCompleted)
+	if err := _Stake.contract.UnpackLog(event, "closeCompleted", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// StakeOpenCompletedIterator is returned from FilterOpenCompleted and is used to iterate over the raw logs and unpacked data for OpenCompleted events raised by the Stake contract.
+type StakeOpenCompletedIterator struct {
+	Event *StakeOpenCompleted // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *StakeOpenCompletedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(StakeOpenCompleted)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(StakeOpenCompleted)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *StakeOpenCompletedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *StakeOpenCompletedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// StakeOpenCompleted represents a OpenCompleted event raised by the Stake contract.
+type StakeOpenCompleted struct {
+	Account     common.Address
+	Token       common.Address
+	Token0      common.Address
+	UsdtAmount  *big.Int
+	UserMaxTime *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterOpenCompleted is a free log retrieval operation binding the contract event 0x26f26478175d93f68a0289cff1e2e3d1d4969d3eaf5bd0421a215764c1a7267b.
+//
+// Solidity: event openCompleted(address indexed account, address token, address token0, uint256 usdtAmount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) FilterOpenCompleted(opts *bind.FilterOpts, account []common.Address) (*StakeOpenCompletedIterator, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.FilterLogs(opts, "openCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return &StakeOpenCompletedIterator{contract: _Stake.contract, event: "openCompleted", logs: logs, sub: sub}, nil
+}
+
+// WatchOpenCompleted is a free log subscription operation binding the contract event 0x26f26478175d93f68a0289cff1e2e3d1d4969d3eaf5bd0421a215764c1a7267b.
+//
+// Solidity: event openCompleted(address indexed account, address token, address token0, uint256 usdtAmount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) WatchOpenCompleted(opts *bind.WatchOpts, sink chan<- *StakeOpenCompleted, account []common.Address) (event.Subscription, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.WatchLogs(opts, "openCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(StakeOpenCompleted)
+				if err := _Stake.contract.UnpackLog(event, "openCompleted", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOpenCompleted is a log parse operation binding the contract event 0x26f26478175d93f68a0289cff1e2e3d1d4969d3eaf5bd0421a215764c1a7267b.
+//
+// Solidity: event openCompleted(address indexed account, address token, address token0, uint256 usdtAmount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) ParseOpenCompleted(log types.Log) (*StakeOpenCompleted, error) {
+	event := new(StakeOpenCompleted)
+	if err := _Stake.contract.UnpackLog(event, "openCompleted", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// StakeStakeCompletedIterator is returned from FilterStakeCompleted and is used to iterate over the raw logs and unpacked data for StakeCompleted events raised by the Stake contract.
+type StakeStakeCompletedIterator struct {
+	Event *StakeStakeCompleted // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *StakeStakeCompletedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(StakeStakeCompleted)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(StakeStakeCompleted)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *StakeStakeCompletedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *StakeStakeCompletedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// StakeStakeCompleted represents a StakeCompleted event raised by the Stake contract.
+type StakeStakeCompleted struct {
+	Account     common.Address
+	Token       common.Address
+	Amount      *big.Int
+	UserMaxTime *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterStakeCompleted is a free log retrieval operation binding the contract event 0x58db6d2d7fa2d53531c6c5b4b677cafec910a8436671b93c2a86ca08c3f279db.
+//
+// Solidity: event stakeCompleted(address indexed account, address token, uint256 amount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) FilterStakeCompleted(opts *bind.FilterOpts, account []common.Address) (*StakeStakeCompletedIterator, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.FilterLogs(opts, "stakeCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return &StakeStakeCompletedIterator{contract: _Stake.contract, event: "stakeCompleted", logs: logs, sub: sub}, nil
+}
+
+// WatchStakeCompleted is a free log subscription operation binding the contract event 0x58db6d2d7fa2d53531c6c5b4b677cafec910a8436671b93c2a86ca08c3f279db.
+//
+// Solidity: event stakeCompleted(address indexed account, address token, uint256 amount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) WatchStakeCompleted(opts *bind.WatchOpts, sink chan<- *StakeStakeCompleted, account []common.Address) (event.Subscription, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.WatchLogs(opts, "stakeCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(StakeStakeCompleted)
+				if err := _Stake.contract.UnpackLog(event, "stakeCompleted", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseStakeCompleted is a log parse operation binding the contract event 0x58db6d2d7fa2d53531c6c5b4b677cafec910a8436671b93c2a86ca08c3f279db.
+//
+// Solidity: event stakeCompleted(address indexed account, address token, uint256 amount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) ParseStakeCompleted(log types.Log) (*StakeStakeCompleted, error) {
+	event := new(StakeStakeCompleted)
+	if err := _Stake.contract.UnpackLog(event, "stakeCompleted", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// StakeUnStakeCompletedIterator is returned from FilterUnStakeCompleted and is used to iterate over the raw logs and unpacked data for UnStakeCompleted events raised by the Stake contract.
+type StakeUnStakeCompletedIterator struct {
+	Event *StakeUnStakeCompleted // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *StakeUnStakeCompletedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(StakeUnStakeCompleted)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(StakeUnStakeCompleted)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *StakeUnStakeCompletedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *StakeUnStakeCompletedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// StakeUnStakeCompleted represents a UnStakeCompleted event raised by the Stake contract.
+type StakeUnStakeCompleted struct {
+	Account     common.Address
+	Token       common.Address
+	Amount      *big.Int
+	UserMaxTime *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterUnStakeCompleted is a free log retrieval operation binding the contract event 0x8134d1e198731ab72ca96a08bf2f01171b8ea827a660dc7eb04c3dad75edbd1b.
+//
+// Solidity: event unStakeCompleted(address indexed account, address token, uint256 amount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) FilterUnStakeCompleted(opts *bind.FilterOpts, account []common.Address) (*StakeUnStakeCompletedIterator, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.FilterLogs(opts, "unStakeCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return &StakeUnStakeCompletedIterator{contract: _Stake.contract, event: "unStakeCompleted", logs: logs, sub: sub}, nil
+}
+
+// WatchUnStakeCompleted is a free log subscription operation binding the contract event 0x8134d1e198731ab72ca96a08bf2f01171b8ea827a660dc7eb04c3dad75edbd1b.
+//
+// Solidity: event unStakeCompleted(address indexed account, address token, uint256 amount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) WatchUnStakeCompleted(opts *bind.WatchOpts, sink chan<- *StakeUnStakeCompleted, account []common.Address) (event.Subscription, error) {
+
+	var accountRule []interface{}
+	for _, accountItem := range account {
+		accountRule = append(accountRule, accountItem)
+	}
+
+	logs, sub, err := _Stake.contract.WatchLogs(opts, "unStakeCompleted", accountRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(StakeUnStakeCompleted)
+				if err := _Stake.contract.UnpackLog(event, "unStakeCompleted", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseUnStakeCompleted is a log parse operation binding the contract event 0x8134d1e198731ab72ca96a08bf2f01171b8ea827a660dc7eb04c3dad75edbd1b.
+//
+// Solidity: event unStakeCompleted(address indexed account, address token, uint256 amount, uint256 userMaxTime)
+func (_Stake *StakeFilterer) ParseUnStakeCompleted(log types.Log) (*StakeUnStakeCompleted, error) {
+	event := new(StakeUnStakeCompleted)
+	if err := _Stake.contract.UnpackLog(event, "unStakeCompleted", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
