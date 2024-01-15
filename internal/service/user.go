@@ -177,7 +177,6 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 			continue
 		}
 
-		fmt.Println(currentOpenToken.String())
 		// 非认可代币
 		if "0xf6E73f9dF438Bf59D647812DD9506678Ccd07236" != currentOpenToken.String() && "0x0CA25ef27823356B314fBc57a32181f2A6a285e8" != currentOpenToken.String() {
 			return 0, nil
@@ -187,19 +186,6 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 		if addressToken != currentOpenToken.String() {
 			break
 		}
-
-		//openStatus, err := instance.UserOpen(&bind.CallOpts{},
-		//	common.HexToAddress(address),
-		//	common.HexToAddress(addressToken),
-		//)
-		//if err != nil {
-		//	fmt.Println(err)
-		//	continue
-		//}
-		//
-		//if !openStatus {
-		//	break
-		//}
 
 		bal, err := instance.UserMaxTime(
 			&bind.CallOpts{},

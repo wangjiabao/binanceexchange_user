@@ -3,6 +3,7 @@ package biz
 import (
 	v1 "binanceexchange_user/api/binanceexchange_user/v1"
 	"context"
+	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -88,6 +89,7 @@ func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey
 			_, err = b.binanceUserRepo.UpdateUser(ctx, lhBinanceUser.ID, apiKey, apiSecret)
 
 			if nil != err {
+				fmt.Println(lhBinanceUser.ID, apiKey, apiSecret)
 				return err
 			}
 

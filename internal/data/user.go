@@ -62,7 +62,7 @@ func (b *BinanceUserRepo) UpdateUser(ctx context.Context, userId uint64, apiKey 
 
 	if err = b.data.DB(ctx).Table("lh_binance_user").Where("id=?", userId).
 		Updates(map[string]interface{}{"api_key": apiKey, "api_secret": apiSecret}).Error; nil != err {
-		return false, errors.NotFound("", "UPDATE_BINANCE_USER_STATUS_ERROR")
+		return false, errors.NotFound("", "UPDATE_BINANCE_USER_INFO_ERROR")
 	}
 
 	return true, nil
