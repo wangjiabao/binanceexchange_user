@@ -26,12 +26,6 @@ service BinanceUser {
     };
   };
 
-  rpc PullUserStatus2 (PullUserStatusRequest) returns (PullUserStatusReply) {
-    option (google.api.http) = {
-      get: "/api/binanceexchange_user/pull_user_status_2"
-    };
-  };
-
   rpc PullUserCredentialsBsc (PullUserCredentialsBscRequest) returns (PullUserCredentialsBscReply) {
     option (google.api.http) = {
       get: "/api/binanceexchange_user/pull_user_credentials_bsc"

@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"math/big"
 	"time"
 )
 
@@ -47,92 +48,55 @@ func (b *BinanceUserService) PullUserStatus(ctx context.Context, req *v1.PullUse
 			res        float64
 			userStatus *biz.LhBinanceUserStatus
 		)
+
+		userStatus, err = b.buc.GetUserStatus(user.ID)
+		if nil != err {
+			fmt.Println(err)
+			continue
+		}
+
+		// 代币1
 		res, err = pullStakeUserInfo(user.Address, "0xf6E73f9dF438Bf59D647812DD9506678Ccd07236") // tdc
-		if nil != err {
+		if nil != err {                                                                          // 本次查询异常
 			fmt.Println(err)
 			continue
 		}
 
+		// 代币1未开启 检查代币2
 		if res < 0 {
-			continue
-		}
+			res, err = pullStakeUserInfo(user.Address, "0x0CA25ef27823356B314fBc57a32181f2A6a285e8") // ttdc
+			if nil != err {                                                                          // 本次查询异常
+				fmt.Println(err)
+				continue
+			}
 
-		userStatus, err = b.buc.GetUserStatus(user.ID)
-		if nil != err {
-			fmt.Println(err)
-			continue
+			// 代币2也未开启
+			if res < 0 {
+				if nil != userStatus && "open" == userStatus.Status {
+					fmt.Println("all close", user)
+					_, err = b.buc.UpdateUserStatusClose(ctx, user.ID)
+				}
+			}
 		}
 
 		if 0 < res {
 			// open
 			if nil == userStatus {
 				_, err = b.buc.InsertUserStatus(ctx, user.ID, res)
-			} else if res > userStatus.BaseMoney || res < userStatus.BaseMoney {
+			} else if "close" == userStatus.Status || res > userStatus.BaseMoney || res < userStatus.BaseMoney {
 				_, err = b.buc.UpdateUserStatusOpen(ctx, user.ID, res)
 			}
-		} else {
+		} else if 0 == res {
 			// close
 			if nil == userStatus {
 				continue
 			}
 
-			_, err = b.buc.UpdateUserStatusClose(ctx, user.ID)
-		}
-
-		if nil != err {
-			fmt.Println(err)
-			continue
-		}
-	}
-
-	return b.buc.PullUserStatus(ctx, req)
-}
-
-func (b *BinanceUserService) PullUserStatus2(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
-	var (
-		err   error
-		users []*biz.LhBinanceUser
-	)
-	users, err = b.buc.GetUsers()
-	if nil != err {
-		fmt.Println(err)
-		return &v1.PullUserStatusReply{}, nil
-	}
-
-	for _, user := range users {
-		var (
-			res        float64
-			userStatus *biz.LhBinanceUserStatus
-		)
-		res, err = pullStakeUserInfo(user.Address, "0x0CA25ef27823356B314fBc57a32181f2A6a285e8") // ttdc
-		if nil != err {
-			fmt.Println(err)
-			continue
-		}
-
-		if res < 0 {
-			continue
-		}
-
-		userStatus, err = b.buc.GetUserStatus(user.ID)
-		if nil != err {
-			fmt.Println(err)
-			continue
-		}
-
-		if 0 < res {
-			// open
-			if nil == userStatus {
-				_, err = b.buc.InsertUserStatus(ctx, user.ID, res)
-			} else if res > userStatus.BaseMoney || res < userStatus.BaseMoney {
-				_, err = b.buc.UpdateUserStatusOpen(ctx, user.ID, res)
-			}
-		} else {
-			// close
-			if nil == userStatus {
+			if "close" == userStatus.Status {
 				continue
 			}
 
+			fmt.Println("close")
 			_, err = b.buc.UpdateUserStatusClose(ctx, user.ID)
 		}
 
@@ -147,13 +111,17 @@ func (b *BinanceUserService) PullUserStatus2(ctx context.Context, req *v1.PullUs
 
 func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 	var (
-		usdtAmount float64 = -1
+		usdtAmount       float64 = -1
+		err              error
+		client           *ethclient.Client
+		instance         *Stake
+		currentOpenToken common.Address
 	)
 
 	url1 := "https://bsc-dataseed4.binance.org/"
 
 	for i := 0; i < 5; i++ {
-		client, err := ethclient.Dial(url1)
+		client, err = ethclient.Dial(url1)
 		if err != nil {
 			url1 = "https://bsc-dataseed1.bnbchain.org"
 			continue
@@ -161,14 +129,14 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 		}
 
 		tokenAddress := common.HexToAddress("0x02226c139F83425CE0ac9EC1611Bf1728B99D4cF")
-		instance, err := NewStake(tokenAddress, client)
+		instance, err = NewStake(tokenAddress, client)
 		if err != nil {
 			continue
 			//return usdtAmount, err
 		}
 
 		// 检测是否开启当前开启的
-		currentOpenToken, err := instance.UserCurrentOpen(
+		currentOpenToken, err = instance.UserCurrentOpen(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
 		)
@@ -187,7 +155,8 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 			break
 		}
 
-		bal, err := instance.UserMaxTime(
+		var bal *big.Int
+		bal, err = instance.UserMaxTime(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
 			common.HexToAddress(addressToken),
@@ -204,7 +173,8 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 			return 0, nil
 		}
 
-		bal2, err := instance.UserUsdtAmount(
+		var bal2 *big.Int
+		bal2, err = instance.UserUsdtAmount(
 			&bind.CallOpts{},
 			common.HexToAddress(address),
 			common.HexToAddress(addressToken),
@@ -219,7 +189,7 @@ func pullStakeUserInfo(address string, addressToken string) (float64, error) {
 		break
 	}
 
-	return usdtAmount, nil
+	return usdtAmount, err
 }
 
 func (b *BinanceUserService) PullUserCredentialsBsc(ctx context.Context, req *v1.PullUserCredentialsBscRequest) (*v1.PullUserCredentialsBscReply, error) {
