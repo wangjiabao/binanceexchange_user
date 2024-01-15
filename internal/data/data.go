@@ -76,7 +76,7 @@ func NewDB(c *conf.Data) *gorm.DB {
 		logger.Config{
 			SlowThreshold:             time.Second, // 慢查询 SQL 阈值
 			Colorful:                  true,        // 禁用彩色打印
-			IgnoreRecordNotFoundError: false,
+			IgnoreRecordNotFoundError: true,
 			LogLevel:                  logger.Error, // Log lever
 		},
 	)
@@ -84,7 +84,7 @@ func NewDB(c *conf.Data) *gorm.DB {
 	db, err := gorm.Open(mysql.Open(c.Database.Source), &gorm.Config{
 		Logger:                                   newLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
-		NamingStrategy: schema.NamingStrategy{
+		NamingStrategy:                           schema.NamingStrategy{
 			//SingularTable: true, // 表名是否加 s
 		},
 	})
