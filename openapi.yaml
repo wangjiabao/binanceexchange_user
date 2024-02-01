@@ -47,42 +47,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/binanceexchange_user/pull_user_status:
+    /api/binanceexchange_user/pull_user_deposit:
         get:
             tags:
                 - BinanceUser
-            operationId: BinanceUser_PullUserStatus
+            operationId: BinanceUser_PullUserDeposit
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/PullUserStatusReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/binanceexchange_user/set_user:
-        post:
-            tags:
-                - BinanceUser
-            operationId: BinanceUser_SetUser
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/SetUserRequest_SendBody'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/SetUserReply'
+                                $ref: '#/components/schemas/PullUserDepositReply'
                 default:
                     description: Default error response
                     content:
@@ -107,21 +83,9 @@ components:
         PullUserCredentialsBscReply:
             type: object
             properties: {}
-        PullUserStatusReply:
+        PullUserDepositReply:
             type: object
             properties: {}
-        SetUserReply:
-            type: object
-            properties: {}
-        SetUserRequest_SendBody:
-            type: object
-            properties:
-                address:
-                    type: string
-                apikey:
-                    type: string
-                apisecret:
-                    type: string
         Status:
             type: object
             properties:

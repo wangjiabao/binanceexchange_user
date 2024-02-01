@@ -7,22 +7,15 @@ option java_multiple_files = true;
 option java_package = "api.binancedata.v1";
 
 service BinanceUser {
-  rpc SetUser (SetUserRequest) returns (SetUserReply) {
-    option (google.api.http) = {
-      post: "/api/binanceexchange_user/set_user"
-      body: "send_body"
-    };
-  };
-
   rpc GetUser (GetUserRequest) returns (GetUserReply) {
     option (google.api.http) = {
       get: "/api/binanceexchange_user/get_user"
     };
   };
 
-  rpc PullUserStatus (PullUserStatusRequest) returns (PullUserStatusReply) {
+  rpc PullUserDeposit (PullUserDepositRequest) returns (PullUserDepositReply) {
     option (google.api.http) = {
-      get: "/api/binanceexchange_user/pull_user_status"
+      get: "/api/binanceexchange_user/pull_user_deposit"
     };
   };
 
@@ -45,8 +38,6 @@ message SetUserRequest {
 
 message SetUserReply {}
 
-message PullUserStatusRequest {}
-
 message GetUserRequest {
   string address = 1;
 }
@@ -55,7 +46,9 @@ message GetUserReply {
   string status = 1;
 }
 
-message PullUserStatusReply {}
+message PullUserDepositRequest {}
+
+message PullUserDepositReply {}
 
 message PullUserCredentialsBscRequest {}
 

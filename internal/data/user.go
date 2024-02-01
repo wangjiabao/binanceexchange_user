@@ -6,26 +6,34 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"time"
 )
 
-type LhBinanceUser struct {
-	ID        uint64 `gorm:"primarykey;type:int"`
-	Address   string `gorm:"type:varchar(200)"`
-	ApiKey    string `gorm:"type:varchar(200)"`
-	ApiSecret string `gorm:"type:varchar(200)"`
+type User struct {
+	ID        uint64    `gorm:"primarykey;type:int"`
+	Address   string    `gorm:"type:varchar(100)"`
+	ApiKey    string    `gorm:"type:varchar(200)"`
+	ApiSecret string    `gorm:"type:varchar(200)"`
+	CreatedAt time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
 
-type LhBinanceUserStatus struct {
-	ID        uint64  `gorm:"primarykey;type:int"`
-	UserId    uint64  `gorm:"type:int;not null"`
-	Status    string  `gorm:"type:varchar(200)"`
-	BaseMoney float64 `gorm:"type:decimal(65,20);not null"`
+type UserBalance struct {
+	ID        uint64    `gorm:"primarykey;type:int"`
+	UserId    uint64    `gorm:"type:int;not null"`
+	Balance   string    `gorm:"type:varchar(100)"`
+	CreatedAt time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
 
-type LhBinanceUserApiError struct {
-	ID     uint64 `gorm:"primarykey;type:int"`
-	UserId uint64 `gorm:"type:int;not null"`
-	Msg    string `gorm:"type:varchar(200)"`
+type UserBalanceRecord struct {
+	ID        uint64    `gorm:"primarykey;type:int"`
+	UserId    uint64    `gorm:"type:int;not null"`
+	Amount    string    `gorm:"type:varchar(100)"`
+	Balance   string    `gorm:"type:varchar(100)"`
+	tx        string    `gorm:"type:varchar(100)"`
+	CreatedAt time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
 
 type BinanceUserRepo struct {
@@ -41,65 +49,92 @@ func NewBinanceUserRepo(data *Data, logger log.Logger) biz.BinanceUserRepo {
 }
 
 // InsertUser .
-func (b *BinanceUserRepo) InsertUser(ctx context.Context, lhBinanceUser *biz.LhBinanceUser) (bool, error) {
-	insertLhBinanceUser := &LhBinanceUser{
-		Address:   lhBinanceUser.Address,
-		ApiKey:    lhBinanceUser.ApiKey,
-		ApiSecret: lhBinanceUser.ApiSecret,
+func (b *BinanceUserRepo) InsertUser(ctx context.Context, user *biz.User) (*biz.User, error) {
+	insertUser := &User{
+		Address: user.Address,
 	}
 
-	res := b.data.DB(ctx).Table("lh_binance_user").Create(&insertLhBinanceUser)
+	res := b.data.DB(ctx).Table("user").Create(&insertUser)
 	if res.Error != nil {
-		return false, errors.New(500, "CREATE_BINANCE_USER_ERROR", "创建数据失败")
+		return nil, errors.New(500, "CREATE_USER_ERROR", "创建数据失败")
 	}
 
-	return true, nil
+	return &biz.User{
+		ID:        insertUser.ID,
+		Address:   insertUser.Address,
+		ApiKey:    insertUser.ApiKey,
+		ApiSecret: insertUser.ApiSecret,
+		CreatedAt: insertUser.CreatedAt,
+		UpdatedAt: insertUser.UpdatedAt,
+	}, nil
 }
 
 // UpdateUser .
 func (b *BinanceUserRepo) UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error) {
-	var err error
+	var (
+		err error
+		now = time.Now()
+	)
 
-	if err = b.data.DB(ctx).Table("lh_binance_user").Where("id=?", userId).
-		Updates(map[string]interface{}{"api_key": apiKey, "api_secret": apiSecret}).Error; nil != err {
-		return false, errors.NotFound("", "UPDATE_BINANCE_USER_INFO_ERROR")
+	if err = b.data.DB(ctx).Table("user").Where("id=?", userId).
+		Updates(map[string]interface{}{"api_key": apiKey, "api_secret": apiSecret, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_ERROR", "UPDATE_USER_ERROR")
 	}
 
 	return true, nil
 }
 
-// InsertUserStatus .
-func (b *BinanceUserRepo) InsertUserStatus(ctx context.Context, lhBinanceUserStatus *biz.LhBinanceUserStatus) (bool, error) {
-	insertLhBinanceUserStatus := &LhBinanceUserStatus{
-		UserId:    lhBinanceUserStatus.UserId,
-		Status:    "open",
-		BaseMoney: lhBinanceUserStatus.BaseMoney,
+// InsertUserBalance .
+func (b *BinanceUserRepo) InsertUserBalance(ctx context.Context, userBalance *biz.UserBalance) (bool, error) {
+	insertUserBalance := &UserBalance{
+		UserId:  userBalance.UserId,
+		Balance: userBalance.Balance,
 	}
 
-	res := b.data.DB(ctx).Table("lh_binance_user_status").Create(&insertLhBinanceUserStatus)
+	res := b.data.DB(ctx).Table("user_balance").Create(&insertUserBalance)
 	if res.Error != nil {
-		return false, errors.New(500, "CREATE_BINANCE_USER_STATUS_ERROR", "创建数据失败")
+		return false, errors.New(500, "CREATE_USER_BALANCE_ERROR", "创建数据失败")
 	}
 
 	return true, nil
 }
 
-// UpdatesUserStatus .
-func (b *BinanceUserRepo) UpdatesUserStatus(ctx context.Context, userId uint64, baseMoney float64, status string) (bool, error) {
-	var err error
+// InsertUserBalanceRecord .
+func (b *BinanceUserRepo) InsertUserBalanceRecord(ctx context.Context, userBalanceRecord *biz.UserBalanceRecord) (bool, error) {
+	insertUserBalanceRecord := &UserBalanceRecord{
+		UserId:  userBalanceRecord.UserId,
+		Amount:  userBalanceRecord.Amount,
+		Balance: userBalanceRecord.Balance,
+		tx:      userBalanceRecord.Tx,
+	}
 
-	if err = b.data.DB(ctx).Table("lh_binance_user_status").Where("user_id=?", userId).
-		Updates(map[string]interface{}{"status": status, "base_money": baseMoney}).Error; nil != err {
-		return false, errors.NotFound("UPDATE_BINANCE_USER_STATUS_ERROR", "UPDATE_BINANCE_USER_STATUS_ERROR")
+	res := b.data.DB(ctx).Table("user_balance_record").Create(&insertUserBalanceRecord)
+	if res.Error != nil {
+		return false, errors.New(500, "CREATE_USER_BALANCE_RECORD_ERROR", "创建数据失败")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserBalance .
+func (b *BinanceUserRepo) UpdatesUserBalance(ctx context.Context, userId uint64, balance string) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_balance").Where("user_id=?", userId).
+		Updates(map[string]interface{}{"balance": balance, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BALANCE_ERROR", "UPDATE_USER_BALANCE_ERROR")
 	}
 
 	return true, nil
 }
 
 // GetUsers .
-func (b *BinanceUserRepo) GetUsers() ([]*biz.LhBinanceUser, error) {
-	var lhBinanceUser []*LhBinanceUser
-	if err := b.data.db.Table("lh_binance_user").Where("status<=?", 1).Find(&lhBinanceUser).Error; err != nil {
+func (b *BinanceUserRepo) GetUsers() ([]*biz.User, error) {
+	var users []*User
+	if err := b.data.db.Table("user").Find(&users).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -107,42 +142,25 @@ func (b *BinanceUserRepo) GetUsers() ([]*biz.LhBinanceUser, error) {
 		return nil, errors.New(500, "FIND_USER_ERROR", err.Error())
 	}
 
-	res := make([]*biz.LhBinanceUser, 0)
-	for _, v := range lhBinanceUser {
-		res = append(res, &biz.LhBinanceUser{
+	res := make([]*biz.User, 0)
+	for _, v := range users {
+		res = append(res, &biz.User{
 			ID:        v.ID,
 			Address:   v.Address,
 			ApiKey:    v.ApiKey,
 			ApiSecret: v.ApiSecret,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
 		})
 	}
 
 	return res, nil
 }
 
-// GetUserStatus .
-func (b *BinanceUserRepo) GetUserStatus(userId uint64) (*biz.LhBinanceUserStatus, error) {
-	var lhBinanceUserStatus *LhBinanceUserStatus
-	if err := b.data.db.Table("lh_binance_user_status").Where("user_id=?", userId).First(&lhBinanceUserStatus).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-
-		return nil, errors.New(500, "FIND_USER_STATUS_ERROR", err.Error())
-	}
-
-	return &biz.LhBinanceUserStatus{
-		ID:        lhBinanceUserStatus.ID,
-		UserId:    lhBinanceUserStatus.UserId,
-		Status:    lhBinanceUserStatus.Status,
-		BaseMoney: lhBinanceUserStatus.BaseMoney,
-	}, nil
-}
-
 // GetUserByAddress .
-func (b *BinanceUserRepo) GetUserByAddress(address string) (*biz.LhBinanceUser, error) {
-	var lhBinanceUser *LhBinanceUser
-	if err := b.data.db.Table("lh_binance_user").Where("address=?", address).First(&lhBinanceUser).Error; err != nil {
+func (b *BinanceUserRepo) GetUserByAddress(ctx context.Context, address string) (*biz.User, error) {
+	var user *User
+	if err := b.data.DB(ctx).Table("user").Where("address=?", address).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -150,18 +168,20 @@ func (b *BinanceUserRepo) GetUserByAddress(address string) (*biz.LhBinanceUser, 
 		return nil, errors.New(500, "FIND_USER_ERROR", err.Error())
 	}
 
-	return &biz.LhBinanceUser{
-		ID:        lhBinanceUser.ID,
-		Address:   lhBinanceUser.Address,
-		ApiKey:    lhBinanceUser.ApiKey,
-		ApiSecret: lhBinanceUser.ApiSecret,
+	return &biz.User{
+		ID:        user.ID,
+		Address:   user.Address,
+		ApiKey:    user.ApiKey,
+		ApiSecret: user.ApiSecret,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
 // GetUserByApiKeyAndApiSecret .
-func (b *BinanceUserRepo) GetUserByApiKeyAndApiSecret(key string, secret string) (*biz.LhBinanceUser, error) {
-	var lhBinanceUser *LhBinanceUser
-	if err := b.data.db.Table("lh_binance_user").Where("api_key=? or api_secret=?", key, secret).First(&lhBinanceUser).Error; err != nil {
+func (b *BinanceUserRepo) GetUserByApiKeyAndApiSecret(key string, secret string) (*biz.User, error) {
+	var user *User
+	if err := b.data.db.Table("user").Where("api_key=? or api_secret=?", key, secret).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -169,28 +189,32 @@ func (b *BinanceUserRepo) GetUserByApiKeyAndApiSecret(key string, secret string)
 		return nil, errors.New(500, "FIND_USER_ERROR", err.Error())
 	}
 
-	return &biz.LhBinanceUser{
-		ID:        lhBinanceUser.ID,
-		Address:   lhBinanceUser.Address,
-		ApiKey:    lhBinanceUser.ApiKey,
-		ApiSecret: lhBinanceUser.ApiSecret,
+	return &biz.User{
+		ID:        user.ID,
+		Address:   user.Address,
+		ApiKey:    user.ApiKey,
+		ApiSecret: user.ApiSecret,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
-// GetUserApiErrByUserId .
-func (b *BinanceUserRepo) GetUserApiErrByUserId(userId uint64) (*biz.LhBinanceUserApiError, error) {
-	var lhBinanceUserApiError *LhBinanceUserApiError
-	if err := b.data.db.Table("lh_binance_user_api_error").Where("user_id=?", userId).First(&lhBinanceUserApiError).Error; err != nil {
+// GetUserBalance .
+func (b *BinanceUserRepo) GetUserBalance(ctx context.Context, userId uint64) (*biz.UserBalance, error) {
+	var userBalance *UserBalance
+	if err := b.data.DB(ctx).Table("user_balance").Where("user_id=?", userId).First(&userBalance).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
-		return nil, errors.New(500, "FIND_USER_STATUS_ERROR", err.Error())
+		return nil, errors.New(500, "FIND_USER_BALANCE_ERROR", err.Error())
 	}
 
-	return &biz.LhBinanceUserApiError{
-		ID:     lhBinanceUserApiError.ID,
-		UserId: lhBinanceUserApiError.UserId,
-		Msg:    lhBinanceUserApiError.Msg,
+	return &biz.UserBalance{
+		ID:        userBalance.ID,
+		UserId:    userBalance.UserId,
+		Balance:   userBalance.Balance,
+		CreatedAt: userBalance.CreatedAt,
+		UpdatedAt: userBalance.UpdatedAt,
 	}, nil
 }

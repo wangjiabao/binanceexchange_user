@@ -19,9 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BinanceUser_SetUser_FullMethodName                = "/BinanceUser/SetUser"
 	BinanceUser_GetUser_FullMethodName                = "/BinanceUser/GetUser"
-	BinanceUser_PullUserStatus_FullMethodName         = "/BinanceUser/PullUserStatus"
+	BinanceUser_PullUserDeposit_FullMethodName        = "/BinanceUser/PullUserDeposit"
 	BinanceUser_PullUserCredentialsBsc_FullMethodName = "/BinanceUser/PullUserCredentialsBsc"
 )
 
@@ -29,9 +28,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BinanceUserClient interface {
-	SetUser(ctx context.Context, in *SetUserRequest, opts ...grpc.CallOption) (*SetUserReply, error)
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error)
-	PullUserStatus(ctx context.Context, in *PullUserStatusRequest, opts ...grpc.CallOption) (*PullUserStatusReply, error)
+	PullUserDeposit(ctx context.Context, in *PullUserDepositRequest, opts ...grpc.CallOption) (*PullUserDepositReply, error)
 	PullUserCredentialsBsc(ctx context.Context, in *PullUserCredentialsBscRequest, opts ...grpc.CallOption) (*PullUserCredentialsBscReply, error)
 }
 
@@ -43,15 +41,6 @@ func NewBinanceUserClient(cc grpc.ClientConnInterface) BinanceUserClient {
 	return &binanceUserClient{cc}
 }
 
-func (c *binanceUserClient) SetUser(ctx context.Context, in *SetUserRequest, opts ...grpc.CallOption) (*SetUserReply, error) {
-	out := new(SetUserReply)
-	err := c.cc.Invoke(ctx, BinanceUser_SetUser_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *binanceUserClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error) {
 	out := new(GetUserReply)
 	err := c.cc.Invoke(ctx, BinanceUser_GetUser_FullMethodName, in, out, opts...)
@@ -61,9 +50,9 @@ func (c *binanceUserClient) GetUser(ctx context.Context, in *GetUserRequest, opt
 	return out, nil
 }
 
-func (c *binanceUserClient) PullUserStatus(ctx context.Context, in *PullUserStatusRequest, opts ...grpc.CallOption) (*PullUserStatusReply, error) {
-	out := new(PullUserStatusReply)
-	err := c.cc.Invoke(ctx, BinanceUser_PullUserStatus_FullMethodName, in, out, opts...)
+func (c *binanceUserClient) PullUserDeposit(ctx context.Context, in *PullUserDepositRequest, opts ...grpc.CallOption) (*PullUserDepositReply, error) {
+	out := new(PullUserDepositReply)
+	err := c.cc.Invoke(ctx, BinanceUser_PullUserDeposit_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,9 +72,8 @@ func (c *binanceUserClient) PullUserCredentialsBsc(ctx context.Context, in *Pull
 // All implementations must embed UnimplementedBinanceUserServer
 // for forward compatibility
 type BinanceUserServer interface {
-	SetUser(context.Context, *SetUserRequest) (*SetUserReply, error)
 	GetUser(context.Context, *GetUserRequest) (*GetUserReply, error)
-	PullUserStatus(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error)
+	PullUserDeposit(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
@@ -94,14 +82,11 @@ type BinanceUserServer interface {
 type UnimplementedBinanceUserServer struct {
 }
 
-func (UnimplementedBinanceUserServer) SetUser(context.Context, *SetUserRequest) (*SetUserReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetUser not implemented")
-}
 func (UnimplementedBinanceUserServer) GetUser(context.Context, *GetUserRequest) (*GetUserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedBinanceUserServer) PullUserStatus(context.Context, *PullUserStatusRequest) (*PullUserStatusReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PullUserStatus not implemented")
+func (UnimplementedBinanceUserServer) PullUserDeposit(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PullUserDeposit not implemented")
 }
 func (UnimplementedBinanceUserServer) PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PullUserCredentialsBsc not implemented")
@@ -117,24 +102,6 @@ type UnsafeBinanceUserServer interface {
 
 func RegisterBinanceUserServer(s grpc.ServiceRegistrar, srv BinanceUserServer) {
 	s.RegisterService(&BinanceUser_ServiceDesc, srv)
-}
-
-func _BinanceUser_SetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BinanceUserServer).SetUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BinanceUser_SetUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BinanceUserServer).SetUser(ctx, req.(*SetUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _BinanceUser_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -155,20 +122,20 @@ func _BinanceUser_GetUser_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BinanceUser_PullUserStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PullUserStatusRequest)
+func _BinanceUser_PullUserDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PullUserDepositRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BinanceUserServer).PullUserStatus(ctx, in)
+		return srv.(BinanceUserServer).PullUserDeposit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: BinanceUser_PullUserStatus_FullMethodName,
+		FullMethod: BinanceUser_PullUserDeposit_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BinanceUserServer).PullUserStatus(ctx, req.(*PullUserStatusRequest))
+		return srv.(BinanceUserServer).PullUserDeposit(ctx, req.(*PullUserDepositRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -199,16 +166,12 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*BinanceUserServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SetUser",
-			Handler:    _BinanceUser_SetUser_Handler,
-		},
-		{
 			MethodName: "GetUser",
 			Handler:    _BinanceUser_GetUser_Handler,
 		},
 		{
-			MethodName: "PullUserStatus",
-			Handler:    _BinanceUser_PullUserStatus_Handler,
+			MethodName: "PullUserDeposit",
+			Handler:    _BinanceUser_PullUserDeposit_Handler,
 		},
 		{
 			MethodName: "PullUserCredentialsBsc",

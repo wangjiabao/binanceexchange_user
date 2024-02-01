@@ -3,39 +3,49 @@ package biz
 import (
 	v1 "binanceexchange_user/api/binanceexchange_user/v1"
 	"context"
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
+	"math/big"
+	"time"
 )
 
-type LhBinanceUser struct {
+type User struct {
 	ID        uint64
 	Address   string
 	ApiKey    string
 	ApiSecret string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-type LhBinanceUserStatus struct {
+type UserBalance struct {
 	ID        uint64
 	UserId    uint64
-	Status    string
-	BaseMoney float64
+	Balance   string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-type LhBinanceUserApiError struct {
-	ID     uint64
-	UserId uint64
-	Msg    string
+type UserBalanceRecord struct {
+	ID        uint64
+	UserId    uint64
+	Amount    string
+	Balance   string
+	Tx        string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type BinanceUserRepo interface {
-	InsertUser(ctx context.Context, lhBinanceUser *LhBinanceUser) (bool, error)
+	InsertUser(ctx context.Context, User *User) (*User, error)
 	UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error)
-	InsertUserStatus(ctx context.Context, lhBinanceUserStatus *LhBinanceUserStatus) (bool, error)
-	UpdatesUserStatus(ctx context.Context, userId uint64, baseMoney float64, status string) (bool, error)
-	GetUsers() ([]*LhBinanceUser, error)
-	GetUserStatus(userId uint64) (*LhBinanceUserStatus, error)
-	GetUserByAddress(address string) (*LhBinanceUser, error)
-	GetUserByApiKeyAndApiSecret(key string, secret string) (*LhBinanceUser, error)
-	GetUserApiErrByUserId(userId uint64) (*LhBinanceUserApiError, error)
+	InsertUserBalance(ctx context.Context, userBalance *UserBalance) (bool, error)
+	InsertUserBalanceRecord(ctx context.Context, userBalance *UserBalanceRecord) (bool, error)
+	UpdatesUserBalance(ctx context.Context, userId uint64, balance string) (bool, error)
+	GetUsers() ([]*User, error)
+	GetUserByAddress(ctx context.Context, address string) (*User, error)
+	GetUserByApiKeyAndApiSecret(key string, secret string) (*User, error)
+	GetUserBalance(ctx context.Context, userId uint64) (*UserBalance, error)
 }
 
 // BinanceUserUsecase is a BinanceData usecase.
@@ -50,31 +60,46 @@ func NewBinanceDataUsecase(binanceUserRepo BinanceUserRepo, tx Transaction, logg
 	return &BinanceUserUsecase{binanceUserRepo: binanceUserRepo, tx: tx, log: log.NewHelper(logger)}
 }
 
-func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey string, apiSecret string) error {
+func (b *BinanceUserUsecase) SetUserBalanceAndUser(ctx context.Context, address string, balance string) error {
 	var (
-		lhBinanceUser  *LhBinanceUser
-		lhBinanceUser2 *LhBinanceUser
-		err            error
+		user            *User
+		userBalance     *UserBalance
+		err             error
+		lastUserBalance string // 上次用户余额
 	)
 
-	lhBinanceUser, err = b.binanceUserRepo.GetUserByAddress(address)
+	user, err = b.binanceUserRepo.GetUserByAddress(ctx, address)
 	if nil != err {
 		return err
 	}
 
-	lhBinanceUser2, err = b.binanceUserRepo.GetUserByApiKeyAndApiSecret(apiKey, apiSecret)
-	if nil != err {
-		return err
-	}
-
-	if nil == lhBinanceUser && nil == lhBinanceUser2 { // 地址和api信息都不存在
+	// 初始化 用户和余额
+	if nil == user {
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-			_, err = b.binanceUserRepo.InsertUser(ctx, &LhBinanceUser{
-				Address:   address,
-				ApiKey:    apiKey,
-				ApiSecret: apiSecret,
+			user, err = b.binanceUserRepo.InsertUser(ctx, &User{
+				Address: address,
 			})
+			if nil != err {
+				return err
+			}
 
+			if nil == user {
+				return errors.New(500, "CREATE_USER_ERROR", "未发现创建的用户")
+			}
+
+			_, err = b.binanceUserRepo.InsertUserBalance(ctx, &UserBalance{
+				UserId:  user.ID,
+				Balance: balance,
+			})
+			if nil != err {
+				return err
+			}
+
+			_, err = b.binanceUserRepo.InsertUserBalanceRecord(ctx, &UserBalanceRecord{
+				UserId:  user.ID,
+				Amount:  balance,
+				Balance: lastUserBalance,
+			})
 			if nil != err {
 				return err
 			}
@@ -83,20 +108,75 @@ func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey
 		}); err != nil {
 			b.log.Error(err)
 		}
-	} else if nil != lhBinanceUser { // 地址存在
-		if nil == lhBinanceUser2 || (lhBinanceUser2.ID == lhBinanceUser.ID) { // api不存在 或 地址和api指向相同ID(同一条记录)
-			if apiKey != lhBinanceUser.ApiKey || apiSecret != lhBinanceUser.ApiSecret { // api_key和api_secret发生了变化
-				if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-					_, err = b.binanceUserRepo.UpdateUser(ctx, lhBinanceUser.ID, apiKey, apiSecret)
 
-					if nil != err {
-						return err
-					}
+	} else {
+		userBalance, err = b.binanceUserRepo.GetUserBalance(ctx, user.ID)
+		if nil != err {
+			return err
+		}
 
-					return nil
-				}); err != nil {
-					b.log.Error(err)
+		// 余额未变化
+		if userBalance.Balance == balance {
+			return nil
+		}
+
+		// 上次余额
+		tmpLastUserBalance := new(big.Int)
+		tmpLastUserBalance.SetString(userBalance.Balance, 10)
+		// 本次余额
+		tmpCurrentUserBalance := new(big.Int)
+		tmpCurrentUserBalance.SetString(balance, 10)
+		// 增长
+		tmpAmount := new(big.Int)
+		tmpAmount.Sub(tmpCurrentUserBalance, tmpCurrentUserBalance)
+
+		// 更新余额
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.UpdatesUserBalance(ctx, user.ID, balance)
+			if nil != err {
+				return err
+			}
+
+			_, err = b.binanceUserRepo.InsertUserBalanceRecord(ctx, &UserBalanceRecord{
+				UserId:  user.ID,
+				Amount:  tmpAmount.String(),
+				Balance: userBalance.Balance,
+			})
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			b.log.Error(err)
+		}
+	}
+
+	return nil
+}
+
+func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey string, apiSecret string) error {
+	var (
+		user2 *User
+		err   error
+	)
+
+	user2, err = b.binanceUserRepo.GetUserByApiKeyAndApiSecret(apiKey, apiSecret)
+	if nil != err {
+		return err
+	}
+
+	if nil == user2 || (user2.ID == user.ID) { // api不存在 或 地址和api指向相同ID(同一条记录)
+		if apiKey != user.ApiKey || apiSecret != user.ApiSecret { // api_key或api_secret发生了变化
+			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+				_, err = b.binanceUserRepo.UpdateUser(ctx, user.ID, apiKey, apiSecret)
+				if nil != err {
+					return err
 				}
+
+				return nil
+			}); err != nil {
+				b.log.Error(err)
 			}
 		}
 	}
@@ -104,59 +184,34 @@ func (b *BinanceUserUsecase) SetUser(ctx context.Context, address string, apiKey
 	return nil
 }
 
-func (b *BinanceUserUsecase) PullUserStatus(ctx context.Context, req *v1.PullUserStatusRequest) (*v1.PullUserStatusReply, error) {
-
-	return &v1.PullUserStatusReply{}, nil
-}
-
-func (b *BinanceUserUsecase) GetUserStatus(userId uint64) (*LhBinanceUserStatus, error) {
-	return b.binanceUserRepo.GetUserStatus(userId)
-}
-
-func (b *BinanceUserUsecase) InsertUserStatus(ctx context.Context, userId uint64, baseMoney float64) (bool, error) {
-	return b.binanceUserRepo.InsertUserStatus(ctx, &LhBinanceUserStatus{
-		UserId:    userId,
-		BaseMoney: baseMoney,
-	})
-}
-
-func (b *BinanceUserUsecase) UpdateUserStatusOpen(ctx context.Context, userId uint64, baseMoney float64) (bool, error) {
-	return b.binanceUserRepo.UpdatesUserStatus(ctx, userId, baseMoney, "open")
-}
-
-func (b *BinanceUserUsecase) UpdateUserStatusClose(ctx context.Context, userId uint64) (bool, error) {
-	return b.binanceUserRepo.UpdatesUserStatus(ctx, userId, 0, "close")
-}
-
-func (b *BinanceUserUsecase) GetUsers() ([]*LhBinanceUser, error) {
+func (b *BinanceUserUsecase) GetUsers() ([]*User, error) {
 	return b.binanceUserRepo.GetUsers()
 }
 
 func (b *BinanceUserUsecase) GetUser(ctx context.Context, req *v1.GetUserRequest) (*v1.GetUserReply, error) {
 	var (
-		lhBinanceUser       *LhBinanceUser
-		lhBinanceUserApiErr *LhBinanceUserApiError
-		status              string
-		err                 error
+		//user   *User
+		status string
+		err    error
 	)
 
 	if 0 >= len(req.Address) || 300 < len(req.Address) {
 		return &v1.GetUserReply{Status: status}, err
 	}
 
-	lhBinanceUser, err = b.binanceUserRepo.GetUserByAddress(req.Address)
-	if nil != err {
-		return nil, err
-	}
+	//user, err = b.binanceUserRepo.GetUserByAddress(ctx, req.Address)
+	//if nil != err {
+	//	return nil, err
+	//}
 
-	lhBinanceUserApiErr, err = b.binanceUserRepo.GetUserApiErrByUserId(lhBinanceUser.ID)
-	if nil != err {
-		return nil, err
-	}
-
-	if nil == lhBinanceUserApiErr {
-		status = "ok"
-	}
+	//lhBinanceUserApiErr, err = b.binanceUserRepo.GetUserApiErrByUserId(lhBinanceUser.ID)
+	//if nil != err {
+	//	return nil, err
+	//}
+	//
+	//if nil == lhBinanceUserApiErr {
+	//	status = "ok"
+	//}
 
 	return &v1.GetUserReply{Status: status}, err
 }
