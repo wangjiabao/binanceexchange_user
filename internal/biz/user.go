@@ -326,6 +326,10 @@ func (b *BinanceUserUsecase) GetUser(ctx context.Context, req *v1.GetUserRequest
 		return &v1.GetUserReply{}, nil
 	}
 
+	if nil == user {
+		return &v1.GetUserReply{}, nil
+	}
+
 	userBalance, err = b.binanceUserRepo.GetUserBalance(ctx, user.ID)
 	if nil != err {
 		return &v1.GetUserReply{}, nil
