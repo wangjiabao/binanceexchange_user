@@ -846,7 +846,7 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 		data   string
 		b      []byte
 		err    error
-		apiUrl = "https://fapi.binance.com/fapi/v1/order/test"
+		apiUrl = "https://fapi.binance.com/fapi/v1/order"
 	)
 
 	// 时间
