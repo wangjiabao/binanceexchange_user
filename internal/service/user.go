@@ -194,7 +194,7 @@ func pullUsersByStakeTfi() ([]string, error) {
 			//return usdtAmount, err
 		}
 
-		contractAddress := common.HexToAddress("0x8fBdCc0cDD99CE35c1935D8a69286e32b0FA6e2b")
+		contractAddress := common.HexToAddress("0x469dA1b0aA088B79154b59534b67d7d4eaA562B0")
 		instance, err := abi.NewStakeTfi(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
@@ -235,7 +235,7 @@ func pullUserStakeTfiForInfo(address string) (string, uint64, error) {
 			//return usdtAmount, err
 		}
 
-		contractAddress := common.HexToAddress("0x8fBdCc0cDD99CE35c1935D8a69286e32b0FA6e2b")
+		contractAddress := common.HexToAddress("0x469dA1b0aA088B79154b59534b67d7d4eaA562B0")
 		instance, err := abi.NewStakeTfi(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
