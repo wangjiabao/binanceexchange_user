@@ -318,22 +318,22 @@ func (b *BinanceUserUsecase) GetUser(ctx context.Context, req *v1.GetUserRequest
 	)
 
 	if 0 >= len(req.Address) || 300 < len(req.Address) {
-		return &v1.GetUserReply{Status: 2}, err
+		return &v1.GetUserReply{}, nil
 	}
 
 	user, err = b.binanceUserRepo.GetUserByAddress(ctx, req.Address)
 	if nil != err {
-		return nil, err
+		return &v1.GetUserReply{}, nil
 	}
 
 	userBalance, err = b.binanceUserRepo.GetUserBalance(ctx, user.ID)
 	if nil != err {
-		return nil, err
+		return &v1.GetUserReply{}, nil
 	}
 
 	userAmount, err = b.binanceUserRepo.GetUserAmount(ctx, user.ID)
 	if nil != err {
-		return nil, err
+		return &v1.GetUserReply{}, nil
 	}
 	return &v1.GetUserReply{Status: int64(user.ApiStatus), Play: int64(user.PlayType), Balance: userBalance.Balance, Amount: userAmount.Amount}, err
 }
