@@ -741,6 +741,8 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 	} else {
 		quantity = fmt.Sprintf("%."+strconv.FormatInt(quantityPrecision, 10)+"f", quantityFloat)
 	}
+
+	fmt.Println(quantityFloat, quantity, quantityPrecision)
 	currentOrder.Quantity, err = strconv.ParseFloat(quantity, 64)
 	if nil != err {
 		fmt.Println(err)
