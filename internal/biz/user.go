@@ -423,6 +423,9 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 			tmpCost -= vTraders.Amount
 		}
 
+		if 0 >= len(bindTrader) {
+			return nil, nil
+		}
 		// 写入
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 			for k, v := range bindTrader {
