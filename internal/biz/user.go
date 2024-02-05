@@ -754,6 +754,11 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		return
 	}
 
+	if 0 >= binanceOrder.OrderId {
+		fmt.Println(binanceOrder)
+		return
+	}
+
 	currentOrder.CumQuote, err = strconv.ParseFloat(binanceOrder.CumQuote, 64)
 	if nil != err {
 		fmt.Println(err)
