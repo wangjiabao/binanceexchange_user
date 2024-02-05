@@ -390,7 +390,7 @@ func (b *BinanceUserRepo) GetUsersByUserIds(userIds []uint64) (map[uint64]*biz.U
 // GetUsersByBindUserStatus .
 func (b *BinanceUserRepo) GetUsersByBindUserStatus() ([]*biz.User, error) {
 	var users []*User
-	if err := b.data.db.Table("user").Where("bind_user_status=?", 0).Find(&users).Error; err != nil {
+	if err := b.data.db.Table("user").Where("bind_trader_status=?", 0).Find(&users).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
