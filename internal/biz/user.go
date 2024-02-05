@@ -406,6 +406,10 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 
 		// 第二轮
 		for _, vTraders := range traders {
+			if 0 >= vTraders.Amount {
+				continue
+			}
+
 			if tmpCost < vTraders.Amount {
 				continue
 			}
