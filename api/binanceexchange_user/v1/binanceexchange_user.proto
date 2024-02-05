@@ -75,8 +75,6 @@ message BindTraderReply {}
 
 message ListenTraderAndUserOrderRequest {
   message SendBody {
-    string a = 2;
-
     repeated Order orders = 1;
     message Order {
       uint64 uid = 1;
