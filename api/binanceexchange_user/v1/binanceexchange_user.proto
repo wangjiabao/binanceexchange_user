@@ -19,31 +19,46 @@ service BinanceUser {
     };
   };
 
+  rpc PullUserDeposit2 (PullUserDepositRequest) returns (PullUserDepositReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/pull_user_deposit_2"
+    };
+  };
+
   rpc PullUserCredentialsBsc (PullUserCredentialsBscRequest) returns (PullUserCredentialsBscReply) {
     option (google.api.http) = {
       get: "/api/binanceexchange_user/pull_user_credentials_bsc"
     };
   };
+
+  rpc BindTrader (BindTraderRequest) returns (BindTraderReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/bind_trader"
+    };
+  };
+
+  rpc ListenTraderAndUserOrder (ListenTraderAndUserOrderRequest) returns (ListenTraderAndUserOrderReply) {
+    option (google.api.http) = {
+      post: "/api/binanceexchange_user/listen_trader_and_user_order"
+      body: "*"
+    };
+  };
+
+  rpc Test (ListenTraderAndUserOrderRequest) returns (ListenTraderAndUserOrderReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/test"
+    };
+  };
 }
-
-message SetUserRequest {
-  message SendBody{
-    string address = 1;
-    string apikey = 2;
-    string apisecret = 3;
-  }
-
-  SendBody send_body = 1;
-}
-
-message SetUserReply {}
 
 message GetUserRequest {
   string address = 1;
 }
 
 message GetUserReply {
-  string status = 1;
+  int64 status = 1;
+  int64 amount = 2;
+  string balance = 3;
 }
 
 message PullUserDepositRequest {}
@@ -54,3 +69,34 @@ message PullUserCredentialsBscRequest {}
 
 message PullUserCredentialsBscReply {}
 
+message BindTraderRequest {}
+
+message BindTraderReply {}
+
+message ListenTraderAndUserOrderRequest {
+  message SendBody {
+    string a = 2;
+
+    repeated Order orders = 1;
+    message Order {
+      uint64 uid = 1;
+      string base_money = 2;
+      repeated Data data = 3;
+
+      message Data {
+        // Order 消息类型的字段
+        string coin = 1;
+        string type = 2;
+        string price = 3;
+        string side = 4;
+        string qty = 5;
+      }
+    }
+  }
+
+  SendBody send_body = 1;
+}
+
+message ListenTraderAndUserOrderReply {
+  string status = 1;
+}

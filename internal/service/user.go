@@ -1,7 +1,7 @@
 package service
 
 import (
-	deposit "binanceexchange_user/abi"
+	abi "binanceexchange_user/abi"
 	v1 "binanceexchange_user/api/binanceexchange_user/v1"
 	"binanceexchange_user/internal/biz"
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"time"
 )
 
 // BinanceUserService is a BinanceData service .
@@ -29,7 +30,7 @@ func (b *BinanceUserService) GetUser(ctx context.Context, req *v1.GetUserRequest
 	return b.buc.GetUser(ctx, req)
 }
 
-// PullUserDeposit 用户充值总入口, 单一协程处理，遍历所有用户
+// PullUserDeposit 模式1 用户充值总入口, 单一协程处理，遍历所有用户
 func (b *BinanceUserService) PullUserDeposit(ctx context.Context, req *v1.PullUserDepositRequest) (*v1.PullUserDepositReply, error) {
 	var (
 		users []string
@@ -38,14 +39,17 @@ func (b *BinanceUserService) PullUserDeposit(ctx context.Context, req *v1.PullUs
 
 	users, err = pullUsersByDeposit()
 	for _, v := range users {
-		var balance string
-		balance, err = pullUserDepositForUsdtAmount(v)
+		var (
+			balance string
+			cost    uint64
+		)
+		balance, cost, err = pullUserDepositForInfo(v)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		err = b.buc.SetUserBalanceAndUser(ctx, v, balance)
+		err = b.buc.SetUserBalanceAndUser(ctx, v, balance, cost, 1)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -71,7 +75,7 @@ func pullUsersByDeposit() ([]string, error) {
 		}
 
 		contractAddress := common.HexToAddress("0x8fBdCc0cDD99CE35c1935D8a69286e32b0FA6e2b")
-		instance, err := deposit.NewDeposit(contractAddress, client)
+		instance, err := abi.NewDeposit(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
 			return users, err
@@ -95,9 +99,10 @@ func pullUsersByDeposit() ([]string, error) {
 	return users, nil
 }
 
-func pullUserDepositForUsdtAmount(address string) (string, error) {
+func pullUserDepositForInfo(address string) (string, uint64, error) {
 	var (
 		balance string
+		cost    uint64
 	)
 
 	url1 := "https://bsc-dataseed4.binance.org/"
@@ -111,30 +116,168 @@ func pullUserDepositForUsdtAmount(address string) (string, error) {
 		}
 
 		contractAddress := common.HexToAddress("0x8fBdCc0cDD99CE35c1935D8a69286e32b0FA6e2b")
-		instance, err := deposit.NewDeposit(contractAddress, client)
+		instance, err := abi.NewDeposit(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
-			return balance, err
+			return balance, cost, err
 		}
 
 		var (
-			tmp *big.Int
+			tmp  *big.Int
+			tmp2 *big.Int
 		)
-		tmp, err = instance.UserdepositForUsdtAmount(&bind.CallOpts{
-			From: common.HexToAddress(""),
-		}, common.HexToAddress(address))
+		tmp, err = instance.UserdepositForUsdtAmount(&bind.CallOpts{}, common.HexToAddress(address))
 		if err != nil {
-			return balance, err
+			return balance, cost, err
+		}
+
+		tmp2, err = instance.UserCost(&bind.CallOpts{}, common.HexToAddress(address))
+		if err != nil {
+			return balance, cost, err
 		}
 
 		if "0" != tmp.String() {
 			balance = tmp.String()
 		}
 
+		if 0 < tmp2.Uint64() {
+			cost = tmp2.Uint64()
+		}
+
 		break
 	}
 
-	return balance, nil
+	return balance, cost, nil
+}
+
+// PullUserDeposit2 .
+func (b *BinanceUserService) PullUserDeposit2(ctx context.Context, req *v1.PullUserDepositRequest) (*v1.PullUserDepositReply, error) {
+	var (
+		users []string
+		err   error
+	)
+
+	users, err = pullUsersByStakeTfi()
+	for _, v := range users {
+		var (
+			balance string
+			cost    uint64
+		)
+		balance, cost, err = pullUserStakeTfiForInfo(v)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		err = b.buc.SetUserBalanceAndUser(ctx, v, balance, cost, 2)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+	}
+
+	return nil, nil
+}
+
+func pullUsersByStakeTfi() ([]string, error) {
+	var (
+		users []string
+	)
+
+	url1 := "https://bsc-dataseed4.binance.org/"
+
+	for i := 0; i < 5; i++ {
+		client, err := ethclient.Dial(url1)
+		if err != nil {
+			url1 = "https://bsc-dataseed1.bnbchain.org"
+			continue
+			//return usdtAmount, err
+		}
+
+		contractAddress := common.HexToAddress("0x8fBdCc0cDD99CE35c1935D8a69286e32b0FA6e2b")
+		instance, err := abi.NewStakeTfi(contractAddress, client)
+		if err != nil {
+			fmt.Println(err)
+			return users, err
+		}
+		var (
+			addresses []common.Address
+		)
+
+		addresses, err = instance.GetUsers(&bind.CallOpts{})
+		if err != nil {
+			return users, err
+		}
+
+		for _, v := range addresses {
+			users = append(users, v.String())
+		}
+
+		break
+	}
+
+	return users, nil
+}
+
+func pullUserStakeTfiForInfo(address string) (string, uint64, error) {
+	var (
+		balance string
+		cost    uint64
+	)
+
+	url1 := "https://bsc-dataseed4.binance.org/"
+
+	for i := 0; i < 5; i++ {
+		client, err := ethclient.Dial(url1)
+		if err != nil {
+			url1 = "https://bsc-dataseed1.bnbchain.org"
+			continue
+			//return usdtAmount, err
+		}
+
+		contractAddress := common.HexToAddress("0x8fBdCc0cDD99CE35c1935D8a69286e32b0FA6e2b")
+		instance, err := abi.NewStakeTfi(contractAddress, client)
+		if err != nil {
+			fmt.Println(err)
+			return balance, cost, err
+		}
+
+		var (
+			openStatus bool
+			tmp        *big.Int
+			tmp2       *big.Int
+		)
+		openStatus, err = instance.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
+		if err != nil {
+			return balance, cost, err
+		}
+
+		if !openStatus {
+			return balance, cost, err // 关，清0
+		}
+
+		tmp, err = instance.UserTfiAmount(&bind.CallOpts{}, common.HexToAddress(address))
+		if err != nil {
+			return balance, cost, err
+		}
+
+		tmp2, err = instance.UserCost(&bind.CallOpts{}, common.HexToAddress(address))
+		if err != nil {
+			return balance, cost, err
+		}
+
+		if "0" != tmp.String() {
+			balance = tmp.String()
+		}
+
+		if 0 < tmp2.Uint64() {
+			cost = tmp2.Uint64()
+		}
+
+		break
+	}
+
+	return balance, cost, nil
 }
 
 // PullUserCredentialsBsc 拉取用户api_key api_secret
@@ -189,7 +332,7 @@ func pullUserCredentialsBscBySystemRole(address string) (string, string, error) 
 		}
 
 		tokenAddress := common.HexToAddress("0x4526Dbc1a86624f9A9bf99726F946278BCFb2e2B")
-		instance, err := NewUserCredentialsBsc(tokenAddress, client)
+		instance, err := abi.NewUserCredentialsBsc(tokenAddress, client)
 		if err != nil {
 			fmt.Println(err)
 			return apiKey, apiSecret, err
@@ -206,4 +349,17 @@ func pullUserCredentialsBscBySystemRole(address string) (string, string, error) 
 	}
 
 	return apiKey, apiSecret, nil
+}
+
+func (b *BinanceUserService) BindTrader(ctx context.Context, req *v1.BindTraderRequest) (*v1.BindTraderReply, error) {
+	return b.buc.BindTrader(ctx)
+}
+
+func (b *BinanceUserService) ListenTraderAndUserOrder(ctx context.Context, req *v1.ListenTraderAndUserOrderRequest) (*v1.ListenTraderAndUserOrderReply, error) {
+	return b.buc.ListenTraders(ctx, req)
+}
+
+func (b *BinanceUserService) Test(ctx context.Context, req *v1.ListenTraderAndUserOrderRequest) (*v1.ListenTraderAndUserOrderReply, error) {
+	fmt.Println("接收到请求，秒", time.Now().Unix(), "纳秒", time.Now().UnixNano())
+	return nil, nil
 }

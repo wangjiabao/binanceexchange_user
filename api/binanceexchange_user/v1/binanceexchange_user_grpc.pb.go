@@ -19,9 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BinanceUser_GetUser_FullMethodName                = "/BinanceUser/GetUser"
-	BinanceUser_PullUserDeposit_FullMethodName        = "/BinanceUser/PullUserDeposit"
-	BinanceUser_PullUserCredentialsBsc_FullMethodName = "/BinanceUser/PullUserCredentialsBsc"
+	BinanceUser_GetUser_FullMethodName                  = "/BinanceUser/GetUser"
+	BinanceUser_PullUserDeposit_FullMethodName          = "/BinanceUser/PullUserDeposit"
+	BinanceUser_PullUserDeposit2_FullMethodName         = "/BinanceUser/PullUserDeposit2"
+	BinanceUser_PullUserCredentialsBsc_FullMethodName   = "/BinanceUser/PullUserCredentialsBsc"
+	BinanceUser_BindTrader_FullMethodName               = "/BinanceUser/BindTrader"
+	BinanceUser_ListenTraderAndUserOrder_FullMethodName = "/BinanceUser/ListenTraderAndUserOrder"
+	BinanceUser_Test_FullMethodName                     = "/BinanceUser/Test"
 )
 
 // BinanceUserClient is the client API for BinanceUser service.
@@ -30,7 +34,11 @@ const (
 type BinanceUserClient interface {
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserReply, error)
 	PullUserDeposit(ctx context.Context, in *PullUserDepositRequest, opts ...grpc.CallOption) (*PullUserDepositReply, error)
+	PullUserDeposit2(ctx context.Context, in *PullUserDepositRequest, opts ...grpc.CallOption) (*PullUserDepositReply, error)
 	PullUserCredentialsBsc(ctx context.Context, in *PullUserCredentialsBscRequest, opts ...grpc.CallOption) (*PullUserCredentialsBscReply, error)
+	BindTrader(ctx context.Context, in *BindTraderRequest, opts ...grpc.CallOption) (*BindTraderReply, error)
+	ListenTraderAndUserOrder(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error)
+	Test(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error)
 }
 
 type binanceUserClient struct {
@@ -59,9 +67,45 @@ func (c *binanceUserClient) PullUserDeposit(ctx context.Context, in *PullUserDep
 	return out, nil
 }
 
+func (c *binanceUserClient) PullUserDeposit2(ctx context.Context, in *PullUserDepositRequest, opts ...grpc.CallOption) (*PullUserDepositReply, error) {
+	out := new(PullUserDepositReply)
+	err := c.cc.Invoke(ctx, BinanceUser_PullUserDeposit2_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *binanceUserClient) PullUserCredentialsBsc(ctx context.Context, in *PullUserCredentialsBscRequest, opts ...grpc.CallOption) (*PullUserCredentialsBscReply, error) {
 	out := new(PullUserCredentialsBscReply)
 	err := c.cc.Invoke(ctx, BinanceUser_PullUserCredentialsBsc_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *binanceUserClient) BindTrader(ctx context.Context, in *BindTraderRequest, opts ...grpc.CallOption) (*BindTraderReply, error) {
+	out := new(BindTraderReply)
+	err := c.cc.Invoke(ctx, BinanceUser_BindTrader_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *binanceUserClient) ListenTraderAndUserOrder(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error) {
+	out := new(ListenTraderAndUserOrderReply)
+	err := c.cc.Invoke(ctx, BinanceUser_ListenTraderAndUserOrder_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *binanceUserClient) Test(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error) {
+	out := new(ListenTraderAndUserOrderReply)
+	err := c.cc.Invoke(ctx, BinanceUser_Test_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +118,11 @@ func (c *binanceUserClient) PullUserCredentialsBsc(ctx context.Context, in *Pull
 type BinanceUserServer interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserReply, error)
 	PullUserDeposit(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
+	PullUserDeposit2(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
+	BindTrader(context.Context, *BindTraderRequest) (*BindTraderReply, error)
+	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
+	Test(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
 
@@ -88,8 +136,20 @@ func (UnimplementedBinanceUserServer) GetUser(context.Context, *GetUserRequest) 
 func (UnimplementedBinanceUserServer) PullUserDeposit(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PullUserDeposit not implemented")
 }
+func (UnimplementedBinanceUserServer) PullUserDeposit2(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PullUserDeposit2 not implemented")
+}
 func (UnimplementedBinanceUserServer) PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PullUserCredentialsBsc not implemented")
+}
+func (UnimplementedBinanceUserServer) BindTrader(context.Context, *BindTraderRequest) (*BindTraderReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BindTrader not implemented")
+}
+func (UnimplementedBinanceUserServer) ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListenTraderAndUserOrder not implemented")
+}
+func (UnimplementedBinanceUserServer) Test(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Test not implemented")
 }
 func (UnimplementedBinanceUserServer) mustEmbedUnimplementedBinanceUserServer() {}
 
@@ -140,6 +200,24 @@ func _BinanceUser_PullUserDeposit_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_PullUserDeposit2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PullUserDepositRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).PullUserDeposit2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_PullUserDeposit2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).PullUserDeposit2(ctx, req.(*PullUserDepositRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BinanceUser_PullUserCredentialsBsc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PullUserCredentialsBscRequest)
 	if err := dec(in); err != nil {
@@ -154,6 +232,60 @@ func _BinanceUser_PullUserCredentialsBsc_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BinanceUserServer).PullUserCredentialsBsc(ctx, req.(*PullUserCredentialsBscRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BinanceUser_BindTrader_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindTraderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).BindTrader(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_BindTrader_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).BindTrader(ctx, req.(*BindTraderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BinanceUser_ListenTraderAndUserOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListenTraderAndUserOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).ListenTraderAndUserOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_ListenTraderAndUserOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).ListenTraderAndUserOrder(ctx, req.(*ListenTraderAndUserOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BinanceUser_Test_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListenTraderAndUserOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).Test(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_Test_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).Test(ctx, req.(*ListenTraderAndUserOrderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -174,8 +306,24 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BinanceUser_PullUserDeposit_Handler,
 		},
 		{
+			MethodName: "PullUserDeposit2",
+			Handler:    _BinanceUser_PullUserDeposit2_Handler,
+		},
+		{
 			MethodName: "PullUserCredentialsBsc",
 			Handler:    _BinanceUser_PullUserCredentialsBsc_Handler,
+		},
+		{
+			MethodName: "BindTrader",
+			Handler:    _BinanceUser_BindTrader_Handler,
+		},
+		{
+			MethodName: "ListenTraderAndUserOrder",
+			Handler:    _BinanceUser_ListenTraderAndUserOrder_Handler,
+		},
+		{
+			MethodName: "Test",
+			Handler:    _BinanceUser_Test_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

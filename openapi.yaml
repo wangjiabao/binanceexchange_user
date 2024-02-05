@@ -6,6 +6,24 @@ info:
     title: BinanceUser API
     version: 0.0.1
 paths:
+    /api/binanceexchange_user/bind_trader:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_BindTrader
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BindTraderReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/get_user:
         get:
             tags:
@@ -23,6 +41,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetUserReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/listen_trader_and_user_order:
+        post:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_ListenTraderAndUserOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ListenTraderAndUserOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListenTraderAndUserOrderReply'
                 default:
                     description: Default error response
                     content:
@@ -65,12 +107,60 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/pull_user_deposit_2:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_PullUserDeposit2
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PullUserDepositReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/test:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_Test
+            parameters:
+                - name: sendBody.a
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListenTraderAndUserOrderReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
 components:
     schemas:
+        BindTraderReply:
+            type: object
+            properties: {}
         GetUserReply:
             type: object
             properties:
                 status:
+                    type: string
+                amount:
+                    type: string
+                balance:
                     type: string
         GoogleProtobufAny:
             type: object
@@ -80,12 +170,56 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListenTraderAndUserOrderReply:
+            type: object
+            properties:
+                status:
+                    type: string
+        ListenTraderAndUserOrderRequest:
+            type: object
+            properties:
+                sendBody:
+                    $ref: '#/components/schemas/ListenTraderAndUserOrderRequest_SendBody'
+        ListenTraderAndUserOrderRequest_SendBody:
+            type: object
+            properties:
+                a:
+                    type: string
+                orders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SendBody_Order'
+        Order_Data:
+            type: object
+            properties:
+                coin:
+                    type: string
+                    description: Order 消息类型的字段
+                type:
+                    type: string
+                price:
+                    type: string
+                side:
+                    type: string
+                qty:
+                    type: string
         PullUserCredentialsBscReply:
             type: object
             properties: {}
         PullUserDepositReply:
             type: object
             properties: {}
+        SendBody_Order:
+            type: object
+            properties:
+                uid:
+                    type: string
+                baseMoney:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Order_Data'
         Status:
             type: object
             properties:

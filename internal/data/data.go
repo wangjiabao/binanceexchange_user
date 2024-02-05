@@ -70,7 +70,6 @@ func NewDB(c *conf.Data) *gorm.DB {
 		panic("failed opening sql.log")
 	}
 
-	// 终端打印输入 sql 执行记录
 	newLogger := logger.New(
 		slog.New(f, "\r\n", slog.LstdFlags), // io writer
 		logger.Config{
@@ -84,7 +83,7 @@ func NewDB(c *conf.Data) *gorm.DB {
 	db, err := gorm.Open(mysql.Open(c.Database.Source), &gorm.Config{
 		Logger:                                   newLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
-		NamingStrategy:                           schema.NamingStrategy{
+		NamingStrategy: schema.NamingStrategy{
 			//SingularTable: true, // 表名是否加 s
 		},
 	})
