@@ -389,6 +389,10 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 
 		// 第一轮
 		for _, vTraders := range traders {
+			if 0 >= vTraders.Amount {
+				continue
+			}
+
 			if tmpCost*100/30 >= vTraders.Amount {
 				// 绑定
 				if _, ok := bindTrader[vTraders.ID]; ok {
