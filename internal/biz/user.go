@@ -335,7 +335,7 @@ func (b *BinanceUserUsecase) GetUser(ctx context.Context, req *v1.GetUserRequest
 	if nil != err {
 		return nil, err
 	}
-	return &v1.GetUserReply{Status: int64(user.ApiStatus), Balance: userBalance.Balance, Amount: userAmount.Amount}, err
+	return &v1.GetUserReply{Status: int64(user.ApiStatus), Play: int64(user.PlayType), Balance: userBalance.Balance, Amount: userAmount.Amount}, err
 }
 
 func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderReply, error) {

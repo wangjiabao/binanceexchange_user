@@ -130,11 +130,6 @@ paths:
             tags:
                 - BinanceUser
             operationId: BinanceUser_Test
-            parameters:
-                - name: sendBody.a
-                  in: query
-                  schema:
-                    type: string
             responses:
                 "200":
                     description: OK
@@ -156,6 +151,8 @@ components:
         GetUserReply:
             type: object
             properties:
+                play:
+                    type: string
                 status:
                     type: string
                 amount:
@@ -183,8 +180,6 @@ components:
         ListenTraderAndUserOrderRequest_SendBody:
             type: object
             properties:
-                a:
-                    type: string
                 orders:
                     type: array
                     items:
