@@ -239,7 +239,7 @@ func (b *BinanceUserUsecase) SetUserBalanceAndUser(ctx context.Context, address 
 			tmpCurrentUserBalance := new(big.Int)
 			tmpCurrentUserBalance.SetString(balance, 10)
 			// 增长
-			tmpAmount.Sub(tmpCurrentUserBalance, tmpCurrentUserBalance)
+			tmpAmount.Sub(tmpCurrentUserBalance, tmpLastUserBalance)
 		}
 
 		tmpCost := userBalance.Cost
@@ -428,7 +428,7 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 		}
 
 		if 0 >= len(bindTrader) {
-			return nil, nil
+			continue
 		}
 		// 写入
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
