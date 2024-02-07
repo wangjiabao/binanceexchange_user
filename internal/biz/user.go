@@ -414,14 +414,16 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 			}
 		}
 
+		fmt.Println(tmpCost, limitAmount)
+
 		// 第二轮，跳过分配限制的额度，剩下的按顺序分配
 		for _, vTraders := range traders {
-			if 0 < limitAmount && vTraders.Amount >= limitAmount {
-				continue
-			}
-
 			if 0 >= tmpCost {
 				break
+			}
+
+			if 0 < limitAmount && vTraders.Amount >= limitAmount {
+				continue
 			}
 
 			if 0 >= vTraders.Amount {
@@ -435,8 +437,9 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 
 			bindTrader[vTraders.ID] = vTraders
 			tmpCost -= vTraders.Amount
+			fmt.Println(tmpCost)
 		}
-
+		fmt.Println(len(bindTrader))
 		if 0 >= len(bindTrader) {
 			continue
 		}
