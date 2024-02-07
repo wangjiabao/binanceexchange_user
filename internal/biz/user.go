@@ -396,7 +396,7 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 			if 0 >= tmpCost {
 				break
 			}
-			
+
 			if 0 >= vTraders.Amount {
 				continue
 			}
@@ -409,8 +409,6 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 
 				bindTrader[vTraders.ID] = vTraders
 				tmpCost -= vTraders.Amount
-			} else {
-				break
 			}
 		}
 
