@@ -389,6 +389,7 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 
 		// 初始化
 		tmpCost := userBalance[vUsers.ID].Cost
+		var limitAmount uint64
 		bindTrader := make(map[uint64]*Trader, 0)
 
 		// 第一轮
@@ -409,20 +410,21 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 
 				bindTrader[vTraders.ID] = vTraders
 				tmpCost -= vTraders.Amount
+				limitAmount = vTraders.Amount
 			}
 		}
 
-		// 第二轮
+		// 第二轮，跳过分配限制的额度，剩下的按顺序分配
 		for _, vTraders := range traders {
+			if 0 < limitAmount && vTraders.Amount >= limitAmount {
+				continue
+			}
+
 			if 0 >= tmpCost {
 				break
 			}
 
 			if 0 >= vTraders.Amount {
-				continue
-			}
-
-			if tmpCost < vTraders.Amount {
 				continue
 			}
 
