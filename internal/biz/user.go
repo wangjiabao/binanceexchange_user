@@ -611,19 +611,19 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 				}
 
 				// 精度
-				if _, ok := symbol[vOrdersData.Coin]; !ok {
+				if _, ok := symbol[vOrdersData.Symbol]; !ok {
 					continue
 				}
 
 				// 发送订单
 				wg.Add(1) // 启动一个goroutine就登记+1
 				go b.userOrderGoroutine(ctx, &wg, &OrderData{
-					Coin:  vOrdersData.Coin,
+					Coin:  vOrdersData.Symbol,
 					Type:  vOrdersData.Type,
 					Price: vOrdersData.Price,
 					Side:  vOrdersData.Side,
 					Qty:   vOrdersData.Qty,
-				}, vOrders.BaseMoney, users[vUserBindTrader.UserId], vUserBindTrader, symbol[vOrdersData.Coin].QuantityPrecision)
+				}, vOrders.BaseMoney, users[vUserBindTrader.UserId], vUserBindTrader, symbol[vOrdersData.Symbol].QuantityPrecision)
 			}
 
 		}

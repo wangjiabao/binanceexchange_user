@@ -187,7 +187,7 @@ components:
         Order_Data:
             type: object
             properties:
-                coin:
+                symbol:
                     type: string
                     description: Order 消息类型的字段
                 type:

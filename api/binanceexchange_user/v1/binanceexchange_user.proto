@@ -84,7 +84,7 @@ message ListenTraderAndUserOrderRequest {
 
       message Data {
         // Order 消息类型的字段
-        string coin = 1;
+        string symbol = 1;
         string type = 2;
         string price = 3;
         string side = 4;
