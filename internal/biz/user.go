@@ -484,7 +484,7 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 		symbol         map[string]*Symbol
 		err            error
 	)
-	fmt.Println(req.SendBody)
+
 	traderIds = make([]uint64, 0)
 	for _, vOrders := range req.SendBody.Orders {
 		traderIds = append(traderIds, vOrders.Uid)
@@ -503,6 +503,8 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 			userIds = append(userIds, vVUserBindTrader.UserId)
 		}
 	}
+
+	fmt.Println(userIds)
 	if 0 >= len(userIds) {
 		return &v1.ListenTraderAndUserOrderReply{
 			Status: "ok",
@@ -638,7 +640,7 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 // 用户下单
 func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.WaitGroup, order *OrderData, amount string, user *User, userBindTrader *UserBindTrader, quantityPrecision int64) {
 	defer wg.Done() // goroutine结束就登记-1
-
+	fmt.Println(order, user, quantityPrecision, userBindTrader, amount)
 	var (
 		binanceOrder  *BinanceOrder
 		side          string
