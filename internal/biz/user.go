@@ -812,6 +812,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		fmt.Println(binanceOrder)
 		return
 	}
+	currentOrder.OrderId = strconv.FormatInt(binanceOrder.OrderId, 10)
 
 	currentOrder.CumQuote, err = strconv.ParseFloat(binanceOrder.CumQuote, 64)
 	if nil != err {
@@ -926,7 +927,7 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 	// 时间
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
-	data = "symbol=" + symbol + "&side=" + side + "&type=" + orderType + "&positionSide=" + positionSide + "&quantity=" + quantity + "&timestamp=" + now
+	data = "symbol=" + symbol + "&side=" + side + "&type=" + orderType + "&positionSide=" + positionSide + "&newOrderRespType=" + "RESULT" + "&quantity=" + quantity + "&timestamp=" + now
 	fmt.Println(data)
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
@@ -994,6 +995,72 @@ type BinanceLeverAge struct {
 }
 
 func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secretKey string) (*BinanceLeverAge, error) {
+	var (
+		client *http.Client
+		req    *http.Request
+		resp   *http.Response
+		res    *BinanceLeverAge
+		data   string
+		b      []byte
+		err    error
+		apiUrl = "https://fapi.binance.com/fapi/v1/leverage"
+	)
+
+	// 时间
+	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
+	// 拼请求数据
+	data = "symbol=" + symbol + "&leverage=" + strconv.FormatInt(leverAge, 10) + "&timestamp=" + now
+	// 加密
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+	// 构造请求
+
+	req, err = http.NewRequest("POST", apiUrl, strings.NewReader(data+"&signature="+signature))
+	if err != nil {
+		return nil, err
+	}
+	// 添加头信息
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-MBX-APIKEY", apiKey)
+
+	// 请求执行
+	client = &http.Client{Timeout: 3 * time.Second}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 结果
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	var l BinanceLeverAge
+	err = json.Unmarshal(b, &l)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	res = &BinanceLeverAge{
+		LeverAge: l.LeverAge,
+		symbol:   l.symbol,
+	}
+
+	return res, nil
+}
+
+func requestBinanceOrderInfo(symbol string, leverAge int64, apiKey string, secretKey string) (*BinanceLeverAge, error) {
 	var (
 		client *http.Client
 		req    *http.Request
