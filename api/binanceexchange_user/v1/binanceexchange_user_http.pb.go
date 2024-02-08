@@ -48,7 +48,7 @@ func RegisterBinanceUserHTTPServer(s *http.Server, srv BinanceUserHTTPServer) {
 	r.GET("/api/binanceexchange_user/bind_trader", _BinanceUser_BindTrader0_HTTP_Handler(srv))
 	r.POST("/api/binanceexchange_user/listen_trader_and_user_order", _BinanceUser_ListenTraderAndUserOrder0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/test_Lever_age", _BinanceUser_TestLeverAge0_HTTP_Handler(srv))
-	r.GET("/api/binanceexchange_user/test_Lever_age", _BinanceUser_TestOrder0_HTTP_Handler(srv))
+	r.GET("/api/binanceexchange_user/test_order", _BinanceUser_TestOrder0_HTTP_Handler(srv))
 }
 
 func _BinanceUser_GetUser0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
@@ -318,7 +318,7 @@ func (c *BinanceUserHTTPClientImpl) TestLeverAge(ctx context.Context, in *TestLe
 
 func (c *BinanceUserHTTPClientImpl) TestOrder(ctx context.Context, in *TestOrderRequest, opts ...http.CallOption) (*TestOrderReply, error) {
 	var out TestOrderReply
-	pattern := "/api/binanceexchange_user/test_Lever_age"
+	pattern := "/api/binanceexchange_user/test_order"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationBinanceUserTestOrder))
 	opts = append(opts, http.PathTemplate(pattern))
