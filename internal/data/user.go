@@ -660,11 +660,11 @@ func (b *BinanceUserRepo) GetUserBindTraderByTraderIds(traderIds []uint64) (map[
 	return res, nil
 }
 
-// GetUserOrderByUserTraderIdAndSymbolAndPositionSide .
-func (b *BinanceUserRepo) GetUserOrderByUserTraderIdAndSymbolAndPositionSide(userId uint64, traderId uint64, symbol string, positionSide string) ([]*biz.UserOrder, error) {
+// GetUserOrderByUserTraderIdAndSymbol .
+func (b *BinanceUserRepo) GetUserOrderByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*biz.UserOrder, error) {
 	var userOrder []*UserOrder
 	if err := b.data.db.Table("user_order").
-		Where("user_id=? and trader_id=? and symbol=? and position_side=?", userId, traderId, symbol, positionSide).
+		Where("user_id=? and trader_id=? and symbol=?", userId, traderId, symbol).
 		Find(&userOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

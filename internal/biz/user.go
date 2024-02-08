@@ -138,7 +138,7 @@ type BinanceUserRepo interface {
 	GetUserBindTraderByUserId(userId uint64) ([]*UserBindTrader, error)
 	GetUserBindTraderByTraderIds(traderIds []uint64) (map[uint64][]*UserBindTrader, error)
 	GetSymbol() (map[string]*Symbol, error)
-	GetUserOrderByUserTraderIdAndSymbolAndPositionSide(userId uint64, traderId uint64, symbol string, positionSide string) ([]*UserOrder, error)
+	GetUserOrderByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*UserOrder, error)
 	GetUserOrderByUserIdAndSymbolAndPositionSide(userId uint64, symbol string, positionSide string) ([]*UserOrder, error)
 }
 
@@ -558,10 +558,10 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 					continue
 				}
 
-				// 判断是开单还是关单，关单SELL允许
-				if "SELL" == vOrdersData.Side {
+				// 判断是开单还是关单，sell long 关多 buy short 关空
+				if ("SELL" == vOrdersData.Side && "LONG" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "SHORT" == vOrdersData.Type) {
 
-				} else if "BUY" == vOrdersData.Side {
+				} else if ("SELL" == vOrdersData.Side && "SHORT" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "LONG" == vOrdersData.Type) {
 					// 模式，开单余额判断
 					if 1 == users[vUserBindTrader.UserId].PlayType {
 						// 精度按代币18位，截取小数点后到5位计算
@@ -705,7 +705,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 	currentOrder.PositionSide = positionSide
 
 	// 订单统计
-	currentOrders, err = b.binanceUserRepo.GetUserOrderByUserTraderIdAndSymbolAndPositionSide(userBindTrader.UserId, userBindTrader.TraderId, order.Coin, positionSide)
+	currentOrders, err = b.binanceUserRepo.GetUserOrderByUserTraderIdAndSymbol(userBindTrader.UserId, userBindTrader.TraderId, order.Coin)
 	if nil != err {
 		fmt.Println(err)
 		return
@@ -713,8 +713,8 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 
 	quantityFloat := float64(userBindTrader.Amount) * qty / traderAmount
 	var historyQuantityFloat float64
-	if "SELL" == order.Side {
-		side = "SELL"
+	if ("SELL" == order.Side && "LONG" == order.Type) || ("BUY" == order.Side && "SHORT" == order.Type) {
+		side = order.Side
 		// 查出用户的BUY单的币的数量，在对应的trader下，超过了BUY不能SELL todo 使用数据库量太大以后
 		if 0 >= len(currentOrders) {
 			return
@@ -722,9 +722,9 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 
 		// 多的部分不管，按剩余的数量关 todo 少的部分另一个程序解决
 		for _, vCurrentOrders := range currentOrders {
-			if "BUY" == vCurrentOrders.Side {
+			if ("SELL" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide) || ("BUY" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide) {
 				historyQuantityFloat += vCurrentOrders.ExecutedQty
-			} else if "SELL" == vCurrentOrders.Side {
+			} else if ("SELL" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide) || ("BUY" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide) {
 				historyQuantityFloat -= vCurrentOrders.ExecutedQty
 			}
 		}
@@ -740,8 +740,8 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 			quantityFloat = historyQuantityFloat
 		}
 
-	} else if "BUY" == order.Side {
-		side = "BUY" // 买
+	} else if ("SELL" == order.Side && "SHORT" == order.Type) || ("BUY" == order.Side && "LONG" == order.Type) {
+		side = order.Side // 买
 	} else {
 		fmt.Println("err order side")
 		return
@@ -792,7 +792,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 	}
 
 	// 计算收益 todo 使用数据库量太大以后
-	if "SELL" == order.Side {
+	if ("SELL" == order.Side && "LONG" == order.Type) || ("BUY" == order.Side && "SHORT" == order.Type) {
 		historyOrders, err = b.binanceUserRepo.GetUserOrderByUserIdAndSymbolAndPositionSide(userBindTrader.UserId, order.Coin, positionSide)
 		if nil != err {
 			fmt.Println(err)
@@ -806,10 +806,10 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 
 		// 按下单顺序遍历，理论上在任何切面上开单币数永远大于等于关单币数
 		for _, vHistoryOrders := range historyOrders {
-			if "BUY" == vHistoryOrders.Side {
+			if ("SELL" == vHistoryOrders.Side && "SHORT" == vHistoryOrders.PositionSide) || ("BUY" == vHistoryOrders.Side && "LONG" == vHistoryOrders.PositionSide) {
 				historyAvgPrice = (historyAvgPrice*historyCoin + vHistoryOrders.ExecutedQty*vHistoryOrders.AvgPrice) / (historyCoin + vHistoryOrders.ExecutedQty)
 				historyCoin += vHistoryOrders.ExecutedQty
-			} else if "SELL" == vHistoryOrders.Side {
+			} else if ("SELL" == vHistoryOrders.Side && "LONG" == vHistoryOrders.PositionSide) || ("BUY" == vHistoryOrders.Side && "SHORT" == vHistoryOrders.PositionSide) {
 				historyCoin -= vHistoryOrders.ExecutedQty
 				if 0 > historyCoin {
 					fmt.Println("historyCoin err", userBindTrader.UserId, userBindTrader.TraderId, historyCoin, vHistoryOrders.ExecutedQty)
@@ -829,8 +829,8 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 			return err
 		}
 
-		// SELL
-		if "SELL" == order.Side {
+		// 平
+		if ("SELL" == order.Side && "LONG" == order.Type) || ("BUY" == order.Side && "SHORT" == order.Type) {
 			_, err = b.binanceUserRepo.UpdatesUserAmount(ctx, currentOrder.UserId, income)
 			if nil != err {
 				return err
