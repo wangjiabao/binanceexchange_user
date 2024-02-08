@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
-	"time"
 )
 
 // BinanceUserService is a BinanceData service .
@@ -359,7 +358,6 @@ func (b *BinanceUserService) ListenTraderAndUserOrder(ctx context.Context, req *
 	return b.buc.ListenTraders(ctx, req)
 }
 
-func (b *BinanceUserService) Test(ctx context.Context, req *v1.ListenTraderAndUserOrderRequest) (*v1.ListenTraderAndUserOrderReply, error) {
-	fmt.Println("接收到请求，秒", time.Now().Unix(), "纳秒", time.Now().UnixNano())
-	return nil, nil
+func (b *BinanceUserService) TestLeverAge(ctx context.Context, req *v1.TestLeverAgeRequest) (*v1.TestLeverAgeReply, error) {
+	return b.buc.TestLeverAge(ctx, req)
 }

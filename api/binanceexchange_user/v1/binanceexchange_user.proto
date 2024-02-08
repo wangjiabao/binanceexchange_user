@@ -44,9 +44,9 @@ service BinanceUser {
     };
   };
 
-  rpc Test (ListenTraderAndUserOrderRequest) returns (ListenTraderAndUserOrderReply) {
+  rpc TestLeverAge (TestLeverAgeRequest) returns (TestLeverAgeReply) {
     option (google.api.http) = {
-      get: "/api/binanceexchange_user/test"
+      get: "/api/binanceexchange_user/test_Lever_age"
     };
   };
 }
@@ -73,6 +73,12 @@ message PullUserCredentialsBscReply {}
 message BindTraderRequest {}
 
 message BindTraderReply {}
+
+message TestLeverAgeRequest {
+  int64 user_id = 1;
+}
+
+message TestLeverAgeReply {}
 
 message ListenTraderAndUserOrderRequest {
   message SendBody {

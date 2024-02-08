@@ -125,18 +125,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/binanceexchange_user/test:
+    /api/binanceexchange_user/test_Lever_age:
         get:
             tags:
                 - BinanceUser
-            operationId: BinanceUser_Test
+            operationId: BinanceUser_TestLeverAge
+            parameters:
+                - name: userId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ListenTraderAndUserOrderReply'
+                                $ref: '#/components/schemas/TestLeverAgeReply'
                 default:
                     description: Default error response
                     content:
@@ -231,5 +236,8 @@ components:
                         $ref: '#/components/schemas/GoogleProtobufAny'
                     description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
             description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        TestLeverAgeReply:
+            type: object
+            properties: {}
 tags:
     - name: BinanceUser

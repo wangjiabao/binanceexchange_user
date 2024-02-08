@@ -277,8 +277,9 @@ func (b *BinanceUserUsecase) SetUserBalanceAndUser(ctx context.Context, address 
 
 func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey string, apiSecret string) error {
 	var (
-		user2 *User
-		err   error
+		user2  *User
+		symbol map[string]*Symbol
+		err    error
 	)
 
 	user2, err = b.binanceUserRepo.GetUserByApiKeyAndApiSecret(apiKey, apiSecret)
@@ -299,6 +300,18 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				b.log.Error(err)
 				return err
 			}
+		}
+	}
+
+	symbol, err = b.binanceUserRepo.GetSymbol()
+	if nil != err {
+		return err
+	}
+
+	for k, _ := range symbol {
+		_, err = requestBinanceLeverAge(k, int64(20), apiKey, apiSecret)
+		if nil != err {
+			continue
 		}
 	}
 
@@ -458,6 +471,33 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 			return nil
 		}); err != nil {
 			b.log.Error(err)
+		}
+	}
+
+	return nil, nil
+}
+
+func (b *BinanceUserUsecase) TestLeverAge(ctx context.Context, req *v1.TestLeverAgeRequest) (*v1.TestLeverAgeReply, error) {
+	var (
+		users  map[uint64]*User
+		symbol map[string]*Symbol
+		err    error
+	)
+	userIds := make([]uint64, 0)
+	userIds = append(userIds, 3, 4)
+	users, err = b.binanceUserRepo.GetUsersByUserIds(userIds)
+
+	for _, v := range users {
+		symbol, err = b.binanceUserRepo.GetSymbol()
+		if nil != err {
+			continue
+		}
+
+		for k, _ := range symbol {
+			_, err = requestBinanceLeverAge(k, int64(20), v.ApiKey, v.ApiSecret)
+			if nil != err {
+				continue
+			}
 		}
 	}
 
@@ -943,6 +983,80 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 		PositionSide:  o.PositionSide,
 		ClosePosition: o.ClosePosition,
 		Type:          o.Type,
+	}
+
+	return res, nil
+}
+
+type BinanceLeverAge struct {
+	LeverAge int64
+	symbol   string
+}
+
+func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secretKey string) (*BinanceLeverAge, error) {
+	var (
+		client *http.Client
+		req    *http.Request
+		resp   *http.Response
+		res    *BinanceLeverAge
+		data   string
+		b      []byte
+		err    error
+		apiUrl = "https://fapi.binance.com/fapi/v1/leverage"
+	)
+
+	// 时间
+	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
+	// 拼请求数据
+	data = "symbol=" + symbol + "&leverage=" + strconv.FormatInt(leverAge, 10) + "&timestamp=" + now
+	fmt.Println(data)
+	// 加密
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+	// 构造请求
+
+	req, err = http.NewRequest("POST", apiUrl, strings.NewReader(data+"&signature="+signature))
+	if err != nil {
+		return nil, err
+	}
+	// 添加头信息
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-MBX-APIKEY", apiKey)
+
+	// 请求执行
+	client = &http.Client{Timeout: 3 * time.Second}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 结果
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	fmt.Println(resp.Header, string(b))
+
+	var l BinanceLeverAge
+	err = json.Unmarshal(b, &l)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	res = &BinanceLeverAge{
+		LeverAge: l.LeverAge,
+		symbol:   l.symbol,
 	}
 
 	return res, nil
