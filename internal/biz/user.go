@@ -300,18 +300,18 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				b.log.Error(err)
 				return err
 			}
-		}
-	}
 
-	symbol, err = b.binanceUserRepo.GetSymbol()
-	if nil != err {
-		return err
-	}
+			symbol, err = b.binanceUserRepo.GetSymbol()
+			if nil != err {
+				return err
+			}
 
-	for k, _ := range symbol {
-		_, err = requestBinanceLeverAge(k, int64(20), apiKey, apiSecret)
-		if nil != err {
-			continue
+			for k, _ := range symbol {
+				_, err = requestBinanceLeverAge(k, int64(20), apiKey, apiSecret)
+				if nil != err {
+					continue
+				}
+			}
 		}
 	}
 
