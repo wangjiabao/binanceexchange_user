@@ -504,7 +504,6 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 		}
 	}
 
-	fmt.Println(userIds)
 	if 0 >= len(userIds) {
 		return &v1.ListenTraderAndUserOrderReply{
 			Status: "ok",
@@ -599,8 +598,8 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 							continue
 						}
 
-						// 余额不足，10u的收益，要1u的余额
-						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp {
+						// 余额不足，10u的收益，要1u的余额 todo 1tfi按1000算
+						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
 							continue
 						}
 
