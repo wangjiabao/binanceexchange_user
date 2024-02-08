@@ -484,7 +484,7 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 		symbol         map[string]*Symbol
 		err            error
 	)
-
+	fmt.Println(req.SendBody)
 	traderIds = make([]uint64, 0)
 	for _, vOrders := range req.SendBody.Orders {
 		traderIds = append(traderIds, vOrders.Uid)
