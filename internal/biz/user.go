@@ -504,6 +504,51 @@ func (b *BinanceUserUsecase) TestLeverAge(ctx context.Context, req *v1.TestLever
 	return nil, nil
 }
 
+func (b *BinanceUserUsecase) TestOrder(ctx context.Context, req *v1.TestOrderRequest) (*v1.TestOrderReply, error) {
+	var (
+		users map[uint64]*User
+		order *BinanceOrder
+		err   error
+	)
+	userIds := make([]uint64, 0)
+	userIds = append(userIds, 3, 4)
+	users, err = b.binanceUserRepo.GetUsersByUserIds(userIds)
+
+	for _, v := range users {
+		if v.ID == 4 {
+			order, err = requestBinanceOrderInfo("LINKUSDT", 30667218504, v.ApiKey, v.ApiSecret)
+			if nil != err {
+				fmt.Println(err, v)
+				continue
+			}
+			fmt.Println(order)
+			order, err = requestBinanceOrderInfo("LINKUSDT", 30668742220, v.ApiKey, v.ApiSecret)
+			if nil != err {
+				fmt.Println(err, v)
+				continue
+			}
+			fmt.Println(order)
+		}
+
+		if v.ID == 3 {
+			order, err = requestBinanceOrderInfo("LINKUSDT", 30667218505, v.ApiKey, v.ApiSecret)
+			if nil != err {
+				fmt.Println(err, v)
+				continue
+			}
+			fmt.Println(order)
+			order, err = requestBinanceOrderInfo("LINKUSDT", 30668742221, v.ApiKey, v.ApiSecret)
+			if nil != err {
+				fmt.Println(err, v)
+				continue
+			}
+			fmt.Println(order)
+		}
+	}
+
+	return nil, nil
+}
+
 type OrderData struct {
 	Coin  string
 	Type  string
@@ -1060,29 +1105,29 @@ func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secret
 	return res, nil
 }
 
-func requestBinanceOrderInfo(symbol string, leverAge int64, apiKey string, secretKey string) (*BinanceLeverAge, error) {
+func requestBinanceOrderInfo(symbol string, orderId int64, apiKey string, secretKey string) (*BinanceOrder, error) {
 	var (
 		client *http.Client
 		req    *http.Request
 		resp   *http.Response
-		res    *BinanceLeverAge
+		res    *BinanceOrder
 		data   string
 		b      []byte
 		err    error
-		apiUrl = "https://fapi.binance.com/fapi/v1/leverage"
+		apiUrl = "https://fapi.binance.com/fapi/v1/order"
 	)
 
 	// 时间
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
-	data = "symbol=" + symbol + "&leverage=" + strconv.FormatInt(leverAge, 10) + "&timestamp=" + now
+	data = "symbol=" + symbol + "&orderId=" + strconv.FormatInt(orderId, 10) + "&timestamp=" + now
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write([]byte(data))
 	signature := hex.EncodeToString(h.Sum(nil))
 	// 构造请求
 
-	req, err = http.NewRequest("POST", apiUrl, strings.NewReader(data+"&signature="+signature))
+	req, err = http.NewRequest("GET", apiUrl, strings.NewReader(data+"&signature="+signature))
 	if err != nil {
 		return nil, err
 	}
@@ -1111,16 +1156,24 @@ func requestBinanceOrderInfo(symbol string, leverAge int64, apiKey string, secre
 		return nil, err
 	}
 
-	var l BinanceLeverAge
-	err = json.Unmarshal(b, &l)
+	var o BinanceOrder
+	err = json.Unmarshal(b, &o)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
-	res = &BinanceLeverAge{
-		LeverAge: l.LeverAge,
-		symbol:   l.symbol,
+	res = &BinanceOrder{
+		OrderId:       o.OrderId,
+		ExecutedQty:   o.ExecutedQty,
+		ClientOrderId: o.ClientOrderId,
+		Symbol:        o.Symbol,
+		AvgPrice:      o.AvgPrice,
+		CumQuote:      o.CumQuote,
+		Side:          o.Side,
+		PositionSide:  o.PositionSide,
+		ClosePosition: o.ClosePosition,
+		Type:          o.Type,
 	}
 
 	return res, nil
