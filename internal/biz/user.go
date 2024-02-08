@@ -1009,7 +1009,6 @@ func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secret
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
 	data = "symbol=" + symbol + "&leverage=" + strconv.FormatInt(leverAge, 10) + "&timestamp=" + now
-	fmt.Println(data)
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write([]byte(data))
@@ -1044,8 +1043,6 @@ func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secret
 		fmt.Println(err)
 		return nil, err
 	}
-
-	fmt.Println(resp.Header, string(b))
 
 	var l BinanceLeverAge
 	err = json.Unmarshal(b, &l)
