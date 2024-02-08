@@ -52,7 +52,7 @@ service BinanceUser {
 
   rpc TestOrder (TestOrderRequest) returns (TestOrderReply) {
     option (google.api.http) = {
-      get: "/api/binanceexchange_user/test_Lever_age"
+      get: "/api/binanceexchange_user/test_order"
     };
   };
 }
