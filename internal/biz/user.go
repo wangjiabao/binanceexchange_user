@@ -1206,8 +1206,8 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	// 时间
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
-	data = "symbol=" + symbol + "startTime=" + startTime + "&endTime=" + endTime + "&limit=10&timestamp=" + now
-	fmt.Println(data)
+	data = "symbol=" + symbol + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=10&timestamp=" + now
+
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write([]byte(data))
@@ -1219,7 +1219,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 		return nil, err
 	}
 
-	fmt.Println(req.RequestURI)
+	fmt.Println(req.URL, req.URL.RawQuery)
 
 	// 添加头信息
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
