@@ -1290,7 +1290,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 
 	for startTime.Before(now) {
 
-		endTime := startTime.Add(7 * 24 * time.Hour)
+		endTime := startTime.Add(6 * 24 * time.Hour)
 		requestBinanceOrderHistory(
 			"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
 			"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
