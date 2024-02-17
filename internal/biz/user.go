@@ -1191,7 +1191,7 @@ type OrderHistory struct {
 	Time         int64
 }
 
-func requestBinanceOrderHistory(apiKey string, secretKey string, startTime string, endTime string) ([]*OrderHistory, error) {
+func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, startTime string, endTime string) ([]*OrderHistory, error) {
 	var (
 		client *http.Client
 		req    *http.Request
@@ -1206,7 +1206,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, startTime strin
 	// 时间
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
-	data = "startTime=" + startTime + "&endTime=" + endTime + "&limit=10" + "&timestamp=" + now
+	data = "symbol=" + symbol + "startTime=" + startTime + "&endTime=" + endTime + "&limit=10" + "&timestamp=" + now
 	fmt.Println(data)
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
@@ -1294,6 +1294,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		requestBinanceOrderHistory(
 			"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
 			"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
+			"LINKUSDT",
 			strconv.FormatInt(startTime.Add(-8*time.Hour).UnixMilli(), 10),
 			strconv.FormatInt(endTime.Add(-8*time.Hour).UnixMilli(), 10),
 		)
