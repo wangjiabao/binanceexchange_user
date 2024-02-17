@@ -1192,6 +1192,7 @@ type OrderHistory struct {
 }
 
 func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, startTime string, endTime string) ([]*OrderHistory, error) {
+	fmt.Println(startTime, endTime)
 	var (
 		client *http.Client
 		req    *http.Request
@@ -1206,7 +1207,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	// 时间
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
-	data = "recvWindow=100000&symbol=" + symbol + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=10&timestamp=" + now
+	data = "symbol=" + symbol + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=10&timestamp=" + now
 
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
@@ -1214,17 +1215,13 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	signature := hex.EncodeToString(h.Sum(nil))
 	// 构造请求
 
-	req, err = http.NewRequest("GET", apiUrl, strings.NewReader(data+"&signature="+signature))
+	req, err = http.NewRequest("GET", apiUrl+"?"+data+"&signature="+signature, nil)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(strings.NewReader(data + "&signature=" + signature))
 
 	// 添加头信息
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("X-MBX-APIKEY", apiKey)
-
-	fmt.Println(222, req)
 
 	// 请求执行
 	client = &http.Client{Timeout: 3 * time.Second}
@@ -1294,7 +1291,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 
 	for startTime.Before(now) {
 
-		endTime := startTime.Add(6 * 24 * time.Hour)
+		endTime := startTime.Add(5 * 24 * time.Hour)
 		requestBinanceOrderHistory(
 			"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
 			"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
