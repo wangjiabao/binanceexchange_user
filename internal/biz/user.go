@@ -1218,6 +1218,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(strings.NewReader(data + "&signature=" + signature))
 
 	// 添加头信息
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
