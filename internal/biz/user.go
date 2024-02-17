@@ -1207,6 +1207,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, startTime strin
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
 	data = "startTime=" + startTime + "&endTime=" + endTime + "&limit=10" + "&timestamp=" + now
+	fmt.Println(data)
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write([]byte(data))
@@ -1290,8 +1291,12 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 	for startTime.Before(now) {
 
 		endTime := startTime.Add(7 * 24 * time.Hour)
-		fmt.Println(startTime, endTime, now)
-		requestBinanceOrderHistory("DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm", "77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD", startTime.String(), endTime.String())
+		requestBinanceOrderHistory(
+			"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
+			"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
+			strconv.FormatInt(startTime.Add(-8*time.Hour).UnixMilli(), 10),
+			strconv.FormatInt(endTime.Add(-8*time.Hour).UnixMilli(), 10),
+		)
 
 		startTime = endTime
 	}
