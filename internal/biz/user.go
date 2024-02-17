@@ -1219,7 +1219,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 		return nil, err
 	}
 
-	fmt.Println(req.URL, req.URL.RawQuery)
+	fmt.Println(222, req.URL)
 
 	// 添加头信息
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
