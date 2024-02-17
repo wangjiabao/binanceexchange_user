@@ -1219,11 +1219,11 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 		return nil, err
 	}
 
-	fmt.Println(222, req.URL)
-
 	// 添加头信息
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("X-MBX-APIKEY", apiKey)
+
+	fmt.Println(222, req)
 
 	// 请求执行
 	client = &http.Client{Timeout: 3 * time.Second}
