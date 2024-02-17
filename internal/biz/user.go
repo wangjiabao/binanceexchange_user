@@ -663,8 +663,8 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 							continue
 						}
 
-						// 余额不足，10u的收益，要1u的余额
-						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*10 {
+						// 余额不足，1u的收益，要10000u的余额
+						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*10000 {
 							continue
 						}
 					} else if 2 == users[vUserBindTrader.UserId].PlayType {
