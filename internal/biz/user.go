@@ -1206,7 +1206,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	// 时间
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
-	data = "symbol=" + symbol + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=10" + "&timestamp=" + now
+	data = "symbol=" + symbol + "&timestamp=" + now
 	fmt.Println(data)
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
