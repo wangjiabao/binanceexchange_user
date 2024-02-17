@@ -27,6 +27,7 @@ const (
 	BinanceUser_ListenTraderAndUserOrder_FullMethodName = "/BinanceUser/ListenTraderAndUserOrder"
 	BinanceUser_TestLeverAge_FullMethodName             = "/BinanceUser/TestLeverAge"
 	BinanceUser_TestOrder_FullMethodName                = "/BinanceUser/TestOrder"
+	BinanceUser_Analyze_FullMethodName                  = "/BinanceUser/Analyze"
 )
 
 // BinanceUserClient is the client API for BinanceUser service.
@@ -41,6 +42,7 @@ type BinanceUserClient interface {
 	ListenTraderAndUserOrder(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error)
 	TestLeverAge(ctx context.Context, in *TestLeverAgeRequest, opts ...grpc.CallOption) (*TestLeverAgeReply, error)
 	TestOrder(ctx context.Context, in *TestOrderRequest, opts ...grpc.CallOption) (*TestOrderReply, error)
+	Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error)
 }
 
 type binanceUserClient struct {
@@ -123,6 +125,15 @@ func (c *binanceUserClient) TestOrder(ctx context.Context, in *TestOrderRequest,
 	return out, nil
 }
 
+func (c *binanceUserClient) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error) {
+	out := new(AnalyzeReply)
+	err := c.cc.Invoke(ctx, BinanceUser_Analyze_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BinanceUserServer is the server API for BinanceUser service.
 // All implementations must embed UnimplementedBinanceUserServer
 // for forward compatibility
@@ -135,6 +146,7 @@ type BinanceUserServer interface {
 	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
 	TestLeverAge(context.Context, *TestLeverAgeRequest) (*TestLeverAgeReply, error)
 	TestOrder(context.Context, *TestOrderRequest) (*TestOrderReply, error)
+	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
 
@@ -165,6 +177,9 @@ func (UnimplementedBinanceUserServer) TestLeverAge(context.Context, *TestLeverAg
 }
 func (UnimplementedBinanceUserServer) TestOrder(context.Context, *TestOrderRequest) (*TestOrderReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestOrder not implemented")
+}
+func (UnimplementedBinanceUserServer) Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Analyze not implemented")
 }
 func (UnimplementedBinanceUserServer) mustEmbedUnimplementedBinanceUserServer() {}
 
@@ -323,6 +338,24 @@ func _BinanceUser_TestOrder_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_Analyze_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnalyzeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).Analyze(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_Analyze_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).Analyze(ctx, req.(*AnalyzeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BinanceUser_ServiceDesc is the grpc.ServiceDesc for BinanceUser service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -361,6 +394,10 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestOrder",
 			Handler:    _BinanceUser_TestOrder_Handler,
+		},
+		{
+			MethodName: "Analyze",
+			Handler:    _BinanceUser_Analyze_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

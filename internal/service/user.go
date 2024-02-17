@@ -365,3 +365,7 @@ func (b *BinanceUserService) TestLeverAge(ctx context.Context, req *v1.TestLever
 func (b *BinanceUserService) TestOrder(ctx context.Context, req *v1.TestOrderRequest) (*v1.TestOrderReply, error) {
 	return b.buc.TestOrder(ctx, req)
 }
+
+func (b *BinanceUserService) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
+	return b.buc.Analyze(ctx, req)
+}

@@ -19,6 +19,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationBinanceUserAnalyze = "/BinanceUser/Analyze"
 const OperationBinanceUserBindTrader = "/BinanceUser/BindTrader"
 const OperationBinanceUserGetUser = "/BinanceUser/GetUser"
 const OperationBinanceUserListenTraderAndUserOrder = "/BinanceUser/ListenTraderAndUserOrder"
@@ -29,6 +30,7 @@ const OperationBinanceUserTestLeverAge = "/BinanceUser/TestLeverAge"
 const OperationBinanceUserTestOrder = "/BinanceUser/TestOrder"
 
 type BinanceUserHTTPServer interface {
+	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error)
 	BindTrader(context.Context, *BindTraderRequest) (*BindTraderReply, error)
 	GetUser(context.Context, *GetUserRequest) (*GetUserReply, error)
 	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
@@ -49,6 +51,7 @@ func RegisterBinanceUserHTTPServer(s *http.Server, srv BinanceUserHTTPServer) {
 	r.POST("/api/binanceexchange_user/listen_trader_and_user_order", _BinanceUser_ListenTraderAndUserOrder0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/test_Lever_age", _BinanceUser_TestLeverAge0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/test_order", _BinanceUser_TestOrder0_HTTP_Handler(srv))
+	r.GET("/api/binanceexchange_user/analyze", _BinanceUser_Analyze0_HTTP_Handler(srv))
 }
 
 func _BinanceUser_GetUser0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
@@ -206,7 +209,27 @@ func _BinanceUser_TestOrder0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx ht
 	}
 }
 
+func _BinanceUser_Analyze0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AnalyzeRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationBinanceUserAnalyze)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Analyze(ctx, req.(*AnalyzeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AnalyzeReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type BinanceUserHTTPClient interface {
+	Analyze(ctx context.Context, req *AnalyzeRequest, opts ...http.CallOption) (rsp *AnalyzeReply, err error)
 	BindTrader(ctx context.Context, req *BindTraderRequest, opts ...http.CallOption) (rsp *BindTraderReply, err error)
 	GetUser(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *GetUserReply, err error)
 	ListenTraderAndUserOrder(ctx context.Context, req *ListenTraderAndUserOrderRequest, opts ...http.CallOption) (rsp *ListenTraderAndUserOrderReply, err error)
@@ -223,6 +246,19 @@ type BinanceUserHTTPClientImpl struct {
 
 func NewBinanceUserHTTPClient(client *http.Client) BinanceUserHTTPClient {
 	return &BinanceUserHTTPClientImpl{client}
+}
+
+func (c *BinanceUserHTTPClientImpl) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...http.CallOption) (*AnalyzeReply, error) {
+	var out AnalyzeReply
+	pattern := "/api/binanceexchange_user/analyze"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationBinanceUserAnalyze))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *BinanceUserHTTPClientImpl) BindTrader(ctx context.Context, in *BindTraderRequest, opts ...http.CallOption) (*BindTraderReply, error) {

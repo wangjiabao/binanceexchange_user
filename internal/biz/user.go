@@ -1178,3 +1178,123 @@ func requestBinanceOrderInfo(symbol string, orderId int64, apiKey string, secret
 
 	return res, nil
 }
+
+type OrderHistory struct {
+	OrderId      int64
+	Qty          string
+	Symbol       string
+	Price        string
+	Side         string
+	RealizedPnl  string
+	QuoteQty     string
+	PositionSide string
+	Time         int64
+}
+
+func requestBinanceOrderHistory(apiKey string, secretKey string, startTime string, endTime string) ([]*OrderHistory, error) {
+	var (
+		client *http.Client
+		req    *http.Request
+		resp   *http.Response
+		res    []*OrderHistory
+		data   string
+		b      []byte
+		err    error
+		apiUrl = "https://fapi.binance.com/fapi/v1/userTrades"
+	)
+
+	// 时间
+	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
+	// 拼请求数据
+	data = "startTime=" + startTime + "&endTime=" + endTime + "&limit=10" + "&timestamp=" + now
+	// 加密
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+	// 构造请求
+
+	req, err = http.NewRequest("GET", apiUrl, strings.NewReader(data+"&signature="+signature))
+	if err != nil {
+		return nil, err
+	}
+	// 添加头信息
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-MBX-APIKEY", apiKey)
+
+	// 请求执行
+	client = &http.Client{Timeout: 3 * time.Second}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 结果
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	fmt.Println(11, string(b))
+
+	var i []*OrderHistory
+	err = json.Unmarshal(b, &i)
+	if err != nil {
+		return nil, err
+	}
+
+	res = make([]*OrderHistory, 0)
+	for _, v := range i {
+		res = append(res, v)
+
+		//res = append(res, &OrderHistory{
+		//	OrderId:      v[2].(int64),
+		//	Qty:          v[2].(string),
+		//	Symbol:       v[2].(string),
+		//	Price:        v[2].(string),
+		//	Side:         v[2].(string),
+		//	PositionSide: v[2].(string),
+		//	Time:         v[2].(int64),
+		//	RealizedPnl:  v[2].(string),
+		//	QuoteQty:     v[2].(string),
+		//})
+	}
+
+	return res, nil
+}
+
+func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
+	var (
+		startTime time.Time
+		now       = time.Now()
+		err       error
+	)
+
+	// 指定日期和时间
+	dateString := "2024-02-09 04:20:00"
+
+	// 解析日期字符串
+	startTime, err = time.Parse("2006-01-02 15:04:05", dateString)
+	if err != nil {
+		fmt.Println("解析日期出错:", err)
+		return nil, nil
+	}
+
+	for startTime.Before(now) {
+
+		endTime := startTime.Add(7 * 24 * time.Hour)
+		fmt.Println(startTime, endTime, now)
+		requestBinanceOrderHistory("DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm", "77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD", startTime.String(), endTime.String())
+
+		startTime = endTime
+	}
+
+	return nil, nil
+}

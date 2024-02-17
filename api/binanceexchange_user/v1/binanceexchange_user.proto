@@ -55,6 +55,12 @@ service BinanceUser {
       get: "/api/binanceexchange_user/test_order"
     };
   };
+
+  rpc Analyze (AnalyzeRequest) returns (AnalyzeReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/analyze"
+    };
+  };
 }
 
 message GetUserRequest {
@@ -89,6 +95,10 @@ message TestLeverAgeReply {}
 message TestOrderRequest {}
 
 message TestOrderReply {}
+
+message AnalyzeRequest {}
+
+message AnalyzeReply {}
 
 message ListenTraderAndUserOrderRequest {
   message SendBody {
