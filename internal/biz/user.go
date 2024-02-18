@@ -1277,7 +1277,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 
 	}
 
-	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU, "系统订单：", len(ordersUser))
+	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU, "系统订单：", len(ordersUser), "系统收益：", u2, "系统收益共", totalU2)
 	//var (
 	//	userOrders []*UserOrder
 	//	err        error
