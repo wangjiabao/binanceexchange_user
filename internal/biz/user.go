@@ -1250,6 +1250,8 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 		return nil, err
 	}
 
+	fmt.Println(string(b))
+
 	res = make([]*OrderHistory, 0)
 	for _, v := range i {
 		res = append(res, v)
