@@ -1162,15 +1162,15 @@ func requestBinanceOrderInfo(symbol string, orderId int64, apiKey string, secret
 
 func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
 	var (
-		orders     []*UserOrder
-		ordersUser map[string]*UserOrder
-
-		total   int64
-		u       float64
-		totalU  int64
-		u2      float64
-		totalU2 int64
-		err     error
+		orders       []*UserOrder
+		ordersUser   map[string]*UserOrder
+		binanceOrder map[int64]*OrderHistory
+		total        int64
+		u            float64
+		totalU       int64
+		u2           float64
+		totalU2      int64
+		err          error
 	)
 
 	orders, err = b.binanceUserRepo.GetUserOrderByUserIdGroupBySymbol(5)
@@ -1185,8 +1185,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 
 	for _, v := range orders {
 		var (
-			binanceOrder []*OrderHistory
-			start        = int64(1707444000000)
+			start = int64(1707444000000)
 		)
 
 		for start <= 1708257335895 {
@@ -1216,65 +1215,69 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 			}
 
 			for _, vTmpBinanceOrder := range tmpBinanceOrder {
-				binanceOrder = append(binanceOrder, vTmpBinanceOrder)
+				if _, ok := binanceOrder[vTmpBinanceOrder.OrderId]; !ok {
+					fmt.Println("重复", binanceOrder[vTmpBinanceOrder.OrderId], vTmpBinanceOrder)
+				}
+
+				binanceOrder[vTmpBinanceOrder.OrderId] = vTmpBinanceOrder
 			}
 
 			start += 432000000
 
 		}
 
-		for _, vBinanceOrder := range binanceOrder {
-			tmpOrderId := strconv.FormatInt(vBinanceOrder.OrderId, 10)
-			if _, ok := ordersUser[tmpOrderId]; !ok {
-				fmt.Println("不存在系统下单", tmpOrderId)
+	}
+
+	for _, vBinanceOrder := range binanceOrder {
+		tmpOrderId := strconv.FormatInt(vBinanceOrder.OrderId, 10)
+		if _, ok := ordersUser[tmpOrderId]; !ok {
+			fmt.Println("不存在系统下单", tmpOrderId)
+		}
+
+		total++
+		// 平多
+		if "SELL" == vBinanceOrder.Side && "LONG" == vBinanceOrder.PositionSide {
+			var tmp float64
+			tmp, err = strconv.ParseFloat(vBinanceOrder.RealizedPnl, 64)
+			if nil != err {
+				return nil, err
 			}
 
-			total++
-			// 平多
-			if "SELL" == vBinanceOrder.Side && "LONG" == vBinanceOrder.PositionSide {
-				var tmp float64
-				tmp, err = strconv.ParseFloat(vBinanceOrder.RealizedPnl, 64)
-				if nil != err {
-					return nil, err
-				}
+			u += tmp
+			totalU++
 
-				u += tmp
-				totalU++
-
-				if _, ok := ordersUser[tmpOrderId]; ok {
-					totalU2++
-					u2 += tmp
-				}
-			}
-
-			// 平空
-			if "BUY" == vBinanceOrder.Side && "SHORT" == vBinanceOrder.PositionSide {
-				var tmp float64
-				tmp, err = strconv.ParseFloat(vBinanceOrder.RealizedPnl, 64)
-				if nil != err {
-					return nil, err
-				}
-
-				u += tmp
-				totalU++
-
-				if _, ok := ordersUser[tmpOrderId]; ok {
-					totalU2++
-					u2 += tmp
-				}
-			}
-
-			// 开多
-			if "BUY" == vBinanceOrder.Side && "LONG" == vBinanceOrder.PositionSide {
-
-			}
-
-			// 开空
-			if "SELL" == vBinanceOrder.Side && "SHORT" == vBinanceOrder.PositionSide {
-
+			if _, ok := ordersUser[tmpOrderId]; ok {
+				totalU2++
+				u2 += tmp
 			}
 		}
 
+		// 平空
+		if "BUY" == vBinanceOrder.Side && "SHORT" == vBinanceOrder.PositionSide {
+			var tmp float64
+			tmp, err = strconv.ParseFloat(vBinanceOrder.RealizedPnl, 64)
+			if nil != err {
+				return nil, err
+			}
+
+			u += tmp
+			totalU++
+
+			if _, ok := ordersUser[tmpOrderId]; ok {
+				totalU2++
+				u2 += tmp
+			}
+		}
+
+		// 开多
+		if "BUY" == vBinanceOrder.Side && "LONG" == vBinanceOrder.PositionSide {
+
+		}
+
+		// 开空
+		if "SELL" == vBinanceOrder.Side && "SHORT" == vBinanceOrder.PositionSide {
+
+		}
 	}
 
 	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU, "系统订单：", len(ordersUser), "系统收益：", u2, "系统收益共", totalU2)
