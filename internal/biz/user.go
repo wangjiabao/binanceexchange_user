@@ -1188,7 +1188,7 @@ func (b *BinanceUserUsecase) OrderHandle(ctx context.Context, req *v1.OrderHandl
 		fmt.Println(err)
 	}
 
-	for k, v := range orderIdsStr {
+	for _, v := range orderIdsStr {
 		var tmp int64
 		tmp, err = strconv.ParseInt(v, 10, 64)
 		if nil != err {
