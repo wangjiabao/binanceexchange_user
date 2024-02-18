@@ -823,10 +823,10 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 
 		// 开单历史数量不足了
 		if 0 > historyQuantityFloat {
-			fmt.Println("trader的开单数量小于关单数量了", userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			fmt.Println("trader的开单数量小于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
 			return
 		} else if 0 == historyQuantityFloat {
-			fmt.Println("trader的开单数量等于关单数量了", userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
 			return
 		}
 
