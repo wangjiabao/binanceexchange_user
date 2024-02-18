@@ -125,6 +125,7 @@ type BinanceUserRepo interface {
 	InsertUserAmountRecord(ctx context.Context, userAmount *UserAmountRecord) (bool, error)
 	InsertUserBindTrader(ctx context.Context, userId uint64, traderId uint64, amount uint64) (*UserBindTrader, error)
 	InsertUserOrder(ctx context.Context, order *UserOrder) (*UserOrder, error)
+	UpdatesUserOrderHandleStatus(ctx context.Context, id uint64) (bool, error)
 	GetUsers() ([]*User, error)
 	GetUsersByUserIds(userIds []uint64) (map[uint64]*User, error)
 	GetUsersByBindUserStatus() ([]*User, error)
@@ -1273,6 +1274,11 @@ func (b *BinanceUserUsecase) userOrderHandleGoroutine(ctx context.Context, wg *s
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
 			})
+			if nil != err {
+				return err
+			}
+
+			_, err = b.binanceUserRepo.UpdatesUserOrderHandleStatus(ctx, userOrder.ID)
 			if nil != err {
 				return err
 			}

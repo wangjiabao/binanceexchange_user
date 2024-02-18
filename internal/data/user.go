@@ -332,6 +332,21 @@ func (b *BinanceUserRepo) InsertUserOrder(ctx context.Context, order *biz.UserOr
 	}, nil
 }
 
+// UpdatesUserOrderHandleStatus .
+func (b *BinanceUserRepo) UpdatesUserOrderHandleStatus(ctx context.Context, id uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_order").Where("id=?", id).
+		Updates(map[string]interface{}{"handle_status": 1, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_ORDER_ERROR", "UPDATE_USER_ORDER_ERROR")
+	}
+
+	return true, nil
+}
+
 // GetUsers .
 func (b *BinanceUserRepo) GetUsers() ([]*biz.User, error) {
 	var users []*User
