@@ -808,7 +808,7 @@ func (b *BinanceUserRepo) GetUserOrderById(orderId int64) (*biz.UserOrder, error
 func (b *BinanceUserRepo) GetUserOrderByHandleStatus() ([]*biz.UserOrder, error) {
 	var userOrder []*UserOrder
 	if err := b.data.db.Table("user_order").
-		Where("((side=? and position_side=?) or (side=? and position_side=?)) and status=?", "SELL", "LONG", "BUY", "SHORT", 0).
+		Where("((side=? and position_side=?) or (side=? and position_side=?)) and handle_status=?", "SELL", "LONG", "BUY", "SHORT", 0).
 		Order("id asc").
 		Find(&userOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
