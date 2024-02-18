@@ -1263,7 +1263,8 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 
 func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
 	// 解析日期字符串
-	startTime, err := time.Parse("2006-01-02 15:04:05", "2024-02-17 00:00:00")
+	startTime, err := time.Parse("2006-01-02 15:04:05", "2024-02-08 00:00:00")
+	endTime, err := time.Parse("2006-01-02 15:04:05", "2024-02-14 00:00:00")
 	if err != nil {
 		fmt.Println("解析日期出错:", err)
 		return nil, nil
@@ -1274,7 +1275,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
 		"LINKUSDT",
 		strconv.FormatInt(startTime.Add(-8*time.Hour).UnixMilli(), 10),
-		strconv.FormatInt(time.Now().Add(-8*time.Hour).UnixMilli(), 10),
+		strconv.FormatInt(endTime.Add(-8*time.Hour).UnixMilli(), 10),
 	)
 
 	return nil, nil
