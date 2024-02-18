@@ -1188,16 +1188,14 @@ func (b *BinanceUserUsecase) OrderHandle(ctx context.Context, req *v1.OrderHandl
 		fmt.Println(err)
 	}
 
-	wg.Add(1) // 启动一个goroutine就登记+1
 	for k, v := range orderIdsStr {
-		fmt.Println(v)
-
 		var tmp int64
 		tmp, err = strconv.ParseInt(v, 10, 64)
 		if nil != err {
 			fmt.Println(err)
 		}
 
+		wg.Add(1) // 启动一个goroutine就登记+1
 		go b.userOrderHandleGoroutine(ctx, &wg, tmp)
 
 		// todo
