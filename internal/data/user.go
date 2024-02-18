@@ -860,6 +860,87 @@ func (b *BinanceUserRepo) GetUserOrderByHandleStatus() ([]*biz.UserOrder, error)
 	return res, nil
 }
 
+// GetUserOrderByUserIdGroupBySymbol .
+func (b *BinanceUserRepo) GetUserOrderByUserIdGroupBySymbol(userId uint64) ([]*biz.UserOrder, error) {
+	var userOrder []*UserOrder
+	if err := b.data.db.Table("user_order").
+		Where("user_id=?", userId, 0).
+		Group("symbol").
+		Find(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserOrder, 0)
+	for _, v := range userOrder {
+		res = append(res, &biz.UserOrder{
+			ID:            v.ID,
+			UserId:        v.UserId,
+			TraderId:      v.TraderId,
+			ClientOrderId: v.ClientOrderId,
+			OrderId:       v.OrderId,
+			Symbol:        v.Symbol,
+			Side:          v.Side,
+			PositionSide:  v.PositionSide,
+			Quantity:      v.Quantity,
+			Price:         v.Price,
+			TraderQty:     v.TraderQty,
+			OrderType:     v.OrderType,
+			ClosePosition: v.ClosePosition,
+			CumQuote:      v.CumQuote,
+			ExecutedQty:   v.ExecutedQty,
+			AvgPrice:      v.AvgPrice,
+			CreatedAt:     v.CreatedAt,
+			UpdatedAt:     v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserOrderByUserIdMapId .
+func (b *BinanceUserRepo) GetUserOrderByUserIdMapId(userId uint64) (map[string]*biz.UserOrder, error) {
+	var userOrder []*UserOrder
+	if err := b.data.db.Table("user_order").
+		Where("user_id=?", userId).
+		Find(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	res := make(map[string]*biz.UserOrder, 0)
+	for _, v := range userOrder {
+		res[v.OrderId] = &biz.UserOrder{
+			ID:            v.ID,
+			UserId:        v.UserId,
+			TraderId:      v.TraderId,
+			ClientOrderId: v.ClientOrderId,
+			OrderId:       v.OrderId,
+			Symbol:        v.Symbol,
+			Side:          v.Side,
+			PositionSide:  v.PositionSide,
+			Quantity:      v.Quantity,
+			Price:         v.Price,
+			TraderQty:     v.TraderQty,
+			OrderType:     v.OrderType,
+			ClosePosition: v.ClosePosition,
+			CumQuote:      v.CumQuote,
+			ExecutedQty:   v.ExecutedQty,
+			AvgPrice:      v.AvgPrice,
+			CreatedAt:     v.CreatedAt,
+			UpdatedAt:     v.UpdatedAt,
+		}
+	}
+
+	return res, nil
+}
+
 // GetSymbol .
 func (b *BinanceUserRepo) GetSymbol() (map[string]*biz.Symbol, error) {
 	var lhCoinSymbol []*LhCoinSymbol

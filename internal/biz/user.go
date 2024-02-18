@@ -142,8 +142,10 @@ type BinanceUserRepo interface {
 	GetUserBindTraderByTraderIds(traderIds []uint64) (map[uint64][]*UserBindTrader, error)
 	GetSymbol() (map[string]*Symbol, error)
 	GetUserOrderByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*UserOrder, error)
+	GetUserOrderByUserIdMapId(userId uint64) (map[string]*UserOrder, error)
 	GetUserOrderByUserIdAndSymbolAndPositionSide(userId uint64, symbol string, positionSide string) ([]*UserOrder, error)
 	GetUserOrderByHandleStatus() ([]*UserOrder, error)
+	GetUserOrderByUserIdGroupBySymbol(userId uint64) ([]*UserOrder, error)
 	GetUserOrderById(orderId int64) (*UserOrder, error)
 
 	SAddOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error
@@ -1160,20 +1162,123 @@ func requestBinanceOrderInfo(symbol string, orderId int64, apiKey string, secret
 
 func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
 	var (
-		userOrders []*UserOrder
-		err        error
+		orders     []*UserOrder
+		ordersUser map[string]*UserOrder
+
+		total  int64
+		u      float64
+		totalU int64
+		err    error
 	)
-	userOrders, err = b.binanceUserRepo.GetUserOrderByHandleStatus()
+
+	orders, err = b.binanceUserRepo.GetUserOrderByUserIdGroupBySymbol(5)
 	if nil != err {
-		return nil, err
+		return nil, nil
 	}
 
-	for _, v := range userOrders {
-		err = b.binanceUserRepo.SAddOrderSetSellLongOrBuyShort(ctx, int64(v.ID))
-		if nil != err {
-			fmt.Println("错误的数据写入, redis", v, err)
-		}
+	ordersUser, err = b.binanceUserRepo.GetUserOrderByUserIdMapId(5)
+	if nil != err {
+		return nil, nil
 	}
+
+	for _, v := range orders {
+		var (
+			binanceOrder []*OrderHistory
+			start        = int64(1707444000000)
+		)
+
+		for start <= 1708257335895 {
+
+			var (
+				tmpBinanceOrder []*OrderHistory
+				tmpStart        string
+				end             string
+			)
+
+			tmpStart = strconv.FormatInt(start, 10)
+			if start+432000000 >= 1708257335895 {
+				end = strconv.FormatInt(1708257335895, 10)
+			} else {
+				end = strconv.FormatInt(start+432000000, 10)
+			}
+
+			tmpBinanceOrder, err = requestBinanceOrderHistory(
+				"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
+				"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
+				v.Symbol,
+				0,
+				tmpStart, end)
+			if nil != err {
+				fmt.Println("错误查询", err, v.Symbol)
+			}
+
+			for _, vTmpBinanceOrder := range tmpBinanceOrder {
+				binanceOrder = append(binanceOrder, vTmpBinanceOrder)
+			}
+
+			start += 432000000
+
+		}
+
+		for _, vBinanceOrder := range binanceOrder {
+			tmpOrderId := strconv.FormatInt(vBinanceOrder.OrderId, 10)
+			if _, ok := ordersUser[tmpOrderId]; !ok {
+				fmt.Println("不存在系统下单", tmpOrderId)
+			}
+
+			total++
+			// 平多
+			if "SELL" == vBinanceOrder.Side && "LONG" == vBinanceOrder.PositionSide {
+				var tmp float64
+				tmp, err = strconv.ParseFloat(vBinanceOrder.RealizedPnl, 64)
+				if nil != err {
+					return nil, err
+				}
+
+				u += tmp
+				totalU++
+			}
+
+			// 平空
+			if "BUY" == vBinanceOrder.Side && "SHORT" == vBinanceOrder.PositionSide {
+				var tmp float64
+				tmp, err = strconv.ParseFloat(vBinanceOrder.RealizedPnl, 64)
+				if nil != err {
+					return nil, err
+				}
+
+				u += tmp
+				totalU++
+			}
+
+			// 开多
+			if "BUY" == vBinanceOrder.Side && "LONG" == vBinanceOrder.PositionSide {
+
+			}
+
+			// 开空
+			if "SELL" == vBinanceOrder.Side && "SHORT" == vBinanceOrder.PositionSide {
+
+			}
+		}
+
+	}
+	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU)
+	//var (
+	//	userOrders []*UserOrder
+	//	err        error
+	//)
+	//userOrders, err = b.binanceUserRepo.GetUserOrderByHandleStatus()
+	//if nil != err {
+	//	return nil, err
+	//}
+	//
+	//for _, v := range userOrders {
+	//	err = b.binanceUserRepo.SAddOrderSetSellLongOrBuyShort(ctx, int64(v.ID))
+	//	if nil != err {
+	//		fmt.Println("错误的数据写入, redis", v, err)
+	//	}
+	//}
 
 	return nil, nil
 }
