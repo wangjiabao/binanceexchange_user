@@ -1190,7 +1190,12 @@ func (b *BinanceUserUsecase) OrderHandle(ctx context.Context, req *v1.OrderHandl
 		fmt.Println(err)
 	}
 
-	for _, v := range orderIdsStr {
+	for k, v := range orderIdsStr {
+		// todo binance接口ip查询限制,本程序最多使用100条一分钟
+		if 100 <= k {
+			break
+		}
+
 		var tmp int64
 		tmp, err = strconv.ParseInt(v, 10, 64)
 		if nil != err {
