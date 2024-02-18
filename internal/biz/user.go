@@ -1169,6 +1169,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		u          float64
 		totalU     int64
 		u2         float64
+		u3         float64
 		totalU2    int64
 		err        error
 	)
@@ -1244,10 +1245,13 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 				totalU++
 
 				if _, ok := ordersUser[tmpOrderId]; ok {
-					totalU2++
 					u2 += tmp
 
-					order1[tmpOrderId] = ordersUser[tmpOrderId]
+					if _, ok2 := order1[tmpOrderId]; !ok2 {
+						totalU2++
+						u3 += tmp
+						order1[tmpOrderId] = ordersUser[tmpOrderId]
+					}
 				}
 			}
 
@@ -1263,10 +1267,12 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 				totalU++
 
 				if _, ok := ordersUser[tmpOrderId]; ok {
-					totalU2++
 					u2 += tmp
-
-					order1[tmpOrderId] = ordersUser[tmpOrderId]
+					if _, ok2 := order1[tmpOrderId]; !ok2 {
+						totalU2++
+						u3 += tmp
+						order1[tmpOrderId] = ordersUser[tmpOrderId]
+					}
 				}
 			}
 
@@ -1283,7 +1289,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 
 	}
 
-	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU, "系统订单：", len(ordersUser), "系统收益：", u2, "系统收益共", totalU2, "a", order1)
+	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU, "系统订单：", len(ordersUser), "系统收益：", u2, "系统收益共", totalU2, "a", len(order1), "u3", u3)
 	//var (
 	//	userOrders []*UserOrder
 	//	err        error
