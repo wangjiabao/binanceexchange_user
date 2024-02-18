@@ -1197,11 +1197,6 @@ func (b *BinanceUserUsecase) OrderHandle(ctx context.Context, req *v1.OrderHandl
 
 		wg.Add(1) // 启动一个goroutine就登记+1
 		go b.userOrderHandleGoroutine(ctx, &wg, tmp)
-
-		// todo
-		if 99 < k {
-			break
-		}
 	}
 
 	wg.Wait() // 等待所有登记的goroutine都结束
