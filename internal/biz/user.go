@@ -1215,7 +1215,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 			}
 
 			for _, vTmpBinanceOrder := range tmpBinanceOrder {
-				if _, ok := binanceOrder[vTmpBinanceOrder.OrderId]; !ok {
+				if _, ok := binanceOrder[vTmpBinanceOrder.OrderId]; ok {
 					fmt.Println("重复", binanceOrder[vTmpBinanceOrder.OrderId], vTmpBinanceOrder)
 				}
 
