@@ -1295,6 +1295,10 @@ func (b *BinanceUserUsecase) OrderHandle(ctx context.Context, req *v1.OrderHandl
 		fmt.Println(err)
 	}
 
+	if 0 >= len(orderIdsStr) {
+		return &v1.OrderHandleReply{}, nil
+	}
+
 	for k, v := range orderIdsStr {
 		// todo binance接口ip查询限制,本程序最多使用100条一分钟
 		if 100 <= k {

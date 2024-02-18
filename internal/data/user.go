@@ -864,7 +864,7 @@ func (b *BinanceUserRepo) GetUserOrderByHandleStatus() ([]*biz.UserOrder, error)
 func (b *BinanceUserRepo) GetUserOrderByUserIdGroupBySymbol(userId uint64) ([]*biz.UserOrder, error) {
 	var userOrder []*UserOrder
 	if err := b.data.db.Table("user_order").
-		Where("user_id=?", userId, 0).
+		Where("user_id=?", userId).
 		Group("symbol").
 		Find(&userOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
