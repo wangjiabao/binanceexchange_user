@@ -980,6 +980,7 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 
 	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
+		fmt.Println(string(b))
 		fmt.Println(err)
 		return nil, err
 	}
@@ -987,6 +988,7 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 	var o BinanceOrder
 	err = json.Unmarshal(b, &o)
 	if err != nil {
+		fmt.Println(string(b))
 		fmt.Println(err)
 		return nil, err
 	}
@@ -1242,16 +1244,19 @@ func (b *BinanceUserUsecase) userOrderHandleGoroutine(ctx context.Context, wg *s
 		binanceOrder, err = requestBinanceOrderHistory(user.ApiKey, user.ApiSecret, userOrder.Symbol, orderIdInt, "", "")
 		if nil != err {
 			fmt.Println("错误查询", err, orderId)
+			return
 		}
 
 		if 0 >= len(binanceOrder) {
 			fmt.Println("空数据", binanceOrder, orderId)
+			return
 		}
 
 		// 收益
 		income, err = strconv.ParseFloat(binanceOrder[0].RealizedPnl, 64)
 		if nil != err {
 			fmt.Println(err, binanceOrder[0])
+			return
 		}
 		// 写入
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
@@ -1358,6 +1363,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 
 	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
+		fmt.Println(string(b))
 		fmt.Println(err)
 		return nil, err
 	}
@@ -1365,6 +1371,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	var i []*OrderHistory
 	err = json.Unmarshal(b, &i)
 	if err != nil {
+		fmt.Println(string(b))
 		return nil, err
 	}
 
