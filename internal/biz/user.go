@@ -1207,7 +1207,7 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	// 时间
 	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
 	// 拼请求数据
-	data = "symbol=" + symbol + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=10&timestamp=" + now
+	data = "symbol=" + symbol + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=1000&timestamp=" + now
 
 	// 加密
 	h := hmac.New(sha256.New, []byte(secretKey))
@@ -1244,8 +1244,6 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 		return nil, err
 	}
 
-	fmt.Println(11, string(b))
-
 	var i []*OrderHistory
 	err = json.Unmarshal(b, &i)
 	if err != nil {
@@ -1255,53 +1253,27 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	res = make([]*OrderHistory, 0)
 	for _, v := range i {
 		res = append(res, v)
-
-		//res = append(res, &OrderHistory{
-		//	OrderId:      v[2].(int64),
-		//	Qty:          v[2].(string),
-		//	Symbol:       v[2].(string),
-		//	Price:        v[2].(string),
-		//	Side:         v[2].(string),
-		//	PositionSide: v[2].(string),
-		//	Time:         v[2].(int64),
-		//	RealizedPnl:  v[2].(string),
-		//	QuoteQty:     v[2].(string),
-		//})
+		fmt.Println(v)
 	}
 
 	return res, nil
 }
 
 func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
-	var (
-		startTime time.Time
-		now       = time.Now()
-		err       error
-	)
-
-	// 指定日期和时间
-	dateString := "2024-02-09 04:20:00"
-
 	// 解析日期字符串
-	startTime, err = time.Parse("2006-01-02 15:04:05", dateString)
+	startTime, err := time.Parse("2006-01-02 15:04:05", "2024-02-18 00:00:00")
 	if err != nil {
 		fmt.Println("解析日期出错:", err)
 		return nil, nil
 	}
 
-	for startTime.Before(now) {
-
-		endTime := startTime.Add(5 * 24 * time.Hour)
-		requestBinanceOrderHistory(
-			"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
-			"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
-			"LINKUSDT",
-			strconv.FormatInt(startTime.Add(-8*time.Hour).UnixMilli(), 10),
-			strconv.FormatInt(endTime.Add(-8*time.Hour).UnixMilli(), 10),
-		)
-
-		startTime = endTime
-	}
+	requestBinanceOrderHistory(
+		"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
+		"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
+		"LINKUSDT",
+		strconv.FormatInt(startTime.Add(-8*time.Hour).UnixMilli(), 10),
+		strconv.FormatInt(time.Now().Add(-8*time.Hour).UnixMilli(), 10),
+	)
 
 	return nil, nil
 }
