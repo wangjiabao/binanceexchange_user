@@ -1274,8 +1274,8 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
 		"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
 		"LINKUSDT",
-		strconv.FormatInt(startTime.Add(-8*time.Hour).UnixMilli(), 10),
-		strconv.FormatInt(endTime.Add(-8*time.Hour).UnixMilli(), 10),
+		strconv.FormatInt(startTime.UnixMilli(), 10),
+		strconv.FormatInt(endTime.UnixMilli(), 10),
 	)
 
 	return nil, nil
