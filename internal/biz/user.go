@@ -1264,7 +1264,11 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 }
 
 func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
-	requestBinanceOrderHistory(
+	var (
+		res []*OrderHistory
+		err error
+	)
+	res, err = requestBinanceOrderHistory(
 		"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
 		"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
 		"LINKUSDT",
@@ -1273,5 +1277,9 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		"",
 	)
 
+	if nil != err {
+		fmt.Println(err)
+	}
+	fmt.Println(res)
 	return nil, nil
 }
