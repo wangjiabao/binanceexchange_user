@@ -44,6 +44,12 @@ service BinanceUser {
     };
   };
 
+  rpc OrderHandle (OrderHandleRequest) returns (OrderHandleReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/order_handle"
+    };
+  };
+
   rpc TestLeverAge (TestLeverAgeRequest) returns (TestLeverAgeReply) {
     option (google.api.http) = {
       get: "/api/binanceexchange_user/test_Lever_age"
@@ -99,6 +105,10 @@ message TestOrderReply {}
 message AnalyzeRequest {}
 
 message AnalyzeReply {}
+
+message OrderHandleRequest {}
+
+message OrderHandleReply {}
 
 message ListenTraderAndUserOrderRequest {
   message SendBody {

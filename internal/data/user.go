@@ -97,6 +97,7 @@ type UserOrder struct {
 	CumQuote      float64 `gorm:"type:decimal(65,20);not null"`
 	ExecutedQty   float64 `gorm:"type:decimal(65,20);not null"`
 	AvgPrice      float64 `gorm:"type:decimal(65,20);not null"`
+	HandleStatus  int64   `gorm:"type:int;not null"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
@@ -285,6 +286,7 @@ func (b *BinanceUserRepo) InsertUserBindTrader(ctx context.Context, userId uint6
 // InsertUserOrder .
 func (b *BinanceUserRepo) InsertUserOrder(ctx context.Context, order *biz.UserOrder) (*biz.UserOrder, error) {
 	insertUserOrder := &UserOrder{
+		ID:            order.ID,
 		UserId:        order.UserId,
 		TraderId:      order.TraderId,
 		ClientOrderId: order.ClientOrderId,
@@ -300,6 +302,7 @@ func (b *BinanceUserRepo) InsertUserOrder(ctx context.Context, order *biz.UserOr
 		CumQuote:      order.CumQuote,
 		ExecutedQty:   order.ExecutedQty,
 		AvgPrice:      order.AvgPrice,
+		HandleStatus:  0,
 	}
 
 	res := b.data.DB(ctx).Table("user_order").Create(&insertUserOrder)
@@ -420,6 +423,30 @@ func (b *BinanceUserRepo) GetUsersByBindUserStatus() ([]*biz.User, error) {
 func (b *BinanceUserRepo) GetUserByAddress(ctx context.Context, address string) (*biz.User, error) {
 	var user *User
 	if err := b.data.DB(ctx).Table("user").Where("address=?", address).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ERROR", err.Error())
+	}
+
+	return &biz.User{
+		ID:               user.ID,
+		ApiStatus:        user.ApiStatus,
+		PlayType:         user.PlayType,
+		Address:          user.Address,
+		ApiKey:           user.ApiKey,
+		BindTraderStatus: user.BindTraderStatus,
+		ApiSecret:        user.ApiSecret,
+		CreatedAt:        user.CreatedAt,
+		UpdatedAt:        user.UpdatedAt,
+	}, nil
+}
+
+// GetUserById .
+func (b *BinanceUserRepo) GetUserById(ctx context.Context, userId uint64) (*biz.User, error) {
+	var user *User
+	if err := b.data.DB(ctx).Table("user").Where("id=?", userId).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -741,6 +768,83 @@ func (b *BinanceUserRepo) GetUserOrderByUserIdAndSymbolAndPositionSide(userId ui
 	return res, nil
 }
 
+// GetUserOrderById .
+func (b *BinanceUserRepo) GetUserOrderById(orderId int64) (*biz.UserOrder, error) {
+	var userOrder *UserOrder
+	if err := b.data.db.Table("user_order").
+		Where("id=?", orderId).
+		First(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	return &biz.UserOrder{
+		ID:            userOrder.ID,
+		UserId:        userOrder.UserId,
+		TraderId:      userOrder.TraderId,
+		ClientOrderId: userOrder.ClientOrderId,
+		OrderId:       userOrder.OrderId,
+		Symbol:        userOrder.Symbol,
+		Side:          userOrder.Side,
+		PositionSide:  userOrder.PositionSide,
+		Quantity:      userOrder.Quantity,
+		Price:         userOrder.Price,
+		TraderQty:     userOrder.TraderQty,
+		OrderType:     userOrder.OrderType,
+		ClosePosition: userOrder.ClosePosition,
+		CumQuote:      userOrder.CumQuote,
+		ExecutedQty:   userOrder.ExecutedQty,
+		AvgPrice:      userOrder.AvgPrice,
+		HandleStatus:  userOrder.HandleStatus,
+		CreatedAt:     userOrder.CreatedAt,
+		UpdatedAt:     userOrder.UpdatedAt,
+	}, nil
+}
+
+// GetUserOrderByHandleStatus .
+func (b *BinanceUserRepo) GetUserOrderByHandleStatus() ([]*biz.UserOrder, error) {
+	var userOrder []*UserOrder
+	if err := b.data.db.Table("user_order").
+		Where("((side=? and position_side=?) or (side=? and position_side=?)) and status=?", "SELL", "LONG", "BUY", "SHORT", 0).
+		Order("id asc").
+		Find(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserOrder, 0)
+	for _, v := range userOrder {
+		res = append(res, &biz.UserOrder{
+			ID:            v.ID,
+			UserId:        v.UserId,
+			TraderId:      v.TraderId,
+			ClientOrderId: v.ClientOrderId,
+			OrderId:       v.OrderId,
+			Symbol:        v.Symbol,
+			Side:          v.Side,
+			PositionSide:  v.PositionSide,
+			Quantity:      v.Quantity,
+			Price:         v.Price,
+			TraderQty:     v.TraderQty,
+			OrderType:     v.OrderType,
+			ClosePosition: v.ClosePosition,
+			CumQuote:      v.CumQuote,
+			ExecutedQty:   v.ExecutedQty,
+			AvgPrice:      v.AvgPrice,
+			CreatedAt:     v.CreatedAt,
+			UpdatedAt:     v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
 // GetSymbol .
 func (b *BinanceUserRepo) GetSymbol() (map[string]*biz.Symbol, error) {
 	var lhCoinSymbol []*LhCoinSymbol
@@ -762,4 +866,23 @@ func (b *BinanceUserRepo) GetSymbol() (map[string]*biz.Symbol, error) {
 	}
 
 	return res, nil
+}
+
+// SAddOrderSetSellLongOrBuyShort 平仓订单信息放入缓存.
+func (b *BinanceUserRepo) SAddOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error {
+	var err error
+	err = b.data.rdb.SAdd(ctx, "user_order_sell_long_buy_short", OrderId).Err()
+	return err
+}
+
+// SMembersOrderSetSellLongOrBuyShort 平仓订单信息.
+func (b *BinanceUserRepo) SMembersOrderSetSellLongOrBuyShort(ctx context.Context) ([]string, error) {
+	return b.data.rdb.SMembers(ctx, "user_order_sell_long_buy_short").Result()
+}
+
+// SRemOrderSetSellLongOrBuyShort 平仓订单信息放入缓存.
+func (b *BinanceUserRepo) SRemOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error {
+	var err error
+	err = b.data.rdb.SRem(ctx, "user_order_sell_long_buy_short", OrderId).Err()
+	return err
 }

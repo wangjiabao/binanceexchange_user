@@ -89,6 +89,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/order_handle:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_OrderHandle
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OrderHandleReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/pull_user_credentials_bsc:
         get:
             tags:
@@ -228,6 +246,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/SendBody_Order'
+        OrderHandleReply:
+            type: object
+            properties: {}
         Order_Data:
             type: object
             properties:

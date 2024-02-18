@@ -11,5 +11,5 @@ data:
     source: binance_data:sFnJyzzMixsTw2m8@tcp(18.179.77.137:3306)/binance_data?parseTime=true
   redis:
     addr: 127.0.0.1:6379
-    read_timeout: 0.2s
-    write_timeout: 0.2s
+    read_timeout: 1s
+    write_timeout: 1s

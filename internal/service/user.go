@@ -358,6 +358,10 @@ func (b *BinanceUserService) ListenTraderAndUserOrder(ctx context.Context, req *
 	return b.buc.ListenTraders(ctx, req)
 }
 
+func (b *BinanceUserService) OrderHandle(ctx context.Context, req *v1.OrderHandleRequest) (*v1.OrderHandleReply, error) {
+	return b.buc.OrderHandle(ctx, req)
+}
+
 func (b *BinanceUserService) TestLeverAge(ctx context.Context, req *v1.TestLeverAgeRequest) (*v1.TestLeverAgeReply, error) {
 	return b.buc.TestLeverAge(ctx, req)
 }

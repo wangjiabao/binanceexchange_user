@@ -102,6 +102,7 @@ type UserOrder struct {
 	CumQuote      float64
 	ExecutedQty   float64
 	AvgPrice      float64
+	HandleStatus  int64
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
@@ -128,6 +129,7 @@ type BinanceUserRepo interface {
 	GetUsersByUserIds(userIds []uint64) (map[uint64]*User, error)
 	GetUsersByBindUserStatus() ([]*User, error)
 	GetUserByAddress(ctx context.Context, address string) (*User, error)
+	GetUserById(ctx context.Context, userId uint64) (*User, error)
 	GetUserByApiKeyAndApiSecret(key string, secret string) (*User, error)
 	GetUserBalance(ctx context.Context, userId uint64) (*UserBalance, error)
 	GetUserAmount(ctx context.Context, userId uint64) (*UserAmount, error)
@@ -140,6 +142,12 @@ type BinanceUserRepo interface {
 	GetSymbol() (map[string]*Symbol, error)
 	GetUserOrderByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*UserOrder, error)
 	GetUserOrderByUserIdAndSymbolAndPositionSide(userId uint64, symbol string, positionSide string) ([]*UserOrder, error)
+	GetUserOrderByHandleStatus() ([]*UserOrder, error)
+	GetUserOrderById(orderId int64) (*UserOrder, error)
+
+	SAddOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error
+	SMembersOrderSetSellLongOrBuyShort(ctx context.Context) ([]string, error)
+	SRemOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error
 }
 
 // BinanceUserUsecase is a BinanceData usecase.
@@ -663,8 +671,8 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 							continue
 						}
 
-						// 余额不足，1u的收益，要10000u的余额
-						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*10000 {
+						// 余额不足，收益大于余额的1000倍
+						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
 							continue
 						}
 					} else if 2 == users[vUserBindTrader.UserId].PlayType {
@@ -683,7 +691,7 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 							continue
 						}
 
-						// 余额不足，10u的收益，要1u的余额 todo 1tfi按1000算
+						// 余额不足，收益大于余额的1000倍
 						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
 							continue
 						}
@@ -724,10 +732,9 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 // 用户下单
 func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.WaitGroup, order *OrderData, amount string, user *User, userBindTrader *UserBindTrader, quantityPrecision int64) {
 	defer wg.Done() // goroutine结束就登记-1
-	fmt.Println(order, user, quantityPrecision, userBindTrader, amount)
+
 	var (
 		binanceOrder  *BinanceOrder
-		side          string
 		orderType     = "MARKET"
 		positionSide  string
 		quantity      string
@@ -735,10 +742,8 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		price         float64
 		traderAmount  float64
 		currentOrders []*UserOrder
-		historyOrders []*UserOrder
 		currentOrder  *UserOrder
 		insertOrder   *UserOrder
-		income        int64
 		err           error
 	)
 
@@ -796,16 +801,17 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		return
 	}
 
-	quantityFloat := float64(userBindTrader.Amount) * qty / traderAmount
+	quantityFloat := float64(userBindTrader.Amount) * qty / traderAmount // 本次开单数量
+
 	var historyQuantityFloat float64
+	// 本次平仓
 	if ("SELL" == order.Side && "LONG" == order.Type) || ("BUY" == order.Side && "SHORT" == order.Type) {
-		side = order.Side
 		// 查出用户的BUY单的币的数量，在对应的trader下，超过了BUY不能SELL todo 使用数据库量太大以后
 		if 0 >= len(currentOrders) {
 			return
 		}
 
-		// 多的部分不管，按剩余的数量关 todo 少的部分另一个程序解决
+		// 多的部分不管，按剩余的数量关 todo 交易员全部平仓，少的部分另一个程序解决
 		for _, vCurrentOrders := range currentOrders {
 			if ("SELL" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide) || ("BUY" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide) {
 				historyQuantityFloat += vCurrentOrders.ExecutedQty
@@ -815,8 +821,11 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		}
 
 		// 开单历史数量不足了
-		if 0 >= historyQuantityFloat {
-			fmt.Println("trader的开单数量小于等于关单数量了", userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+		if 0 > historyQuantityFloat {
+			fmt.Println("trader的开单数量小于关单数量了", userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			return
+		} else if 0 == historyQuantityFloat {
+			fmt.Println("trader的开单数量等于关单数量了", userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
 			return
 		}
 
@@ -826,20 +835,21 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		}
 
 	} else if ("SELL" == order.Side && "SHORT" == order.Type) || ("BUY" == order.Side && "LONG" == order.Type) {
-		side = order.Side // 买
+		// 开仓
 	} else {
 		fmt.Println("err order side")
 		return
 	}
-	currentOrder.Side = side
 
+	currentOrder.Side = order.Side
+
+	// 精度调整
 	if 0 >= quantityPrecision {
 		quantity = fmt.Sprintf("%d", int64(quantityFloat))
 	} else {
 		quantity = strconv.FormatFloat(quantityFloat, 'f', int(quantityPrecision), 64)
 	}
 
-	fmt.Println(quantityFloat, quantity, quantityPrecision)
 	currentOrder.Quantity, err = strconv.ParseFloat(quantity, 64)
 	if nil != err {
 		fmt.Println(err)
@@ -847,16 +857,17 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 	}
 
 	// 请求下单
-	binanceOrder, err = requestBinanceOrder(order.Coin, side, orderType, positionSide, quantity, user.ApiKey, user.ApiSecret)
+	binanceOrder, err = requestBinanceOrder(order.Coin, order.Side, orderType, positionSide, quantity, user.ApiKey, user.ApiSecret)
 	if nil != err {
 		fmt.Println(err)
 		return
 	}
 
 	if 0 >= binanceOrder.OrderId {
-		fmt.Println(binanceOrder)
+		fmt.Println("下单异常", binanceOrder)
 		return
 	}
+
 	currentOrder.OrderId = strconv.FormatInt(binanceOrder.OrderId, 10)
 
 	currentOrder.CumQuote, err = strconv.ParseFloat(binanceOrder.CumQuote, 64)
@@ -877,37 +888,6 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		return
 	}
 
-	// 计算收益 todo 使用数据库量太大以后
-	if ("SELL" == order.Side && "LONG" == order.Type) || ("BUY" == order.Side && "SHORT" == order.Type) {
-		historyOrders, err = b.binanceUserRepo.GetUserOrderByUserIdAndSymbolAndPositionSide(userBindTrader.UserId, order.Coin, positionSide)
-		if nil != err {
-			fmt.Println(err)
-			return
-		}
-
-		var (
-			historyAvgPrice float64
-			historyCoin     float64 // 币数量
-		)
-
-		// 按下单顺序遍历，理论上在任何切面上开单币数永远大于等于关单币数
-		for _, vHistoryOrders := range historyOrders {
-			if ("SELL" == vHistoryOrders.Side && "SHORT" == vHistoryOrders.PositionSide) || ("BUY" == vHistoryOrders.Side && "LONG" == vHistoryOrders.PositionSide) {
-				historyAvgPrice = (historyAvgPrice*historyCoin + vHistoryOrders.ExecutedQty*vHistoryOrders.AvgPrice) / (historyCoin + vHistoryOrders.ExecutedQty)
-				historyCoin += vHistoryOrders.ExecutedQty
-			} else if ("SELL" == vHistoryOrders.Side && "LONG" == vHistoryOrders.PositionSide) || ("BUY" == vHistoryOrders.Side && "SHORT" == vHistoryOrders.PositionSide) {
-				historyCoin -= vHistoryOrders.ExecutedQty
-				if 0 > historyCoin {
-					fmt.Println("historyCoin err", userBindTrader.UserId, userBindTrader.TraderId, historyCoin, vHistoryOrders.ExecutedQty)
-					return
-				}
-			}
-		}
-
-		// 放大精度
-		income = int64((currentOrder.AvgPrice - historyAvgPrice) * currentOrder.ExecutedQty * 100000)
-	}
-
 	// 写入
 	if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 		insertOrder, err = b.binanceUserRepo.InsertUserOrder(ctx, currentOrder)
@@ -915,30 +895,24 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 			return err
 		}
 
-		// 平
-		if ("SELL" == order.Side && "LONG" == order.Type) || ("BUY" == order.Side && "SHORT" == order.Type) {
-			_, err = b.binanceUserRepo.UpdatesUserAmount(ctx, currentOrder.UserId, income)
-			if nil != err {
-				return err
-			}
-
-			_, err = b.binanceUserRepo.InsertUserAmountRecord(ctx, &UserAmountRecord{
-				UserId:    currentOrder.UserId,
-				OrderId:   insertOrder.ID,
-				Amount:    income,
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-			})
-			if nil != err {
-				return err
-			}
-
-		}
-
 		return nil
 	}); err != nil {
 		fmt.Println(err)
 		return
+	}
+
+	// 计算收益 卖单去binance查询本单收益
+	if ("SELL" == order.Side && "LONG" == order.Type) || ("BUY" == order.Side && "SHORT" == order.Type) {
+		if 0 >= insertOrder.ID {
+			fmt.Println("错误的数据写入", insertOrder)
+			return
+		}
+
+		err = b.binanceUserRepo.SAddOrderSetSellLongOrBuyShort(ctx, int64(insertOrder.ID))
+		if nil != err {
+			fmt.Println("错误的数据写入, redis", insertOrder, err)
+			return
+		}
 	}
 
 	return
@@ -1009,8 +983,6 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 		return nil, err
 	}
 
-	fmt.Println(resp.Header, string(b))
-
 	var o BinanceOrder
 	err = json.Unmarshal(b, &o)
 	if err != nil {
@@ -1029,6 +1001,10 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 		PositionSide:  o.PositionSide,
 		ClosePosition: o.ClosePosition,
 		Type:          o.Type,
+	}
+
+	if 0 >= res.OrderId {
+		fmt.Println(string(b))
 	}
 
 	return res, nil
@@ -1179,6 +1155,144 @@ func requestBinanceOrderInfo(symbol string, orderId int64, apiKey string, secret
 	return res, nil
 }
 
+func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
+	var (
+		userOrders []*UserOrder
+		err        error
+	)
+	userOrders, err = b.binanceUserRepo.GetUserOrderByHandleStatus()
+	if nil != err {
+		return nil, err
+	}
+
+	for _, v := range userOrders {
+		err = b.binanceUserRepo.SAddOrderSetSellLongOrBuyShort(ctx, int64(v.ID))
+		if nil != err {
+			fmt.Println("错误的数据写入, redis", v, err)
+		}
+	}
+
+	return nil, nil
+}
+
+func (b *BinanceUserUsecase) OrderHandle(ctx context.Context, req *v1.OrderHandleRequest) (*v1.OrderHandleReply, error) {
+	var (
+		wg          sync.WaitGroup
+		orderIdsStr []string
+		err         error
+	)
+
+	orderIdsStr, err = b.binanceUserRepo.SMembersOrderSetSellLongOrBuyShort(ctx)
+	if nil != err {
+		fmt.Println(err)
+	}
+
+	wg.Add(1) // 启动一个goroutine就登记+1
+	for k, v := range orderIdsStr {
+		fmt.Println(v)
+
+		var tmp int64
+		tmp, err = strconv.ParseInt(v, 10, 64)
+		if nil != err {
+			fmt.Println(err)
+		}
+
+		go b.userOrderHandleGoroutine(ctx, &wg, tmp)
+
+		// todo
+		if 99 < k {
+			break
+		}
+	}
+
+	wg.Wait() // 等待所有登记的goroutine都结束
+	return &v1.OrderHandleReply{}, nil
+}
+
+func (b *BinanceUserUsecase) userOrderHandleGoroutine(ctx context.Context, wg *sync.WaitGroup, orderId int64) {
+	defer wg.Done() // goroutine结束就登记-1
+
+	var (
+		userOrder    *UserOrder
+		user         *User
+		binanceOrder []*OrderHistory
+		income       float64
+		orderIdInt   int64
+		err          error
+	)
+
+	userOrder, err = b.binanceUserRepo.GetUserOrderById(orderId)
+	if nil != err {
+		fmt.Println(err, orderId)
+		return
+	}
+
+	// 平
+	if !(("SELL" == userOrder.Side && "LONG" == userOrder.PositionSide) || ("BUY" == userOrder.Side && "SHORT" == userOrder.PositionSide)) {
+		fmt.Println("非平仓", orderId)
+		return
+	}
+
+	if 0 < userOrder.HandleStatus {
+		// 继续执行删除
+	} else {
+		user, err = b.binanceUserRepo.GetUserById(ctx, userOrder.UserId)
+		if nil != err {
+			fmt.Println(err, orderId)
+			return
+		}
+
+		// 查询
+		orderIdInt, err = strconv.ParseInt(userOrder.OrderId, 10, 64)
+
+		binanceOrder, err = requestBinanceOrderHistory(user.ApiKey, user.ApiSecret, userOrder.Symbol, orderIdInt, "", "")
+		if nil != err {
+			fmt.Println("错误查询", err, orderId)
+		}
+
+		if 0 >= len(binanceOrder) {
+			fmt.Println("空数据", binanceOrder, orderId)
+		}
+
+		// 收益
+		income, err = strconv.ParseFloat(binanceOrder[0].RealizedPnl, 64)
+		if nil != err {
+			fmt.Println(err, binanceOrder[0])
+		}
+		// 写入
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.UpdatesUserAmount(ctx, userOrder.UserId, int64(income*100000))
+			if nil != err {
+				return err
+			}
+
+			_, err = b.binanceUserRepo.InsertUserAmountRecord(ctx, &UserAmountRecord{
+				UserId:    userOrder.UserId,
+				OrderId:   userOrder.ID,
+				Amount:    int64(income * 100000),
+				CreatedAt: time.Time{},
+				UpdatedAt: time.Time{},
+			})
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	err = b.binanceUserRepo.SRemOrderSetSellLongOrBuyShort(ctx, orderId)
+	if nil != err {
+		fmt.Println("错误的数据删除, redis，order_id:", orderId, err)
+		return
+	}
+
+	return
+}
+
 type OrderHistory struct {
 	OrderId      int64
 	Qty          string
@@ -1261,25 +1375,4 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	}
 
 	return res, nil
-}
-
-func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
-	var (
-		res []*OrderHistory
-		err error
-	)
-	res, err = requestBinanceOrderHistory(
-		"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
-		"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
-		"LINKUSDT",
-		30840145589,
-		"",
-		"",
-	)
-
-	if nil != err {
-		fmt.Println(err)
-	}
-	fmt.Println(res)
-	return nil, nil
 }

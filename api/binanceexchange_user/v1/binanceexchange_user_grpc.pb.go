@@ -25,6 +25,7 @@ const (
 	BinanceUser_PullUserCredentialsBsc_FullMethodName   = "/BinanceUser/PullUserCredentialsBsc"
 	BinanceUser_BindTrader_FullMethodName               = "/BinanceUser/BindTrader"
 	BinanceUser_ListenTraderAndUserOrder_FullMethodName = "/BinanceUser/ListenTraderAndUserOrder"
+	BinanceUser_OrderHandle_FullMethodName              = "/BinanceUser/OrderHandle"
 	BinanceUser_TestLeverAge_FullMethodName             = "/BinanceUser/TestLeverAge"
 	BinanceUser_TestOrder_FullMethodName                = "/BinanceUser/TestOrder"
 	BinanceUser_Analyze_FullMethodName                  = "/BinanceUser/Analyze"
@@ -40,6 +41,7 @@ type BinanceUserClient interface {
 	PullUserCredentialsBsc(ctx context.Context, in *PullUserCredentialsBscRequest, opts ...grpc.CallOption) (*PullUserCredentialsBscReply, error)
 	BindTrader(ctx context.Context, in *BindTraderRequest, opts ...grpc.CallOption) (*BindTraderReply, error)
 	ListenTraderAndUserOrder(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error)
+	OrderHandle(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error)
 	TestLeverAge(ctx context.Context, in *TestLeverAgeRequest, opts ...grpc.CallOption) (*TestLeverAgeReply, error)
 	TestOrder(ctx context.Context, in *TestOrderRequest, opts ...grpc.CallOption) (*TestOrderReply, error)
 	Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error)
@@ -107,6 +109,15 @@ func (c *binanceUserClient) ListenTraderAndUserOrder(ctx context.Context, in *Li
 	return out, nil
 }
 
+func (c *binanceUserClient) OrderHandle(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error) {
+	out := new(OrderHandleReply)
+	err := c.cc.Invoke(ctx, BinanceUser_OrderHandle_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *binanceUserClient) TestLeverAge(ctx context.Context, in *TestLeverAgeRequest, opts ...grpc.CallOption) (*TestLeverAgeReply, error) {
 	out := new(TestLeverAgeReply)
 	err := c.cc.Invoke(ctx, BinanceUser_TestLeverAge_FullMethodName, in, out, opts...)
@@ -144,6 +155,7 @@ type BinanceUserServer interface {
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
 	BindTrader(context.Context, *BindTraderRequest) (*BindTraderReply, error)
 	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
+	OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
 	TestLeverAge(context.Context, *TestLeverAgeRequest) (*TestLeverAgeReply, error)
 	TestOrder(context.Context, *TestOrderRequest) (*TestOrderReply, error)
 	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error)
@@ -171,6 +183,9 @@ func (UnimplementedBinanceUserServer) BindTrader(context.Context, *BindTraderReq
 }
 func (UnimplementedBinanceUserServer) ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListenTraderAndUserOrder not implemented")
+}
+func (UnimplementedBinanceUserServer) OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderHandle not implemented")
 }
 func (UnimplementedBinanceUserServer) TestLeverAge(context.Context, *TestLeverAgeRequest) (*TestLeverAgeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestLeverAge not implemented")
@@ -302,6 +317,24 @@ func _BinanceUser_ListenTraderAndUserOrder_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_OrderHandle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderHandleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).OrderHandle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_OrderHandle_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).OrderHandle(ctx, req.(*OrderHandleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BinanceUser_TestLeverAge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TestLeverAgeRequest)
 	if err := dec(in); err != nil {
@@ -386,6 +419,10 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListenTraderAndUserOrder",
 			Handler:    _BinanceUser_ListenTraderAndUserOrder_Handler,
+		},
+		{
+			MethodName: "OrderHandle",
+			Handler:    _BinanceUser_OrderHandle_Handler,
 		},
 		{
 			MethodName: "TestLeverAge",

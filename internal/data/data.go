@@ -64,7 +64,7 @@ func (d *Data) DB(ctx context.Context) *gorm.DB {
 
 // NewDB .
 func NewDB(c *conf.Data) *gorm.DB {
-	f, err := os.OpenFile("./log/sql.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	f, err := os.OpenFile("../../log/sql.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Errorf("failed opening sql.log", err)
 		panic("failed opening sql.log")
@@ -104,9 +104,13 @@ func NewRedis(c *conf.Data) *redis.Client {
 		ReadTimeout:  c.Redis.ReadTimeout.AsDuration(),
 	})
 
-	if err := rdb.Close(); err != nil {
-		log.Error(err)
+	timeout, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancelFunc()
+	err := rdb.Ping(timeout).Err()
+	if err != nil {
+		log.Fatalf("redis connect error: %v", err)
 	}
+
 	return rdb
 }
 
