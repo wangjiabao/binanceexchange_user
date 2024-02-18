@@ -1183,6 +1183,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		return nil, nil
 	}
 
+	binanceOrder = make(map[int64]*OrderHistory, 0)
 	for _, v := range orders {
 		var (
 			start = int64(1707444000000)
