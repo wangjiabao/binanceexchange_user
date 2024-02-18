@@ -1165,10 +1165,12 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		orders     []*UserOrder
 		ordersUser map[string]*UserOrder
 
-		total  int64
-		u      float64
-		totalU int64
-		err    error
+		total   int64
+		u       float64
+		totalU  int64
+		u2      float64
+		totalU2 int64
+		err     error
 	)
 
 	orders, err = b.binanceUserRepo.GetUserOrderByUserIdGroupBySymbol(5)
@@ -1202,6 +1204,7 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 				end = strconv.FormatInt(start+432000000, 10)
 			}
 
+			fmt.Println(v.Symbol, tmpStart, end)
 			tmpBinanceOrder, err = requestBinanceOrderHistory(
 				"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
 				"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
@@ -1237,6 +1240,11 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 
 				u += tmp
 				totalU++
+
+				if _, ok := ordersUser[tmpOrderId]; ok {
+					totalU2++
+					u2 += tmp
+				}
 			}
 
 			// 平空
@@ -1249,6 +1257,11 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 
 				u += tmp
 				totalU++
+
+				if _, ok := ordersUser[tmpOrderId]; ok {
+					totalU2++
+					u2 += tmp
+				}
 			}
 
 			// 开多
@@ -1263,7 +1276,8 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		}
 
 	}
-	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU)
+
+	fmt.Println("共：", total, "收益：", u, "收益单共：", totalU, "系统订单：", len(ordersUser))
 	//var (
 	//	userOrders []*UserOrder
 	//	err        error
