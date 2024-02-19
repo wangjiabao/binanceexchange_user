@@ -322,6 +322,11 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				if nil != err {
 					continue
 				}
+
+				_, err = requestBinanceMarginType(k, apiKey, apiSecret)
+				if nil != err {
+					continue
+				}
 			}
 		}
 	}
@@ -495,7 +500,7 @@ func (b *BinanceUserUsecase) TestLeverAge(ctx context.Context, req *v1.TestLever
 		err    error
 	)
 	userIds := make([]uint64, 0)
-	userIds = append(userIds, 3, 4)
+	userIds = append(userIds, 4)
 	users, err = b.binanceUserRepo.GetUsersByUserIds(userIds)
 
 	for _, v := range users {
@@ -505,7 +510,12 @@ func (b *BinanceUserUsecase) TestLeverAge(ctx context.Context, req *v1.TestLever
 		}
 
 		for k, _ := range symbol {
-			_, err = requestBinanceLeverAge(k, int64(20), v.ApiKey, v.ApiSecret)
+			//_, err = requestBinanceLeverAge(k, int64(20), v.ApiKey, v.ApiSecret)
+			//if nil != err {
+			//	continue
+			//}
+
+			_, err = requestBinanceMarginType(k, v.ApiKey, v.ApiSecret)
 			if nil != err {
 				continue
 			}
@@ -824,10 +834,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 				} else if "SELL" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide {
 					historyQuantityFloat -= vCurrentOrders.ExecutedQty
 				}
-			}
-
-			// 本次平空
-			if "BUY" == order.Side && "SHORT" == order.Type {
+			} else if "BUY" == order.Side && "SHORT" == order.Type {
 				// 历史开空和平空
 				if "SELL" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide {
 					historyQuantityFloat += vCurrentOrders.ExecutedQty
@@ -839,7 +846,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 
 		// 开单历史数量不足了
 		if 0 > historyQuantityFloat {
-			fmt.Println("trader的开单数量小于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			fmt.Println("trader的开单数量小于关单数量了，可能是精度问题", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
 			return
 		} else if 0 == historyQuantityFloat {
 			fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
@@ -1034,6 +1041,12 @@ type BinanceLeverAge struct {
 	symbol   string
 }
 
+type BinanceMarginType struct {
+	Code int64
+	Msg  string
+}
+
+// 更改杠杆倍率
 func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secretKey string) (*BinanceLeverAge, error) {
 	var (
 		client *http.Client
@@ -1095,6 +1108,74 @@ func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secret
 	res = &BinanceLeverAge{
 		LeverAge: l.LeverAge,
 		symbol:   l.symbol,
+	}
+
+	return res, nil
+}
+
+// 更改逐全仓模式
+func requestBinanceMarginType(symbol string, apiKey string, secretKey string) (*BinanceMarginType, error) {
+	var (
+		client *http.Client
+		req    *http.Request
+		resp   *http.Response
+		res    *BinanceMarginType
+		data   string
+		b      []byte
+		err    error
+		apiUrl = "https://fapi.binance.com/fapi/v1/marginType"
+	)
+
+	// 时间
+	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
+	// 拼请求数据
+	data = "symbol=" + symbol + "&marginType=CROSSED" + "&timestamp=" + now
+	// 加密
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+	// 构造请求
+
+	req, err = http.NewRequest("POST", apiUrl, strings.NewReader(data+"&signature="+signature))
+	if err != nil {
+		return nil, err
+	}
+	// 添加头信息
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-MBX-APIKEY", apiKey)
+
+	// 请求执行
+	client = &http.Client{Timeout: 3 * time.Second}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 结果
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println(string(b))
+
+	var l BinanceMarginType
+	err = json.Unmarshal(b, &l)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	res = &BinanceMarginType{
+		Code: l.Code,
+		Msg:  l.Msg,
 	}
 
 	return res, nil
