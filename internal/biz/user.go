@@ -500,7 +500,7 @@ func (b *BinanceUserUsecase) TestLeverAge(ctx context.Context, req *v1.TestLever
 		err    error
 	)
 	userIds := make([]uint64, 0)
-	userIds = append(userIds, 4)
+	userIds = append(userIds, 6)
 	users, err = b.binanceUserRepo.GetUsersByUserIds(userIds)
 
 	for _, v := range users {
