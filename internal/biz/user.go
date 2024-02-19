@@ -816,10 +816,24 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 
 		// 多的部分不管，按剩余的数量关 todo 交易员全部平仓，少的部分另一个程序解决
 		for _, vCurrentOrders := range currentOrders {
-			if ("SELL" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide) || ("BUY" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide) {
-				historyQuantityFloat += vCurrentOrders.ExecutedQty
-			} else if ("SELL" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide) || ("BUY" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide) {
-				historyQuantityFloat -= vCurrentOrders.ExecutedQty
+			// 本次平多
+			if "SELL" == order.Side && "LONG" == order.Type {
+				// 历史开多和平多
+				if "BUY" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide {
+					historyQuantityFloat += vCurrentOrders.ExecutedQty
+				} else if "SELL" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide {
+					historyQuantityFloat -= vCurrentOrders.ExecutedQty
+				}
+			}
+
+			// 本次平空
+			if "BUY" == order.Side && "SHORT" == order.Type {
+				// 历史开空和平空
+				if "SELL" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide {
+					historyQuantityFloat += vCurrentOrders.ExecutedQty
+				} else if "BUY" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide {
+					historyQuantityFloat -= vCurrentOrders.ExecutedQty
+				}
 			}
 		}
 
@@ -1174,12 +1188,12 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 		err        error
 	)
 
-	orders, err = b.binanceUserRepo.GetUserOrderByUserIdGroupBySymbol(5)
+	orders, err = b.binanceUserRepo.GetUserOrderByUserIdGroupBySymbol(4)
 	if nil != err {
 		return nil, nil
 	}
 
-	ordersUser, err = b.binanceUserRepo.GetUserOrderByUserIdMapId(5)
+	ordersUser, err = b.binanceUserRepo.GetUserOrderByUserIdMapId(4)
 	if nil != err {
 		return nil, nil
 	}
@@ -1189,10 +1203,10 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 	for _, v := range orders {
 		var (
 			binanceOrder []*OrderHistory
-			start        = int64(1707444000000)
+			start        = int64(1707346800000)
 		)
 
-		for start <= 1708257335895 {
+		for start <= 1708317420000 {
 
 			var (
 				tmpBinanceOrder []*OrderHistory
@@ -1201,16 +1215,16 @@ func (b *BinanceUserUsecase) Analyze(ctx context.Context, req *v1.AnalyzeRequest
 			)
 
 			tmpStart = strconv.FormatInt(start, 10)
-			if start+432000000 >= 1708257335895 {
-				end = strconv.FormatInt(1708257335895, 10)
+			if start+432000000 >= 1708317420000 {
+				end = strconv.FormatInt(1708317420000, 10)
 			} else {
 				end = strconv.FormatInt(start+432000000, 10)
 			}
 
 			fmt.Println(v.Symbol, tmpStart, end)
 			tmpBinanceOrder, err = requestBinanceOrderHistory(
-				"DhfkUvUqqgQqhB3V7NKkdLXRqOFEcLHvQFzzrnpae2sSjoXogg9vqN4V6Z71i1Sm",
-				"77HXUPdPnZiWdbA3qAjQ0eWKA19FHg1shC8qDsTSudcKrZPUMaSnDFSceLwPQhnD",
+				"Bc8Id20hm7sBIrKewsRAvA4RX2MPmy546X6q1wOGlsBQsSoRdn6Uze6lHAim8YY1",
+				"DAzqoU9KbrQfxrWNMKdbNYgtWSxZpFVPSRPxeN1k08ed7cNGTACc7dy9oK8eZwrG",
 				v.Symbol,
 				0,
 				tmpStart, end)
