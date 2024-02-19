@@ -317,6 +317,11 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				return err
 			}
 
+			_, err = requestBinancePositionSide(apiKey, apiSecret)
+			if nil != err {
+				fmt.Println("更改持仓模式异常", err, user)
+			}
+
 			for k, _ := range symbol {
 				_, err = requestBinanceLeverAge(k, int64(20), apiKey, apiSecret)
 				if nil != err {
@@ -495,31 +500,41 @@ func (b *BinanceUserUsecase) BindTrader(ctx context.Context) (*v1.BindTraderRepl
 
 func (b *BinanceUserUsecase) TestLeverAge(ctx context.Context, req *v1.TestLeverAgeRequest) (*v1.TestLeverAgeReply, error) {
 	var (
-		users  map[uint64]*User
-		symbol map[string]*Symbol
-		err    error
+		users map[uint64]*User
+		res   *BinancePositionSide
+		//symbol map[string]*Symbol
+		err error
 	)
 	userIds := make([]uint64, 0)
 	userIds = append(userIds, 6)
 	users, err = b.binanceUserRepo.GetUsersByUserIds(userIds)
 
 	for _, v := range users {
-		symbol, err = b.binanceUserRepo.GetSymbol()
+		res, err = requestBinancePositionSide(v.ApiKey, v.ApiSecret)
 		if nil != err {
 			continue
 		}
 
-		for k, _ := range symbol {
-			//_, err = requestBinanceLeverAge(k, int64(20), v.ApiKey, v.ApiSecret)
-			//if nil != err {
-			//	continue
-			//}
+		fmt.Println(res)
 
-			_, err = requestBinanceMarginType(k, v.ApiKey, v.ApiSecret)
-			if nil != err {
-				continue
-			}
-		}
+		//symbol, err = b.binanceUserRepo.GetSymbol()
+		//if nil != err {
+		//	continue
+		//}
+
+		//for k, _ := range symbol {
+		//_, err = requestBinanceLeverAge(k, int64(20), v.ApiKey, v.ApiSecret)
+		//if nil != err {
+		//	continue
+		//}
+
+		//_, err = requestBinanceMarginType(k, v.ApiKey, v.ApiSecret)
+		//if nil != err {
+		//	continue
+		//}
+
+		//}
+
 	}
 
 	return nil, nil
@@ -1046,6 +1061,11 @@ type BinanceMarginType struct {
 	Msg  string
 }
 
+type BinancePositionSide struct {
+	Code int64
+	Msg  string
+}
+
 // 更改杠杆倍率
 func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secretKey string) (*BinanceLeverAge, error) {
 	var (
@@ -1164,7 +1184,6 @@ func requestBinanceMarginType(symbol string, apiKey string, secretKey string) (*
 		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println(string(b))
 
 	var l BinanceMarginType
 	err = json.Unmarshal(b, &l)
@@ -1174,6 +1193,73 @@ func requestBinanceMarginType(symbol string, apiKey string, secretKey string) (*
 	}
 
 	res = &BinanceMarginType{
+		Code: l.Code,
+		Msg:  l.Msg,
+	}
+
+	return res, nil
+}
+
+// 更改持仓模式
+func requestBinancePositionSide(apiKey string, secretKey string) (*BinancePositionSide, error) {
+	var (
+		client *http.Client
+		req    *http.Request
+		resp   *http.Response
+		res    *BinancePositionSide
+		data   string
+		b      []byte
+		err    error
+		apiUrl = "https://fapi.binance.com/fapi/v1/positionSide/dual"
+	)
+
+	// 时间
+	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
+	// 拼请求数据
+	data = "dualSidePosition=true&timestamp=" + now
+	// 加密
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+	// 构造请求
+
+	req, err = http.NewRequest("POST", apiUrl, strings.NewReader(data+"&signature="+signature))
+	if err != nil {
+		return nil, err
+	}
+	// 添加头信息
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-MBX-APIKEY", apiKey)
+
+	// 请求执行
+	client = &http.Client{Timeout: 3 * time.Second}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 结果
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	var l BinancePositionSide
+	err = json.Unmarshal(b, &l)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	res = &BinancePositionSide{
 		Code: l.Code,
 		Msg:  l.Msg,
 	}
