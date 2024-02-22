@@ -339,7 +339,7 @@ func (b *BinanceUserRepo) UpdatesUserOrderHandleStatus(ctx context.Context, id u
 		now = time.Now()
 	)
 
-	if err = b.data.DB(ctx).Table("user_order").Where("id=?", id).
+	if err = b.data.DB(ctx).Table("user_order").Where("id=? and handle_status<?", id, 1).
 		Updates(map[string]interface{}{"handle_status": 1, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_ORDER_ERROR", "UPDATE_USER_ORDER_ERROR")
 	}
@@ -901,6 +901,47 @@ func (b *BinanceUserRepo) GetUserOrderByUserIdGroupBySymbol(userId uint64) ([]*b
 	return res, nil
 }
 
+// GetUserOrderByIds .
+func (b *BinanceUserRepo) GetUserOrderByIds(ids []int64) ([]*biz.UserOrder, error) {
+	var userOrder []*UserOrder
+	if err := b.data.db.Table("user_order").
+		Where("id in(?)", ids).
+		Find(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserOrder, 0)
+	for _, v := range userOrder {
+		res = append(res, &biz.UserOrder{
+			ID:            v.ID,
+			UserId:        v.UserId,
+			TraderId:      v.TraderId,
+			ClientOrderId: v.ClientOrderId,
+			OrderId:       v.OrderId,
+			Symbol:        v.Symbol,
+			Side:          v.Side,
+			PositionSide:  v.PositionSide,
+			Quantity:      v.Quantity,
+			Price:         v.Price,
+			TraderQty:     v.TraderQty,
+			OrderType:     v.OrderType,
+			ClosePosition: v.ClosePosition,
+			CumQuote:      v.CumQuote,
+			ExecutedQty:   v.ExecutedQty,
+			AvgPrice:      v.AvgPrice,
+			CreatedAt:     v.CreatedAt,
+			UpdatedAt:     v.UpdatedAt,
+			HandleStatus:  v.HandleStatus,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserOrderByUserIdMapId .
 func (b *BinanceUserRepo) GetUserOrderByUserIdMapId(userId uint64) (map[string]*biz.UserOrder, error) {
 	var userOrder []*UserOrder
@@ -935,6 +976,7 @@ func (b *BinanceUserRepo) GetUserOrderByUserIdMapId(userId uint64) (map[string]*
 			AvgPrice:      v.AvgPrice,
 			CreatedAt:     v.CreatedAt,
 			UpdatedAt:     v.UpdatedAt,
+			HandleStatus:  v.HandleStatus,
 		}
 	}
 
