@@ -80,6 +80,19 @@ type UserBindTrader struct {
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
 
+type UserBindAfterUnbind struct {
+	ID           uint64  `gorm:"primarykey;type:int"`
+	UserId       uint64  `gorm:"type:int;not null"`
+	TraderId     uint64  `gorm:"type:int;not null"`
+	Status       uint64  `gorm:"type:int;not null"`
+	Symbol       string  `gorm:"type:varchar(100);not null"`
+	PositionSide string  `gorm:"type:varchar(100);not null"`
+	Quantity     float64 `gorm:"type:decimal(65,20);not null"`
+	Amount       uint64  `gorm:"type:bigint(20);not null"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
 type UserOrder struct {
 	ID            uint64  `gorm:"primarykey;type:int"`
 	UserId        uint64  `gorm:"type:int;not null"`
@@ -160,6 +173,21 @@ func (b *BinanceUserRepo) UpdateUserBindTraderStatus(ctx context.Context, userId
 
 	if err = b.data.DB(ctx).Table("user").Where("id=?", userId).
 		Updates(map[string]interface{}{"bind_trader_status": 1, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_ERROR", "UPDATE_USER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdateUserBindTraderStatusNo .
+func (b *BinanceUserRepo) UpdateUserBindTraderStatusNo(ctx context.Context, userId uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user").Where("id=?", userId).
+		Updates(map[string]interface{}{"bind_trader_status": 0, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_ERROR", "UPDATE_USER_ERROR")
 	}
 
@@ -283,6 +311,19 @@ func (b *BinanceUserRepo) InsertUserBindTrader(ctx context.Context, userId uint6
 	}, nil
 }
 
+// DeleteUserBindTrader .
+func (b *BinanceUserRepo) DeleteUserBindTrader(ctx context.Context, userId uint64) (bool, error) {
+	var (
+		err error
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_trader").Where("user_id=?", userId).Delete(&UserBindTrader{}).Error; nil != err {
+		return false, errors.NotFound("DELETE_USER_BIND_TRADER_ERROR", "DELETE_USER_BIND_TRADER_ERROR")
+	}
+
+	return true, nil
+}
+
 // InsertUserOrder .
 func (b *BinanceUserRepo) InsertUserOrder(ctx context.Context, order *biz.UserOrder) (*biz.UserOrder, error) {
 	insertUserOrder := &UserOrder{
@@ -342,6 +383,53 @@ func (b *BinanceUserRepo) UpdatesUserOrderHandleStatus(ctx context.Context, id u
 	if err = b.data.DB(ctx).Table("user_order").Where("id=? and handle_status<?", id, 1).
 		Updates(map[string]interface{}{"handle_status": 1, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_ORDER_ERROR", "UPDATE_USER_ORDER_ERROR")
+	}
+
+	return true, nil
+}
+
+// InsertUserBindAfterUnbind .
+func (b *BinanceUserRepo) InsertUserBindAfterUnbind(ctx context.Context, u *biz.UserBindAfterUnbind) (*biz.UserBindAfterUnbind, error) {
+	insertUserBindAfterUnbind := &UserBindAfterUnbind{
+		ID:           u.ID,
+		UserId:       u.UserId,
+		TraderId:     u.TraderId,
+		Symbol:       u.Symbol,
+		PositionSide: u.PositionSide,
+		Quantity:     u.Quantity,
+		Amount:       u.Amount,
+		Status:       0,
+	}
+
+	res := b.data.DB(ctx).Table("user_bind_after_unbind").Create(&insertUserBindAfterUnbind)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_USER_BIND_AFTER_UNBIND_ERROR", "创建数据失败")
+	}
+
+	return &biz.UserBindAfterUnbind{
+		ID:           insertUserBindAfterUnbind.ID,
+		UserId:       insertUserBindAfterUnbind.UserId,
+		TraderId:     insertUserBindAfterUnbind.TraderId,
+		Symbol:       insertUserBindAfterUnbind.Symbol,
+		PositionSide: insertUserBindAfterUnbind.PositionSide,
+		Quantity:     insertUserBindAfterUnbind.Quantity,
+		Status:       insertUserBindAfterUnbind.Status,
+		Amount:       insertUserBindAfterUnbind.Amount,
+		CreatedAt:    insertUserBindAfterUnbind.CreatedAt,
+		UpdatedAt:    insertUserBindAfterUnbind.UpdatedAt,
+	}, nil
+}
+
+// UpdatesUserBindAfterUnbind .
+func (b *BinanceUserRepo) UpdatesUserBindAfterUnbind(ctx context.Context, id uint64, status uint64, quantity float64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_after_unbind").Where("id=? and status<?", id, 1).
+		Updates(map[string]interface{}{"status": status, "quantity": quantity, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_AFTER_UNBIND_ERROR", "UPDATE_USER_AFTER_UNBIND_ERROR")
 	}
 
 	return true, nil
@@ -672,6 +760,64 @@ func (b *BinanceUserRepo) GetUserBindTraderByUserId(userId uint64) ([]*biz.UserB
 	return res, nil
 }
 
+// GetUserBindTrader .
+func (b *BinanceUserRepo) GetUserBindTrader() (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader").Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_ERROR", err.Error())
+	}
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.UserId]; !ok {
+			res[v.UserId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.UserId] = append(res[v.UserId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserBindTraderMapByUserIds .
+func (b *BinanceUserRepo) GetUserBindTraderMapByUserIds(userIds []uint64) (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader").Where("user_id in(?)", userIds).Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_ERROR", err.Error())
+	}
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.UserId]; !ok {
+			res[v.UserId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.UserId] = append(res[v.UserId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserBindTraderByTraderIds .
 func (b *BinanceUserRepo) GetUserBindTraderByTraderIds(traderIds []uint64) (map[uint64][]*biz.UserBindTrader, error) {
 	var userBindTrader []*UserBindTrader
@@ -702,6 +848,40 @@ func (b *BinanceUserRepo) GetUserBindTraderByTraderIds(traderIds []uint64) (map[
 	return res, nil
 }
 
+// GetUserBindAfterUnbindByTraderIds .
+func (b *BinanceUserRepo) GetUserBindAfterUnbindByTraderIds(traderIds []uint64) (map[uint64][]*biz.UserBindAfterUnbind, error) {
+	var userBindAfterUnbind []*UserBindAfterUnbind
+	if err := b.data.db.Table("user_bind_after_unbind").Where("trader_id in(?) and status=?", traderIds, 0).Find(&userBindAfterUnbind).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_AFTER_UNBIND_ERROR", err.Error())
+	}
+
+	res := make(map[uint64][]*biz.UserBindAfterUnbind, 0)
+	for _, v := range userBindAfterUnbind {
+		if _, ok := res[v.TraderId]; !ok {
+			res[v.TraderId] = make([]*biz.UserBindAfterUnbind, 0)
+		}
+
+		res[v.TraderId] = append(res[v.TraderId], &biz.UserBindAfterUnbind{
+			ID:           v.ID,
+			UserId:       v.UserId,
+			TraderId:     v.TraderId,
+			Symbol:       v.Symbol,
+			PositionSide: v.PositionSide,
+			Quantity:     v.Quantity,
+			Status:       v.Status,
+			Amount:       v.Amount,
+			CreatedAt:    v.CreatedAt,
+			UpdatedAt:    v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserOrderByUserTraderIdAndSymbol .
 func (b *BinanceUserRepo) GetUserOrderByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*biz.UserOrder, error) {
 	var userOrder []*UserOrder
@@ -718,6 +898,51 @@ func (b *BinanceUserRepo) GetUserOrderByUserTraderIdAndSymbol(userId uint64, tra
 	res := make([]*biz.UserOrder, 0)
 	for _, v := range userOrder {
 		res = append(res, &biz.UserOrder{
+			ID:            v.ID,
+			UserId:        v.UserId,
+			TraderId:      v.TraderId,
+			ClientOrderId: v.ClientOrderId,
+			OrderId:       v.OrderId,
+			Symbol:        v.Symbol,
+			Side:          v.Side,
+			PositionSide:  v.PositionSide,
+			Quantity:      v.Quantity,
+			Price:         v.Price,
+			TraderQty:     v.TraderQty,
+			OrderType:     v.OrderType,
+			ClosePosition: v.ClosePosition,
+			CumQuote:      v.CumQuote,
+			ExecutedQty:   v.ExecutedQty,
+			AvgPrice:      v.AvgPrice,
+			CreatedAt:     v.CreatedAt,
+			UpdatedAt:     v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserOrderByUserTraderId .
+func (b *BinanceUserRepo) GetUserOrderByUserTraderId(userId uint64, traderId uint64) (map[string][]*biz.UserOrder, error) {
+	var userOrder []*UserOrder
+	if err := b.data.db.Table("user_order").
+		Where("user_id=? and trader_id=?", userId, traderId).
+		Find(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	res := make(map[string][]*biz.UserOrder, 0)
+	for _, v := range userOrder {
+		if _, ok := res[v.Symbol]; !ok {
+			res[v.Symbol] = make([]*biz.UserOrder, 0)
+
+		}
+
+		res[v.Symbol] = append(res[v.Symbol], &biz.UserOrder{
 			ID:            v.ID,
 			UserId:        v.UserId,
 			TraderId:      v.TraderId,
