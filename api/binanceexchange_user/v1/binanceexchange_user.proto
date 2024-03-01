@@ -37,12 +37,6 @@ service BinanceUser {
     };
   };
 
-  rpc RemoveBindTrader (RemoveBindTraderRequest) returns (RemoveBindTraderReply) {
-    option (google.api.http) = {
-      get: "/api/binanceexchange_user/remove_bind_trader"
-    };
-  };
-
   rpc ListenTraderAndUserOrder (ListenTraderAndUserOrderRequest) returns (ListenTraderAndUserOrderReply) {
     option (google.api.http) = {
       post: "/api/binanceexchange_user/listen_trader_and_user_order"
@@ -97,13 +91,6 @@ message PullUserCredentialsBscReply {}
 message BindTraderRequest {}
 
 message BindTraderReply {}
-
-message RemoveBindTraderRequest {
-  bool all = 1;
-  uint64 user_id = 2;
-}
-
-message RemoveBindTraderReply {}
 
 message TestLeverAgeRequest {
   int64 user_id = 1;

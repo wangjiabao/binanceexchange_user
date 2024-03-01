@@ -161,33 +161,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/binanceexchange_user/remove_bind_trader:
-        get:
-            tags:
-                - BinanceUser
-            operationId: BinanceUser_RemoveBindTrader
-            parameters:
-                - name: all
-                  in: query
-                  schema:
-                    type: boolean
-                - name: userId
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/RemoveBindTraderReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/test_Lever_age:
         get:
             tags:
@@ -294,9 +267,6 @@ components:
             type: object
             properties: {}
         PullUserDepositReply:
-            type: object
-            properties: {}
-        RemoveBindTraderReply:
             type: object
             properties: {}
         SendBody_Order:

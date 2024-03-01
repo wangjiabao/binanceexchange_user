@@ -76,6 +76,7 @@ type UserBindTrader struct {
 	UserId    uint64    `gorm:"type:int;not null"`
 	TraderId  uint64    `gorm:"type:int;not null"`
 	Amount    uint64    `gorm:"type:bigint(20);not null"`
+	Status    uint64    `gorm:"type:int;not null"`
 	CreatedAt time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
@@ -309,6 +310,51 @@ func (b *BinanceUserRepo) InsertUserBindTrader(ctx context.Context, userId uint6
 		CreatedAt: insertUserBindTrader.CreatedAt,
 		UpdatedAt: insertUserBindTrader.UpdatedAt,
 	}, nil
+}
+
+// UpdatesUserBindTraderStatus .
+func (b *BinanceUserRepo) UpdatesUserBindTraderStatus(ctx context.Context, userId uint64, status uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_trader").Where("user_id=?", userId).
+		Updates(map[string]interface{}{"status": status, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserBindTraderStatusById .
+func (b *BinanceUserRepo) UpdatesUserBindTraderStatusById(ctx context.Context, id uint64, status uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_trader").Where("id=?", id).
+		Updates(map[string]interface{}{"status": status, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserBindTraderStatusAndAmountById .
+func (b *BinanceUserRepo) UpdatesUserBindTraderStatusAndAmountById(ctx context.Context, id uint64, status uint64, amount uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_trader").Where("id=?", id).
+		Updates(map[string]interface{}{"status": status, "amount": amount, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
+	}
+
+	return true, nil
 }
 
 // DeleteUserBindTrader .
@@ -711,7 +757,7 @@ func (b *BinanceUserRepo) GetTradersOrderByAmountDesc() ([]*biz.Trader, error) {
 }
 
 // GetTraders .
-func (b *BinanceUserRepo) GetTraders() ([]*biz.Trader, error) {
+func (b *BinanceUserRepo) GetTraders() (map[uint64]*biz.Trader, error) {
 	var traders []*Trader
 	if err := b.data.db.Table("trader").Find(&traders).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -721,15 +767,15 @@ func (b *BinanceUserRepo) GetTraders() ([]*biz.Trader, error) {
 		return nil, errors.New(500, "FIND_TRADER_ERROR", err.Error())
 	}
 
-	res := make([]*biz.Trader, 0)
+	res := make(map[uint64]*biz.Trader, 0)
 	for _, v := range traders {
-		res = append(res, &biz.Trader{
+		res[v.ID] = &biz.Trader{
 			ID:        v.ID,
 			Status:    v.IsOpen,
 			Amount:    v.Amount,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
-		})
+		}
 	}
 
 	return res, nil
@@ -754,6 +800,7 @@ func (b *BinanceUserRepo) GetUserBindTraderByUserId(userId uint64) ([]*biz.UserB
 			TraderId:  v.TraderId,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
+			Status:    v.Status,
 		})
 	}
 
@@ -781,6 +828,37 @@ func (b *BinanceUserRepo) GetUserBindTrader() (map[uint64][]*biz.UserBindTrader,
 			UserId:    v.UserId,
 			TraderId:  v.TraderId,
 			Amount:    v.Amount,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+			Status:    v.Status,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserBindTraderByStatus .
+func (b *BinanceUserRepo) GetUserBindTraderByStatus(status uint64) (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader").Where("status=?", status).Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_ERROR", err.Error())
+	}
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.TraderId]; !ok {
+			res[v.TraderId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.TraderId] = append(res[v.TraderId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			Status:    v.Status,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 		})
@@ -812,6 +890,7 @@ func (b *BinanceUserRepo) GetUserBindTraderMapByUserIds(userIds []uint64) (map[u
 			Amount:    v.Amount,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
+			Status:    v.Status,
 		})
 	}
 
@@ -821,7 +900,7 @@ func (b *BinanceUserRepo) GetUserBindTraderMapByUserIds(userIds []uint64) (map[u
 // GetUserBindTraderByTraderIds .
 func (b *BinanceUserRepo) GetUserBindTraderByTraderIds(traderIds []uint64) (map[uint64][]*biz.UserBindTrader, error) {
 	var userBindTrader []*UserBindTrader
-	if err := b.data.db.Table("user_bind_trader").Where("trader_id in(?)", traderIds).Find(&userBindTrader).Error; err != nil {
+	if err := b.data.db.Table("user_bind_trader").Where("trader_id in(?) and status<?", traderIds, 2).Find(&userBindTrader).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -842,10 +921,38 @@ func (b *BinanceUserRepo) GetUserBindTraderByTraderIds(traderIds []uint64) (map[
 			Amount:    v.Amount,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
+			Status:    v.Status,
 		})
 	}
 
 	return res, nil
+}
+
+// GetUserBindAfterUnbindByUserIdAndTraderIdAndSymbol .
+func (b *BinanceUserRepo) GetUserBindAfterUnbindByUserIdAndTraderIdAndSymbol(ctx context.Context, userId uint64, traderId uint64, symbol string, positionSide string) (*biz.UserBindAfterUnbind, error) {
+	var userBindAfterUnbind *UserBindAfterUnbind
+	if err := b.data.DB(ctx).Table("user_bind_after_unbind").
+		Where("userId=? and trader_id=? and status=? and symbol=? and position_side=?", userId, traderId, 0, symbol, positionSide).
+		First(&userBindAfterUnbind).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_AFTER_UNBIND_ERROR", err.Error())
+	}
+
+	return &biz.UserBindAfterUnbind{
+		ID:           userBindAfterUnbind.ID,
+		UserId:       userBindAfterUnbind.UserId,
+		TraderId:     userBindAfterUnbind.TraderId,
+		Symbol:       userBindAfterUnbind.Symbol,
+		PositionSide: userBindAfterUnbind.PositionSide,
+		Quantity:     userBindAfterUnbind.Quantity,
+		Status:       userBindAfterUnbind.Status,
+		Amount:       userBindAfterUnbind.Amount,
+		CreatedAt:    userBindAfterUnbind.CreatedAt,
+		UpdatedAt:    userBindAfterUnbind.UpdatedAt,
+	}, nil
 }
 
 // GetUserBindAfterUnbindByTraderIds .

@@ -354,10 +354,6 @@ func (b *BinanceUserService) BindTrader(ctx context.Context, req *v1.BindTraderR
 	return b.buc.BindTrader(ctx)
 }
 
-func (b *BinanceUserService) RemoveBindTrader(ctx context.Context, req *v1.RemoveBindTraderRequest) (*v1.RemoveBindTraderReply, error) {
-	return b.buc.RemoveBindTrader(ctx, req)
-}
-
 func (b *BinanceUserService) ListenTraderAndUserOrder(ctx context.Context, req *v1.ListenTraderAndUserOrderRequest) (*v1.ListenTraderAndUserOrderReply, error) {
 	return b.buc.ListenTraders(ctx, req)
 }

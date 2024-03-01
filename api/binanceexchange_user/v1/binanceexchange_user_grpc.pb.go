@@ -24,7 +24,6 @@ const (
 	BinanceUser_PullUserDeposit2_FullMethodName         = "/BinanceUser/PullUserDeposit2"
 	BinanceUser_PullUserCredentialsBsc_FullMethodName   = "/BinanceUser/PullUserCredentialsBsc"
 	BinanceUser_BindTrader_FullMethodName               = "/BinanceUser/BindTrader"
-	BinanceUser_RemoveBindTrader_FullMethodName         = "/BinanceUser/RemoveBindTrader"
 	BinanceUser_ListenTraderAndUserOrder_FullMethodName = "/BinanceUser/ListenTraderAndUserOrder"
 	BinanceUser_OrderHandle_FullMethodName              = "/BinanceUser/OrderHandle"
 	BinanceUser_TestLeverAge_FullMethodName             = "/BinanceUser/TestLeverAge"
@@ -41,7 +40,6 @@ type BinanceUserClient interface {
 	PullUserDeposit2(ctx context.Context, in *PullUserDepositRequest, opts ...grpc.CallOption) (*PullUserDepositReply, error)
 	PullUserCredentialsBsc(ctx context.Context, in *PullUserCredentialsBscRequest, opts ...grpc.CallOption) (*PullUserCredentialsBscReply, error)
 	BindTrader(ctx context.Context, in *BindTraderRequest, opts ...grpc.CallOption) (*BindTraderReply, error)
-	RemoveBindTrader(ctx context.Context, in *RemoveBindTraderRequest, opts ...grpc.CallOption) (*RemoveBindTraderReply, error)
 	ListenTraderAndUserOrder(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error)
 	OrderHandle(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error)
 	TestLeverAge(ctx context.Context, in *TestLeverAgeRequest, opts ...grpc.CallOption) (*TestLeverAgeReply, error)
@@ -102,15 +100,6 @@ func (c *binanceUserClient) BindTrader(ctx context.Context, in *BindTraderReques
 	return out, nil
 }
 
-func (c *binanceUserClient) RemoveBindTrader(ctx context.Context, in *RemoveBindTraderRequest, opts ...grpc.CallOption) (*RemoveBindTraderReply, error) {
-	out := new(RemoveBindTraderReply)
-	err := c.cc.Invoke(ctx, BinanceUser_RemoveBindTrader_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *binanceUserClient) ListenTraderAndUserOrder(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error) {
 	out := new(ListenTraderAndUserOrderReply)
 	err := c.cc.Invoke(ctx, BinanceUser_ListenTraderAndUserOrder_FullMethodName, in, out, opts...)
@@ -165,7 +154,6 @@ type BinanceUserServer interface {
 	PullUserDeposit2(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
 	BindTrader(context.Context, *BindTraderRequest) (*BindTraderReply, error)
-	RemoveBindTrader(context.Context, *RemoveBindTraderRequest) (*RemoveBindTraderReply, error)
 	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
 	OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
 	TestLeverAge(context.Context, *TestLeverAgeRequest) (*TestLeverAgeReply, error)
@@ -192,9 +180,6 @@ func (UnimplementedBinanceUserServer) PullUserCredentialsBsc(context.Context, *P
 }
 func (UnimplementedBinanceUserServer) BindTrader(context.Context, *BindTraderRequest) (*BindTraderReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BindTrader not implemented")
-}
-func (UnimplementedBinanceUserServer) RemoveBindTrader(context.Context, *RemoveBindTraderRequest) (*RemoveBindTraderReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveBindTrader not implemented")
 }
 func (UnimplementedBinanceUserServer) ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListenTraderAndUserOrder not implemented")
@@ -310,24 +295,6 @@ func _BinanceUser_BindTrader_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BinanceUserServer).BindTrader(ctx, req.(*BindTraderRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BinanceUser_RemoveBindTrader_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveBindTraderRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BinanceUserServer).RemoveBindTrader(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BinanceUser_RemoveBindTrader_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BinanceUserServer).RemoveBindTrader(ctx, req.(*RemoveBindTraderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -448,10 +415,6 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BindTrader",
 			Handler:    _BinanceUser_BindTrader_Handler,
-		},
-		{
-			MethodName: "RemoveBindTrader",
-			Handler:    _BinanceUser_RemoveBindTrader_Handler,
 		},
 		{
 			MethodName: "ListenTraderAndUserOrder",
