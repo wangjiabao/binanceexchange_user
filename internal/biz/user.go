@@ -417,7 +417,7 @@ func (b *BinanceUserUsecase) SetUserBalanceAndUser(ctx context.Context, address 
 					return err
 				}
 
-				if userBalance.Balance != balance2 || userBalance.Open != open2 {
+				if userBalance.Balance != balance2 {
 					_, err = b.binanceUserRepo.InsertUserBalanceRecordTwo(ctx, &UserBalanceRecord{
 						UserId:  user.ID,
 						Amount:  tmpAmount.String(),
