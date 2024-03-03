@@ -41,14 +41,15 @@ func (b *BinanceUserService) PullUserDeposit(ctx context.Context, req *v1.PullUs
 		var (
 			balance string
 			cost    uint64
+			open    bool
 		)
-		balance, cost, err = pullUserDepositForInfo(v)
+		balance, cost, open, err = pullUserDepositForInfo(v)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		err = b.buc.SetUserBalanceAndUser(ctx, v, balance, cost, 1)
+		err = b.buc.SetUserBalanceAndUser(ctx, v, balance, cost, open, 1)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -98,10 +99,11 @@ func pullUsersByDeposit() ([]string, error) {
 	return users, nil
 }
 
-func pullUserDepositForInfo(address string) (string, uint64, error) {
+func pullUserDepositForInfo(address string) (string, uint64, bool, error) {
 	var (
 		balance string
 		cost    uint64
+		open    bool
 	)
 
 	url1 := "https://bsc-dataseed4.binance.org/"
@@ -118,21 +120,34 @@ func pullUserDepositForInfo(address string) (string, uint64, error) {
 		instance, err := abi.NewDeposit(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
-			return balance, cost, err
+			return balance, cost, open, err
 		}
 
 		var (
 			tmp  *big.Int
 			tmp2 *big.Int
+			tmp3 bool
 		)
 		tmp, err = instance.UserdepositForUsdtAmount(&bind.CallOpts{}, common.HexToAddress(address))
 		if err != nil {
-			return balance, cost, err
+			return balance, cost, open, err
 		}
 
 		tmp2, err = instance.UserCost(&bind.CallOpts{}, common.HexToAddress(address))
 		if err != nil {
-			return balance, cost, err
+			return balance, cost, open, err
+		}
+
+		contractAddress2 := common.HexToAddress("0xCD329BEb4574Ddf10411F71383FA0d313A65A737")
+		instance2, err := abi.NewDepositOpen(contractAddress2, client)
+		if err != nil {
+			fmt.Println(err)
+			return balance, cost, open, err
+		}
+
+		tmp3, err = instance2.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
+		if err != nil {
+			return balance, cost, open, err
 		}
 
 		if "0" != tmp.String() {
@@ -143,10 +158,12 @@ func pullUserDepositForInfo(address string) (string, uint64, error) {
 			cost = tmp2.Uint64()
 		}
 
+		open = tmp3
+
 		break
 	}
 
-	return balance, cost, nil
+	return balance, cost, open, nil
 }
 
 // PullUserDeposit2 .
@@ -161,14 +178,15 @@ func (b *BinanceUserService) PullUserDeposit2(ctx context.Context, req *v1.PullU
 		var (
 			balance string
 			cost    uint64
+			open    bool
 		)
-		balance, cost, err = pullUserStakeTfiForInfo(v)
+		balance, cost, open, err = pullUserStakeTfiForInfo(v)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		err = b.buc.SetUserBalanceAndUser(ctx, v, balance, cost, 2)
+		err = b.buc.SetUserBalanceAndUser(ctx, v, balance, cost, open, 2)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -218,10 +236,12 @@ func pullUsersByStakeTfi() ([]string, error) {
 	return users, nil
 }
 
-func pullUserStakeTfiForInfo(address string) (string, uint64, error) {
+func pullUserStakeTfiForInfo(address string) (string, uint64, bool, error) {
 	var (
 		balance string
 		cost    uint64
+		open    bool
+		err     error
 	)
 
 	url1 := "https://bsc-dataseed4.binance.org/"
@@ -238,31 +258,27 @@ func pullUserStakeTfiForInfo(address string) (string, uint64, error) {
 		instance, err := abi.NewStakeTfi(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
-			return balance, cost, err
+			return balance, cost, open, err
 		}
 
 		var (
-			openStatus bool
-			tmp        *big.Int
-			tmp2       *big.Int
+			tmp  *big.Int
+			tmp2 *big.Int
+			tmp3 bool
 		)
-		openStatus, err = instance.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
+		tmp3, err = instance.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
 		if err != nil {
-			return balance, cost, err
-		}
-
-		if !openStatus {
-			return balance, cost, err // 关，清0
+			return balance, cost, open, err
 		}
 
 		tmp, err = instance.UserTfiAmount(&bind.CallOpts{}, common.HexToAddress(address))
 		if err != nil {
-			return balance, cost, err
+			return balance, cost, open, err
 		}
 
 		tmp2, err = instance.UserCost(&bind.CallOpts{}, common.HexToAddress(address))
 		if err != nil {
-			return balance, cost, err
+			return balance, cost, open, err
 		}
 
 		if "0" != tmp.String() {
@@ -273,10 +289,11 @@ func pullUserStakeTfiForInfo(address string) (string, uint64, error) {
 			cost = tmp2.Uint64()
 		}
 
+		open = tmp3
 		break
 	}
 
-	return balance, cost, nil
+	return balance, cost, open, err
 }
 
 // PullUserCredentialsBsc 拉取用户api_key api_secret
@@ -360,14 +377,6 @@ func (b *BinanceUserService) ListenTraderAndUserOrder(ctx context.Context, req *
 
 func (b *BinanceUserService) OrderHandle(ctx context.Context, req *v1.OrderHandleRequest) (*v1.OrderHandleReply, error) {
 	return b.buc.OrderHandle(ctx, req)
-}
-
-func (b *BinanceUserService) TestLeverAge(ctx context.Context, req *v1.TestLeverAgeRequest) (*v1.TestLeverAgeReply, error) {
-	return b.buc.TestLeverAge(ctx, req)
-}
-
-func (b *BinanceUserService) TestOrder(ctx context.Context, req *v1.TestOrderRequest) (*v1.TestOrderReply, error) {
-	return b.buc.TestOrder(ctx, req)
 }
 
 func (b *BinanceUserService) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {

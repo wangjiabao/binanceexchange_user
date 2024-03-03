@@ -50,18 +50,6 @@ service BinanceUser {
     };
   };
 
-  rpc TestLeverAge (TestLeverAgeRequest) returns (TestLeverAgeReply) {
-    option (google.api.http) = {
-      get: "/api/binanceexchange_user/test_Lever_age"
-    };
-  };
-
-  rpc TestOrder (TestOrderRequest) returns (TestOrderReply) {
-    option (google.api.http) = {
-      get: "/api/binanceexchange_user/test_order"
-    };
-  };
-
   rpc Analyze (AnalyzeRequest) returns (AnalyzeReply) {
     option (google.api.http) = {
       get: "/api/binanceexchange_user/analyze"
@@ -92,16 +80,6 @@ message BindTraderRequest {}
 
 message BindTraderReply {}
 
-message TestLeverAgeRequest {
-  int64 user_id = 1;
-}
-
-message TestLeverAgeReply {}
-
-message TestOrderRequest {}
-
-message TestOrderReply {}
-
 message AnalyzeRequest {}
 
 message AnalyzeReply {}
@@ -117,6 +95,8 @@ message ListenTraderAndUserOrderRequest {
       uint64 uid = 1;
       string base_money = 2;
       repeated Data data = 3;
+      uint64 init_order = 4;
+      string rate = 5;
 
       message Data {
         // Order 消息类型的字段

@@ -10,15 +10,15 @@ import (
 )
 
 type User struct {
-	ID               uint64    `gorm:"primarykey;type:int"`
-	Address          string    `gorm:"type:varchar(100);not null"`
-	PlayType         uint64    `gorm:"type:int;not null"`
-	ApiStatus        uint64    `gorm:"type:int;not null"`
-	ApiKey           string    `gorm:"type:varchar(200);not null"`
-	ApiSecret        string    `gorm:"type:varchar(200);not null"`
-	BindTraderStatus uint64    `gorm:"type:int;not null"`
-	CreatedAt        time.Time `gorm:"type:datetime;not null"`
-	UpdatedAt        time.Time `gorm:"type:datetime;not null"`
+	ID                  uint64    `gorm:"primarykey;type:int"`
+	Address             string    `gorm:"type:varchar(100);not null"`
+	ApiStatus           uint64    `gorm:"type:int;not null"`
+	ApiKey              string    `gorm:"type:varchar(200);not null"`
+	ApiSecret           string    `gorm:"type:varchar(200);not null"`
+	BindTraderStatus    uint64    `gorm:"type:int;not null"`
+	BindTraderStatusTfi uint64    `gorm:"type:int;not null"`
+	CreatedAt           time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt           time.Time `gorm:"type:datetime;not null"`
 }
 
 type UserBalance struct {
@@ -26,6 +26,7 @@ type UserBalance struct {
 	UserId    uint64    `gorm:"type:int;not null"`
 	Balance   string    `gorm:"type:varchar(100);not null"`
 	Cost      uint64    `gorm:"type:bigint(20);not null"`
+	Open      uint64    `gorm:"type:int;not null"`
 	CreatedAt time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
@@ -131,8 +132,7 @@ func NewBinanceUserRepo(data *Data, logger log.Logger) biz.BinanceUserRepo {
 // InsertUser .
 func (b *BinanceUserRepo) InsertUser(ctx context.Context, user *biz.User) (*biz.User, error) {
 	insertUser := &User{
-		Address:  user.Address,
-		PlayType: user.PlayType,
+		Address: user.Address,
 	}
 
 	res := b.data.DB(ctx).Table("user").Create(&insertUser)
@@ -188,7 +188,22 @@ func (b *BinanceUserRepo) UpdateUserBindTraderStatusNo(ctx context.Context, user
 	)
 
 	if err = b.data.DB(ctx).Table("user").Where("id=?", userId).
-		Updates(map[string]interface{}{"bind_trader_status": 0, "updated_at": now}).Error; nil != err {
+		Updates(map[string]interface{}{"bind_trader_status": 2, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_ERROR", "UPDATE_USER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdateUserBindTraderStatusNoTfi .
+func (b *BinanceUserRepo) UpdateUserBindTraderStatusNoTfi(ctx context.Context, userId uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user").Where("id=?", userId).
+		Updates(map[string]interface{}{"bind_trader_status_tfi": 2, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_ERROR", "UPDATE_USER_ERROR")
 	}
 
@@ -201,6 +216,7 @@ func (b *BinanceUserRepo) InsertUserBalance(ctx context.Context, userBalance *bi
 		UserId:  userBalance.UserId,
 		Balance: userBalance.Balance,
 		Cost:    userBalance.Cost,
+		Open:    userBalance.Open,
 	}
 
 	res := b.data.DB(ctx).Table("user_balance").Create(&insertUserBalance)
@@ -211,16 +227,48 @@ func (b *BinanceUserRepo) InsertUserBalance(ctx context.Context, userBalance *bi
 	return true, nil
 }
 
+// InsertUserBalanceTwo .
+func (b *BinanceUserRepo) InsertUserBalanceTwo(ctx context.Context, userBalance *biz.UserBalance) (bool, error) {
+	insertUserBalance := &UserBalance{
+		UserId:  userBalance.UserId,
+		Balance: userBalance.Balance,
+		Cost:    userBalance.Cost,
+		Open:    userBalance.Open,
+	}
+
+	res := b.data.DB(ctx).Table("user_balance_two").Create(&insertUserBalance)
+	if res.Error != nil {
+		return false, errors.New(500, "CREATE_USER_BALANCE_TWO_ERROR", "创建数据失败")
+	}
+
+	return true, nil
+}
+
 // UpdatesUserBalance .
-func (b *BinanceUserRepo) UpdatesUserBalance(ctx context.Context, userId uint64, balance string, cost uint64) (bool, error) {
+func (b *BinanceUserRepo) UpdatesUserBalance(ctx context.Context, userId uint64, balance string, cost uint64, open uint64) (bool, error) {
 	var (
 		err error
 		now = time.Now()
 	)
 
 	if err = b.data.DB(ctx).Table("user_balance").Where("user_id=?", userId).
-		Updates(map[string]interface{}{"balance": balance, "cost": cost, "updated_at": now}).Error; nil != err {
+		Updates(map[string]interface{}{"balance": balance, "cost": cost, "open": open, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_BALANCE_ERROR", "UPDATE_USER_BALANCE_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserBalanceTwo .
+func (b *BinanceUserRepo) UpdatesUserBalanceTwo(ctx context.Context, userId uint64, balance string, cost uint64, open uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_balance_two").Where("user_id=?", userId).
+		Updates(map[string]interface{}{"balance": balance, "cost": cost, "open": open, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BALANCE_TWO_ERROR", "UPDATE_USER_BALANCE_TWO_ERROR")
 	}
 
 	return true, nil
@@ -243,6 +291,23 @@ func (b *BinanceUserRepo) InsertUserBalanceRecord(ctx context.Context, userBalan
 	return true, nil
 }
 
+// InsertUserBalanceRecordTwo .
+func (b *BinanceUserRepo) InsertUserBalanceRecordTwo(ctx context.Context, userBalanceRecord *biz.UserBalanceRecord) (bool, error) {
+	insertUserBalanceRecord := &UserBalanceRecord{
+		UserId:  userBalanceRecord.UserId,
+		Amount:  userBalanceRecord.Amount,
+		Balance: userBalanceRecord.Balance,
+		tx:      userBalanceRecord.Tx,
+	}
+
+	res := b.data.DB(ctx).Table("user_balance_record_two").Create(&insertUserBalanceRecord)
+	if res.Error != nil {
+		return false, errors.New(500, "CREATE_USER_BALANCE_TWO_RECORD_ERROR", "创建数据失败")
+	}
+
+	return true, nil
+}
+
 // InsertUserAmount .
 func (b *BinanceUserRepo) InsertUserAmount(ctx context.Context, userAmount *biz.UserAmount) (bool, error) {
 	insertUserAmount := &UserAmount{
@@ -253,6 +318,21 @@ func (b *BinanceUserRepo) InsertUserAmount(ctx context.Context, userAmount *biz.
 	res := b.data.DB(ctx).Table("user_amount").Create(&insertUserAmount)
 	if res.Error != nil {
 		return false, errors.New(500, "CREATE_USER_AMOUNT_ERROR", "创建数据失败")
+	}
+
+	return true, nil
+}
+
+// InsertUserAmountTwo .
+func (b *BinanceUserRepo) InsertUserAmountTwo(ctx context.Context, userAmount *biz.UserAmount) (bool, error) {
+	insertUserAmount := &UserAmount{
+		UserId: userAmount.UserId,
+		Amount: 0,
+	}
+
+	res := b.data.DB(ctx).Table("user_amount").Create(&insertUserAmount)
+	if res.Error != nil {
+		return false, errors.New(500, "CREATE_USER_AMOUNT_TWO_ERROR", "创建数据失败")
 	}
 
 	return true, nil
@@ -419,6 +499,55 @@ func (b *BinanceUserRepo) InsertUserOrder(ctx context.Context, order *biz.UserOr
 	}, nil
 }
 
+// InsertUserOrderTwo .
+func (b *BinanceUserRepo) InsertUserOrderTwo(ctx context.Context, order *biz.UserOrder) (*biz.UserOrder, error) {
+	insertUserOrder := &UserOrder{
+		ID:            order.ID,
+		UserId:        order.UserId,
+		TraderId:      order.TraderId,
+		ClientOrderId: order.ClientOrderId,
+		OrderId:       order.OrderId,
+		Symbol:        order.Symbol,
+		Side:          order.Side,
+		PositionSide:  order.PositionSide,
+		Quantity:      order.Quantity,
+		Price:         order.Price,
+		TraderQty:     order.TraderQty,
+		OrderType:     order.OrderType,
+		ClosePosition: order.ClosePosition,
+		CumQuote:      order.CumQuote,
+		ExecutedQty:   order.ExecutedQty,
+		AvgPrice:      order.AvgPrice,
+		HandleStatus:  0,
+	}
+
+	res := b.data.DB(ctx).Table("user_order_two").Create(&insertUserOrder)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_USER_ORDER_TWO_ERROR", "创建数据失败")
+	}
+
+	return &biz.UserOrder{
+		ID:            insertUserOrder.ID,
+		UserId:        insertUserOrder.UserId,
+		TraderId:      insertUserOrder.TraderId,
+		ClientOrderId: insertUserOrder.ClientOrderId,
+		OrderId:       insertUserOrder.OrderId,
+		Symbol:        insertUserOrder.Symbol,
+		Side:          insertUserOrder.Side,
+		PositionSide:  insertUserOrder.PositionSide,
+		Quantity:      insertUserOrder.Quantity,
+		Price:         insertUserOrder.Price,
+		TraderQty:     insertUserOrder.TraderQty,
+		OrderType:     insertUserOrder.OrderType,
+		ClosePosition: insertUserOrder.ClosePosition,
+		CumQuote:      insertUserOrder.CumQuote,
+		ExecutedQty:   insertUserOrder.ExecutedQty,
+		AvgPrice:      insertUserOrder.AvgPrice,
+		CreatedAt:     insertUserOrder.CreatedAt,
+		UpdatedAt:     insertUserOrder.UpdatedAt,
+	}, nil
+}
+
 // UpdatesUserOrderHandleStatus .
 func (b *BinanceUserRepo) UpdatesUserOrderHandleStatus(ctx context.Context, id uint64) (bool, error) {
 	var (
@@ -481,6 +610,21 @@ func (b *BinanceUserRepo) UpdatesUserBindAfterUnbind(ctx context.Context, id uin
 	return true, nil
 }
 
+// UpdatesUserBindAfterUnbindTwo .
+func (b *BinanceUserRepo) UpdatesUserBindAfterUnbindTwo(ctx context.Context, id uint64, status uint64, quantity float64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_after_unbind_two").Where("id=? and status<?", id, 1).
+		Updates(map[string]interface{}{"status": status, "quantity": quantity, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_AFTER_UNBIND_TWO_ERROR", "UPDATE_USER_AFTER_UNBIND_ERROR")
+	}
+
+	return true, nil
+}
+
 // GetUsers .
 func (b *BinanceUserRepo) GetUsers() ([]*biz.User, error) {
 	var users []*User
@@ -496,7 +640,6 @@ func (b *BinanceUserRepo) GetUsers() ([]*biz.User, error) {
 	for _, v := range users {
 		res = append(res, &biz.User{
 			ID:               v.ID,
-			PlayType:         v.PlayType,
 			Address:          v.Address,
 			ApiKey:           v.ApiKey,
 			ApiStatus:        v.ApiStatus,
@@ -528,7 +671,6 @@ func (b *BinanceUserRepo) GetUsersByUserIds(userIds []uint64) (map[uint64]*biz.U
 			Address:          v.Address,
 			ApiKey:           v.ApiKey,
 			ApiStatus:        v.ApiStatus,
-			PlayType:         v.PlayType,
 			BindTraderStatus: v.BindTraderStatus,
 			ApiSecret:        v.ApiSecret,
 			CreatedAt:        v.CreatedAt,
@@ -554,7 +696,6 @@ func (b *BinanceUserRepo) GetUsersByBindUserStatus() ([]*biz.User, error) {
 	for _, v := range users {
 		res = append(res, &biz.User{
 			ID:               v.ID,
-			PlayType:         v.PlayType,
 			Address:          v.Address,
 			ApiStatus:        v.ApiStatus,
 			ApiKey:           v.ApiKey,
@@ -562,6 +703,35 @@ func (b *BinanceUserRepo) GetUsersByBindUserStatus() ([]*biz.User, error) {
 			ApiSecret:        v.ApiSecret,
 			CreatedAt:        v.CreatedAt,
 			UpdatedAt:        v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUsersByBindUserStatusReBind .
+func (b *BinanceUserRepo) GetUsersByBindUserStatusReBind() ([]*biz.User, error) {
+	var users []*User
+	if err := b.data.db.Table("user").Where("bind_trader_status=?", 2).Find(&users).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ERROR", err.Error())
+	}
+
+	res := make([]*biz.User, 0)
+	for _, v := range users {
+		res = append(res, &biz.User{
+			ID:                  v.ID,
+			Address:             v.Address,
+			ApiStatus:           v.ApiStatus,
+			ApiKey:              v.ApiKey,
+			BindTraderStatus:    v.BindTraderStatus,
+			BindTraderStatusTfi: v.BindTraderStatusTfi,
+			ApiSecret:           v.ApiSecret,
+			CreatedAt:           v.CreatedAt,
+			UpdatedAt:           v.UpdatedAt,
 		})
 	}
 
@@ -582,7 +752,6 @@ func (b *BinanceUserRepo) GetUserByAddress(ctx context.Context, address string) 
 	return &biz.User{
 		ID:               user.ID,
 		ApiStatus:        user.ApiStatus,
-		PlayType:         user.PlayType,
 		Address:          user.Address,
 		ApiKey:           user.ApiKey,
 		BindTraderStatus: user.BindTraderStatus,
@@ -606,7 +775,6 @@ func (b *BinanceUserRepo) GetUserById(ctx context.Context, userId uint64) (*biz.
 	return &biz.User{
 		ID:               user.ID,
 		ApiStatus:        user.ApiStatus,
-		PlayType:         user.PlayType,
 		Address:          user.Address,
 		ApiKey:           user.ApiKey,
 		BindTraderStatus: user.BindTraderStatus,
@@ -655,6 +823,29 @@ func (b *BinanceUserRepo) GetUserBalance(ctx context.Context, userId uint64) (*b
 		UserId:    userBalance.UserId,
 		Balance:   userBalance.Balance,
 		Cost:      userBalance.Cost,
+		Open:      userBalance.Open,
+		CreatedAt: userBalance.CreatedAt,
+		UpdatedAt: userBalance.UpdatedAt,
+	}, nil
+}
+
+// GetUserBalanceTwo .
+func (b *BinanceUserRepo) GetUserBalanceTwo(ctx context.Context, userId uint64) (*biz.UserBalance, error) {
+	var userBalance *UserBalance
+	if err := b.data.DB(ctx).Table("user_balance_two").Where("user_id=?", userId).First(&userBalance).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BALANCE_TWO_ERROR", err.Error())
+	}
+
+	return &biz.UserBalance{
+		ID:        userBalance.ID,
+		UserId:    userBalance.UserId,
+		Balance:   userBalance.Balance,
+		Cost:      userBalance.Cost,
+		Open:      userBalance.Open,
 		CreatedAt: userBalance.CreatedAt,
 		UpdatedAt: userBalance.UpdatedAt,
 	}, nil
@@ -698,6 +889,34 @@ func (b *BinanceUserRepo) GetUserBalanceByUserIds(ctx context.Context, userIds [
 			UserId:    v.UserId,
 			Balance:   v.Balance,
 			Cost:      v.Cost,
+			Open:      v.Open,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		}
+	}
+
+	return res, nil
+}
+
+// GetUserBalanceTwoByUserIds .
+func (b *BinanceUserRepo) GetUserBalanceTwoByUserIds(ctx context.Context, userIds []uint64) (map[uint64]*biz.UserBalance, error) {
+	var userBalance []*UserBalance
+	if err := b.data.DB(ctx).Table("user_balance_two").Where("user_id in(?)", userIds).Find(&userBalance).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BALANCE_TWO_ERROR", err.Error())
+	}
+
+	res := make(map[uint64]*biz.UserBalance, 0)
+	for _, v := range userBalance {
+		res[v.UserId] = &biz.UserBalance{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			Balance:   v.Balance,
+			Cost:      v.Cost,
+			Open:      v.Open,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 		}
@@ -715,6 +934,31 @@ func (b *BinanceUserRepo) GetUserAmountByUserIds(ctx context.Context, userIds []
 		}
 
 		return nil, errors.New(500, "FIND_USER_AMOUNT_ERROR", err.Error())
+	}
+
+	res := make(map[uint64]*biz.UserAmount, 0)
+	for _, v := range userAmount {
+		res[v.UserId] = &biz.UserAmount{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			Amount:    v.Amount,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		}
+	}
+
+	return res, nil
+}
+
+// GetUserAmountTwoByUserIds .
+func (b *BinanceUserRepo) GetUserAmountTwoByUserIds(ctx context.Context, userIds []uint64) (map[uint64]*biz.UserAmount, error) {
+	var userAmount []*UserAmount
+	if err := b.data.DB(ctx).Table("user_amount_two").Where("user_id in(?)", userIds).Find(&userAmount).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_AMOUNT_TWO_ERROR", err.Error())
 	}
 
 	res := make(map[uint64]*biz.UserAmount, 0)
@@ -870,7 +1114,7 @@ func (b *BinanceUserRepo) GetUserBindTraderByStatus(status uint64) (map[uint64][
 // GetUserBindTraderMapByUserIds .
 func (b *BinanceUserRepo) GetUserBindTraderMapByUserIds(userIds []uint64) (map[uint64][]*biz.UserBindTrader, error) {
 	var userBindTrader []*UserBindTrader
-	if err := b.data.db.Table("user_bind_trader").Where("user_id in(?)", userIds).Find(&userBindTrader).Error; err != nil {
+	if err := b.data.db.Table("user_bind_trader").Where("user_id in(?)", userIds).Order("amount desc").Find(&userBindTrader).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -900,7 +1144,38 @@ func (b *BinanceUserRepo) GetUserBindTraderMapByUserIds(userIds []uint64) (map[u
 // GetUserBindTraderByTraderIds .
 func (b *BinanceUserRepo) GetUserBindTraderByTraderIds(traderIds []uint64) (map[uint64][]*biz.UserBindTrader, error) {
 	var userBindTrader []*UserBindTrader
-	if err := b.data.db.Table("user_bind_trader").Where("trader_id in(?) and status<?", traderIds, 2).Find(&userBindTrader).Error; err != nil {
+	if err := b.data.db.Table("user_bind_trader").Where("trader_id in(?) and status=?", traderIds, 0).Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_ERROR", err.Error())
+	}
+
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.TraderId]; !ok {
+			res[v.TraderId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.TraderId] = append(res[v.TraderId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+			Status:    v.Status,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserBindTraderTwoByTraderIds .
+func (b *BinanceUserRepo) GetUserBindTraderTwoByTraderIds(traderIds []uint64) (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader_two").Where("trader_id in(?) and status=?", traderIds, 0).Find(&userBindTrader).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -1000,6 +1275,46 @@ func (b *BinanceUserRepo) GetUserOrderByUserTraderIdAndSymbol(userId uint64, tra
 		}
 
 		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserOrder, 0)
+	for _, v := range userOrder {
+		res = append(res, &biz.UserOrder{
+			ID:            v.ID,
+			UserId:        v.UserId,
+			TraderId:      v.TraderId,
+			ClientOrderId: v.ClientOrderId,
+			OrderId:       v.OrderId,
+			Symbol:        v.Symbol,
+			Side:          v.Side,
+			PositionSide:  v.PositionSide,
+			Quantity:      v.Quantity,
+			Price:         v.Price,
+			TraderQty:     v.TraderQty,
+			OrderType:     v.OrderType,
+			ClosePosition: v.ClosePosition,
+			CumQuote:      v.CumQuote,
+			ExecutedQty:   v.ExecutedQty,
+			AvgPrice:      v.AvgPrice,
+			CreatedAt:     v.CreatedAt,
+			UpdatedAt:     v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserOrderTwoByUserTraderIdAndSymbol .
+func (b *BinanceUserRepo) GetUserOrderTwoByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*biz.UserOrder, error) {
+	var userOrder []*UserOrder
+	if err := b.data.db.Table("user_order_two").
+		Where("user_id=? and trader_id=? and symbol=?", userId, traderId, symbol).
+		Find(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_TWO_ERROR", err.Error())
 	}
 
 	res := make([]*biz.UserOrder, 0)
@@ -1354,5 +1669,24 @@ func (b *BinanceUserRepo) SMembersOrderSetSellLongOrBuyShort(ctx context.Context
 func (b *BinanceUserRepo) SRemOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error {
 	var err error
 	err = b.data.rdb.SRem(ctx, "user_order_sell_long_buy_short", OrderId).Err()
+	return err
+}
+
+// SAddOrderSetSellLongOrBuyShortTwo 平仓订单信息放入缓存.
+func (b *BinanceUserRepo) SAddOrderSetSellLongOrBuyShortTwo(ctx context.Context, OrderId int64) error {
+	var err error
+	err = b.data.rdb.SAdd(ctx, "user_order_sell_long_buy_short_two", OrderId).Err()
+	return err
+}
+
+// SMembersOrderSetSellLongOrBuyShortTwo 平仓订单信息.
+func (b *BinanceUserRepo) SMembersOrderSetSellLongOrBuyShortTwo(ctx context.Context) ([]string, error) {
+	return b.data.rdb.SMembers(ctx, "user_order_sell_long_buy_short_two").Result()
+}
+
+// SRemOrderSetSellLongOrBuyShortTwo 平仓订单信息放入缓存.
+func (b *BinanceUserRepo) SRemOrderSetSellLongOrBuyShortTwo(ctx context.Context, OrderId int64) error {
+	var err error
+	err = b.data.rdb.SRem(ctx, "user_order_sell_long_buy_short_two", OrderId).Err()
 	return err
 }

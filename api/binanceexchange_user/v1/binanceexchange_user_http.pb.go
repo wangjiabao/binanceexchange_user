@@ -27,8 +27,6 @@ const OperationBinanceUserOrderHandle = "/BinanceUser/OrderHandle"
 const OperationBinanceUserPullUserCredentialsBsc = "/BinanceUser/PullUserCredentialsBsc"
 const OperationBinanceUserPullUserDeposit = "/BinanceUser/PullUserDeposit"
 const OperationBinanceUserPullUserDeposit2 = "/BinanceUser/PullUserDeposit2"
-const OperationBinanceUserTestLeverAge = "/BinanceUser/TestLeverAge"
-const OperationBinanceUserTestOrder = "/BinanceUser/TestOrder"
 
 type BinanceUserHTTPServer interface {
 	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error)
@@ -39,8 +37,6 @@ type BinanceUserHTTPServer interface {
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
 	PullUserDeposit(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
 	PullUserDeposit2(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
-	TestLeverAge(context.Context, *TestLeverAgeRequest) (*TestLeverAgeReply, error)
-	TestOrder(context.Context, *TestOrderRequest) (*TestOrderReply, error)
 }
 
 func RegisterBinanceUserHTTPServer(s *http.Server, srv BinanceUserHTTPServer) {
@@ -52,8 +48,6 @@ func RegisterBinanceUserHTTPServer(s *http.Server, srv BinanceUserHTTPServer) {
 	r.GET("/api/binanceexchange_user/bind_trader", _BinanceUser_BindTrader0_HTTP_Handler(srv))
 	r.POST("/api/binanceexchange_user/listen_trader_and_user_order", _BinanceUser_ListenTraderAndUserOrder0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/order_handle", _BinanceUser_OrderHandle0_HTTP_Handler(srv))
-	r.GET("/api/binanceexchange_user/test_Lever_age", _BinanceUser_TestLeverAge0_HTTP_Handler(srv))
-	r.GET("/api/binanceexchange_user/test_order", _BinanceUser_TestOrder0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/analyze", _BinanceUser_Analyze0_HTTP_Handler(srv))
 }
 
@@ -193,44 +187,6 @@ func _BinanceUser_OrderHandle0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx 
 	}
 }
 
-func _BinanceUser_TestLeverAge0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in TestLeverAgeRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationBinanceUserTestLeverAge)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.TestLeverAge(ctx, req.(*TestLeverAgeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*TestLeverAgeReply)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _BinanceUser_TestOrder0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in TestOrderRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationBinanceUserTestOrder)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.TestOrder(ctx, req.(*TestOrderRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*TestOrderReply)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _BinanceUser_Analyze0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AnalyzeRequest
@@ -259,8 +215,6 @@ type BinanceUserHTTPClient interface {
 	PullUserCredentialsBsc(ctx context.Context, req *PullUserCredentialsBscRequest, opts ...http.CallOption) (rsp *PullUserCredentialsBscReply, err error)
 	PullUserDeposit(ctx context.Context, req *PullUserDepositRequest, opts ...http.CallOption) (rsp *PullUserDepositReply, err error)
 	PullUserDeposit2(ctx context.Context, req *PullUserDepositRequest, opts ...http.CallOption) (rsp *PullUserDepositReply, err error)
-	TestLeverAge(ctx context.Context, req *TestLeverAgeRequest, opts ...http.CallOption) (rsp *TestLeverAgeReply, err error)
-	TestOrder(ctx context.Context, req *TestOrderRequest, opts ...http.CallOption) (rsp *TestOrderReply, err error)
 }
 
 type BinanceUserHTTPClientImpl struct {
@@ -367,32 +321,6 @@ func (c *BinanceUserHTTPClientImpl) PullUserDeposit2(ctx context.Context, in *Pu
 	pattern := "/api/binanceexchange_user/pull_user_deposit_2"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationBinanceUserPullUserDeposit2))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *BinanceUserHTTPClientImpl) TestLeverAge(ctx context.Context, in *TestLeverAgeRequest, opts ...http.CallOption) (*TestLeverAgeReply, error) {
-	var out TestLeverAgeReply
-	pattern := "/api/binanceexchange_user/test_Lever_age"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationBinanceUserTestLeverAge))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *BinanceUserHTTPClientImpl) TestOrder(ctx context.Context, in *TestOrderRequest, opts ...http.CallOption) (*TestOrderReply, error) {
-	var out TestOrderReply
-	pattern := "/api/binanceexchange_user/test_order"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationBinanceUserTestOrder))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
