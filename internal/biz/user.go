@@ -1472,50 +1472,25 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 					if ("SELL" == vOrdersData.Side && "LONG" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "SHORT" == vOrdersData.Type) {
 
 					} else if ("SELL" == vOrdersData.Side && "SHORT" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "LONG" == vOrdersData.Type) {
-						// 模式，开单余额判断
-						if 1 == users[vUserBindTrader.UserId].PlayType {
-							// 精度按代币18位，截取小数点后到5位计算
-							var balanceTmp int64
-							lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
+						// 精度按代币18位，截取小数点后到5位计算
+						var balanceTmp int64
+						lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
 
-							if lengthToKeep > 0 {
-								balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
-								balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
-								if nil != err || 0 >= balanceTmp {
-									continue
-								}
-							} else {
+						if lengthToKeep > 0 {
+							balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
+							balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
+							if nil != err || 0 >= balanceTmp {
 								continue
 							}
-
-							// 余额不足，收益大于余额的1000倍
-							if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
-								continue
-							}
-						} else if 2 == users[vUserBindTrader.UserId].PlayType {
-							// 余额不足，10u的收益，要1u的余额
-							// 精度按代币18位，截取小数点后到5位计算
-							var balanceTmp int64
-							lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
-
-							if lengthToKeep > 0 {
-								balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
-								balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
-								if nil != err || 0 >= balanceTmp {
-									continue
-								}
-							} else {
-								continue
-							}
-
-							// 余额不足，收益大于余额的1000倍
-							if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
-								continue
-							}
-
 						} else {
 							continue
 						}
+
+						// 余额不足，收益大于余额的1000倍
+						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
+							continue
+						}
+
 					} else {
 						continue
 					}
@@ -1630,48 +1605,23 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					if ("SELL" == vOrdersData.Side && "LONG" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "SHORT" == vOrdersData.Type) {
 
 					} else if ("SELL" == vOrdersData.Side && "SHORT" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "LONG" == vOrdersData.Type) {
-						// 模式，开单余额判断
-						if 1 == users[vUserBindTrader.UserId].PlayType {
-							// 精度按代币18位，截取小数点后到5位计算
-							var balanceTmp int64
-							lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
+						// 余额不足，10u的收益，要1u的余额
+						// 精度按代币18位，截取小数点后到5位计算
+						var balanceTmp int64
+						lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
 
-							if lengthToKeep > 0 {
-								balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
-								balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
-								if nil != err || 0 >= balanceTmp {
-									continue
-								}
-							} else {
+						if lengthToKeep > 0 {
+							balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
+							balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
+							if nil != err || 0 >= balanceTmp {
 								continue
 							}
-
-							// 余额不足，收益大于余额的1000倍
-							if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
-								continue
-							}
-						} else if 2 == users[vUserBindTrader.UserId].PlayType {
-							// 余额不足，10u的收益，要1u的余额
-							// 精度按代币18位，截取小数点后到5位计算
-							var balanceTmp int64
-							lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
-
-							if lengthToKeep > 0 {
-								balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
-								balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
-								if nil != err || 0 >= balanceTmp {
-									continue
-								}
-							} else {
-								continue
-							}
-
-							// 余额不足，收益大于余额的1000倍
-							if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
-								continue
-							}
-
 						} else {
+							continue
+						}
+
+						// 余额不足，收益大于余额的1000倍
+						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
 							continue
 						}
 					} else {
