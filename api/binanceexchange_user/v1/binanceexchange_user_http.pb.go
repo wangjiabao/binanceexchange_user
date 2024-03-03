@@ -24,6 +24,7 @@ const OperationBinanceUserBindTrader = "/BinanceUser/BindTrader"
 const OperationBinanceUserGetUser = "/BinanceUser/GetUser"
 const OperationBinanceUserListenTraderAndUserOrder = "/BinanceUser/ListenTraderAndUserOrder"
 const OperationBinanceUserOrderHandle = "/BinanceUser/OrderHandle"
+const OperationBinanceUserOrderHandleTwo = "/BinanceUser/OrderHandleTwo"
 const OperationBinanceUserPullUserCredentialsBsc = "/BinanceUser/PullUserCredentialsBsc"
 const OperationBinanceUserPullUserDeposit = "/BinanceUser/PullUserDeposit"
 const OperationBinanceUserPullUserDeposit2 = "/BinanceUser/PullUserDeposit2"
@@ -34,6 +35,7 @@ type BinanceUserHTTPServer interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserReply, error)
 	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
 	OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
+	OrderHandleTwo(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
 	PullUserDeposit(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
 	PullUserDeposit2(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
@@ -48,6 +50,7 @@ func RegisterBinanceUserHTTPServer(s *http.Server, srv BinanceUserHTTPServer) {
 	r.GET("/api/binanceexchange_user/bind_trader", _BinanceUser_BindTrader0_HTTP_Handler(srv))
 	r.POST("/api/binanceexchange_user/listen_trader_and_user_order", _BinanceUser_ListenTraderAndUserOrder0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/order_handle", _BinanceUser_OrderHandle0_HTTP_Handler(srv))
+	r.GET("/api/binanceexchange_user/order_handle_two", _BinanceUser_OrderHandleTwo0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/analyze", _BinanceUser_Analyze0_HTTP_Handler(srv))
 }
 
@@ -187,6 +190,25 @@ func _BinanceUser_OrderHandle0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx 
 	}
 }
 
+func _BinanceUser_OrderHandleTwo0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in OrderHandleRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationBinanceUserOrderHandleTwo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.OrderHandleTwo(ctx, req.(*OrderHandleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OrderHandleReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _BinanceUser_Analyze0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AnalyzeRequest
@@ -212,6 +234,7 @@ type BinanceUserHTTPClient interface {
 	GetUser(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *GetUserReply, err error)
 	ListenTraderAndUserOrder(ctx context.Context, req *ListenTraderAndUserOrderRequest, opts ...http.CallOption) (rsp *ListenTraderAndUserOrderReply, err error)
 	OrderHandle(ctx context.Context, req *OrderHandleRequest, opts ...http.CallOption) (rsp *OrderHandleReply, err error)
+	OrderHandleTwo(ctx context.Context, req *OrderHandleRequest, opts ...http.CallOption) (rsp *OrderHandleReply, err error)
 	PullUserCredentialsBsc(ctx context.Context, req *PullUserCredentialsBscRequest, opts ...http.CallOption) (rsp *PullUserCredentialsBscReply, err error)
 	PullUserDeposit(ctx context.Context, req *PullUserDepositRequest, opts ...http.CallOption) (rsp *PullUserDepositReply, err error)
 	PullUserDeposit2(ctx context.Context, req *PullUserDepositRequest, opts ...http.CallOption) (rsp *PullUserDepositReply, err error)
@@ -282,6 +305,19 @@ func (c *BinanceUserHTTPClientImpl) OrderHandle(ctx context.Context, in *OrderHa
 	pattern := "/api/binanceexchange_user/order_handle"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationBinanceUserOrderHandle))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *BinanceUserHTTPClientImpl) OrderHandleTwo(ctx context.Context, in *OrderHandleRequest, opts ...http.CallOption) (*OrderHandleReply, error) {
+	var out OrderHandleReply
+	pattern := "/api/binanceexchange_user/order_handle_two"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationBinanceUserOrderHandleTwo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

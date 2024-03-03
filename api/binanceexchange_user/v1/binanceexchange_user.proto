@@ -50,6 +50,12 @@ service BinanceUser {
     };
   };
 
+  rpc OrderHandleTwo (OrderHandleRequest) returns (OrderHandleReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/order_handle_two"
+    };
+  };
+
   rpc Analyze (AnalyzeRequest) returns (AnalyzeReply) {
     option (google.api.http) = {
       get: "/api/binanceexchange_user/analyze"

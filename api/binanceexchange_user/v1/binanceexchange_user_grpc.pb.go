@@ -26,6 +26,7 @@ const (
 	BinanceUser_BindTrader_FullMethodName               = "/BinanceUser/BindTrader"
 	BinanceUser_ListenTraderAndUserOrder_FullMethodName = "/BinanceUser/ListenTraderAndUserOrder"
 	BinanceUser_OrderHandle_FullMethodName              = "/BinanceUser/OrderHandle"
+	BinanceUser_OrderHandleTwo_FullMethodName           = "/BinanceUser/OrderHandleTwo"
 	BinanceUser_Analyze_FullMethodName                  = "/BinanceUser/Analyze"
 )
 
@@ -40,6 +41,7 @@ type BinanceUserClient interface {
 	BindTrader(ctx context.Context, in *BindTraderRequest, opts ...grpc.CallOption) (*BindTraderReply, error)
 	ListenTraderAndUserOrder(ctx context.Context, in *ListenTraderAndUserOrderRequest, opts ...grpc.CallOption) (*ListenTraderAndUserOrderReply, error)
 	OrderHandle(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error)
+	OrderHandleTwo(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error)
 	Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error)
 }
 
@@ -114,6 +116,15 @@ func (c *binanceUserClient) OrderHandle(ctx context.Context, in *OrderHandleRequ
 	return out, nil
 }
 
+func (c *binanceUserClient) OrderHandleTwo(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error) {
+	out := new(OrderHandleReply)
+	err := c.cc.Invoke(ctx, BinanceUser_OrderHandleTwo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *binanceUserClient) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error) {
 	out := new(AnalyzeReply)
 	err := c.cc.Invoke(ctx, BinanceUser_Analyze_FullMethodName, in, out, opts...)
@@ -134,6 +145,7 @@ type BinanceUserServer interface {
 	BindTrader(context.Context, *BindTraderRequest) (*BindTraderReply, error)
 	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
 	OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
+	OrderHandleTwo(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
 	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
@@ -162,6 +174,9 @@ func (UnimplementedBinanceUserServer) ListenTraderAndUserOrder(context.Context, 
 }
 func (UnimplementedBinanceUserServer) OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OrderHandle not implemented")
+}
+func (UnimplementedBinanceUserServer) OrderHandleTwo(context.Context, *OrderHandleRequest) (*OrderHandleReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderHandleTwo not implemented")
 }
 func (UnimplementedBinanceUserServer) Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Analyze not implemented")
@@ -305,6 +320,24 @@ func _BinanceUser_OrderHandle_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_OrderHandleTwo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderHandleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).OrderHandleTwo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_OrderHandleTwo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).OrderHandleTwo(ctx, req.(*OrderHandleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BinanceUser_Analyze_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AnalyzeRequest)
 	if err := dec(in); err != nil {
@@ -357,6 +390,10 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OrderHandle",
 			Handler:    _BinanceUser_OrderHandle_Handler,
+		},
+		{
+			MethodName: "OrderHandleTwo",
+			Handler:    _BinanceUser_OrderHandleTwo_Handler,
 		},
 		{
 			MethodName: "Analyze",

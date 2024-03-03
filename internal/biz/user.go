@@ -144,7 +144,9 @@ type BinanceUserRepo interface {
 	InsertUserAmount(ctx context.Context, userAmount *UserAmount) (bool, error)
 	InsertUserAmountTwo(ctx context.Context, userAmount *UserAmount) (bool, error)
 	UpdatesUserAmount(ctx context.Context, userId uint64, amount int64) (bool, error)
+	UpdatesUserAmountTwo(ctx context.Context, userId uint64, amount int64) (bool, error)
 	InsertUserAmountRecord(ctx context.Context, userAmount *UserAmountRecord) (bool, error)
+	InsertUserAmountRecordTwo(ctx context.Context, userAmount *UserAmountRecord) (bool, error)
 	InsertUserBindTrader(ctx context.Context, userId uint64, traderId uint64, amount uint64) (*UserBindTrader, error)
 	UpdatesUserBindTraderStatus(ctx context.Context, userId uint64, status uint64) (bool, error)
 	UpdatesUserBindTraderStatusById(ctx context.Context, id uint64, status uint64) (bool, error)
@@ -153,6 +155,7 @@ type BinanceUserRepo interface {
 	InsertUserOrder(ctx context.Context, order *UserOrder) (*UserOrder, error)
 	InsertUserOrderTwo(ctx context.Context, order *UserOrder) (*UserOrder, error)
 	UpdatesUserOrderHandleStatus(ctx context.Context, id uint64) (bool, error)
+	UpdatesUserOrderTwoHandleStatus(ctx context.Context, id uint64) (bool, error)
 	InsertUserBindAfterUnbind(ctx context.Context, u *UserBindAfterUnbind) (*UserBindAfterUnbind, error)
 	UpdatesUserBindAfterUnbind(ctx context.Context, id uint64, status uint64, quantity float64) (bool, error)
 	UpdatesUserBindAfterUnbindTwo(ctx context.Context, id uint64, status uint64, quantity float64) (bool, error)
@@ -189,6 +192,7 @@ type BinanceUserRepo interface {
 	GetUserOrderByHandleStatus() ([]*UserOrder, error)
 	GetUserOrderByUserIdGroupBySymbol(userId uint64) ([]*UserOrder, error)
 	GetUserOrderByIds(ids []int64) ([]*UserOrder, error)
+	GetUserOrderTwoByIds(ids []int64) ([]*UserOrder, error)
 	GetUserOrderById(orderId int64) (*UserOrder, error)
 
 	SAddOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error
@@ -2735,6 +2739,165 @@ func (b *BinanceUserUsecase) userOrderHandleGoroutine(ctx context.Context, wg *s
 	}
 
 	err = b.binanceUserRepo.SRemOrderSetSellLongOrBuyShort(ctx, int64(userOrder.ID))
+	if nil != err {
+		fmt.Println("更新平单后收益数据失败, 错误的数据删除, redis，order_id:", int64(userOrder.ID), userOrder.ID, err)
+		return
+	}
+
+	return
+}
+
+func (b *BinanceUserUsecase) OrderHandleTwo(ctx context.Context, req *v1.OrderHandleRequest) (*v1.OrderHandleReply, error) {
+	var (
+		wg          sync.WaitGroup
+		orderIdsStr []string
+		orderIds    []int64
+		userOrders  []*UserOrder
+		userIdsMap  map[uint64]uint64
+		userIds     []uint64
+		users       map[uint64]*User
+		err         error
+	)
+
+	orderIdsStr, err = b.binanceUserRepo.SMembersOrderSetSellLongOrBuyShortTwo(ctx)
+	if nil != err {
+		fmt.Println(err)
+	}
+
+	if 0 >= len(orderIdsStr) {
+		return &v1.OrderHandleReply{}, nil
+	}
+
+	// 订单信息
+	orderIds = make([]int64, 0)
+	for _, vOrderIdsStr := range orderIdsStr {
+		var tmp int64
+		tmp, err = strconv.ParseInt(vOrderIdsStr, 10, 64)
+		if nil != err {
+			fmt.Println(err)
+		}
+
+		orderIds = append(orderIds, tmp)
+	}
+	userOrders, err = b.binanceUserRepo.GetUserOrderTwoByIds(orderIds)
+	if nil != err {
+		fmt.Println("更新平单后收益数据失败, 空查询, 订单不存在", err, orderIds)
+		return &v1.OrderHandleReply{}, nil
+	}
+
+	// 用户信息
+	userIdsMap = make(map[uint64]uint64, 0)
+	for _, vUserOrders := range userOrders {
+		userIdsMap[vUserOrders.UserId] = vUserOrders.UserId
+	}
+	userIds = make([]uint64, 0)
+	for _, v := range userIdsMap {
+		userIds = append(userIds, v)
+	}
+	users, err = b.binanceUserRepo.GetUsersByUserIds(userIds)
+	if nil != err {
+		fmt.Println("更新平单后收益数据失败, 空查询，用户查询不存在", err, userIds)
+		return &v1.OrderHandleReply{}, nil
+	}
+
+	for k, vUserOrders := range userOrders {
+		if 100 <= k {
+			break
+		}
+
+		if _, ok := users[vUserOrders.UserId]; !ok {
+			fmt.Println("更新平单收益，不存在用户", vUserOrders)
+			continue
+		}
+
+		wg.Add(1) // 启动一个goroutine就登记+1
+		go b.userOrderHandleGoroutineTwo(ctx, &wg, vUserOrders, users[vUserOrders.UserId])
+	}
+
+	wg.Wait() // 等待所有登记的goroutine都结束
+
+	return &v1.OrderHandleReply{}, nil
+}
+
+func (b *BinanceUserUsecase) userOrderHandleGoroutineTwo(ctx context.Context, wg *sync.WaitGroup, userOrder *UserOrder, user *User) {
+	defer wg.Done() // goroutine结束就登记-1
+
+	var (
+		binanceOrder []*OrderHistory
+		income       float64
+		orderIdInt   int64
+		err          error
+	)
+
+	// 平
+	if !(("SELL" == userOrder.Side && "LONG" == userOrder.PositionSide) || ("BUY" == userOrder.Side && "SHORT" == userOrder.PositionSide)) {
+		fmt.Println("非平仓", userOrder.ID)
+		return
+	}
+
+	if 0 < userOrder.HandleStatus {
+		//继续执行删除
+	} else {
+
+		// 查询
+		orderIdInt, err = strconv.ParseInt(userOrder.OrderId, 10, 64)
+
+		binanceOrder, err = requestBinanceOrderHistory(user.ApiKey, user.ApiSecret, userOrder.Symbol, orderIdInt, "", "")
+		if nil != err {
+			fmt.Println("更新平单后收益数据失败, 错误查询", err, userOrder.ID)
+			return
+		}
+
+		if 0 >= len(binanceOrder) {
+			fmt.Println("更新平单后收益数据失败, 空数据", binanceOrder, userOrder.ID)
+			return
+		}
+
+		// 收益
+		for _, vBinanceOrder := range binanceOrder {
+			var (
+				tmpIncome float64
+			)
+			tmpIncome, err = strconv.ParseFloat(vBinanceOrder.RealizedPnl, 64)
+			if nil != err {
+				fmt.Println("更新平单后收益数据失败", err, vBinanceOrder)
+				return
+			}
+
+			income += tmpIncome
+		}
+
+		// 写入
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.UpdatesUserOrderTwoHandleStatus(ctx, userOrder.ID)
+			if nil != err {
+				return err
+			}
+
+			_, err = b.binanceUserRepo.UpdatesUserAmountTwo(ctx, userOrder.UserId, int64(income*100000))
+			if nil != err {
+				return err
+			}
+
+			_, err = b.binanceUserRepo.InsertUserAmountRecordTwo(ctx, &UserAmountRecord{
+				UserId:    userOrder.UserId,
+				OrderId:   userOrder.ID,
+				Amount:    int64(income * 100000),
+				CreatedAt: time.Time{},
+				UpdatedAt: time.Time{},
+			})
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			fmt.Println("更新平单后收益数据失败", err, userOrder.ID)
+			return
+		}
+	}
+
+	err = b.binanceUserRepo.SRemOrderSetSellLongOrBuyShortTwo(ctx, int64(userOrder.ID))
 	if nil != err {
 		fmt.Println("更新平单后收益数据失败, 错误的数据删除, redis，order_id:", int64(userOrder.ID), userOrder.ID, err)
 		return

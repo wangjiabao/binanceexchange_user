@@ -379,6 +379,10 @@ func (b *BinanceUserService) OrderHandle(ctx context.Context, req *v1.OrderHandl
 	return b.buc.OrderHandle(ctx, req)
 }
 
+func (b *BinanceUserService) OrderHandleTwo(ctx context.Context, req *v1.OrderHandleRequest) (*v1.OrderHandleReply, error) {
+	return b.buc.OrderHandleTwo(ctx, req)
+}
+
 func (b *BinanceUserService) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
 	return b.buc.Analyze(ctx, req)
 }

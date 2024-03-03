@@ -353,6 +353,21 @@ func (b *BinanceUserRepo) UpdatesUserAmount(ctx context.Context, userId uint64, 
 	return true, nil
 }
 
+// UpdatesUserAmountTwo .
+func (b *BinanceUserRepo) UpdatesUserAmountTwo(ctx context.Context, userId uint64, amount int64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_amount_two").Where("user_id=?", userId).
+		Updates(map[string]interface{}{"amount": gorm.Expr("amount + ?", amount), "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_AMOUNT_TWO_ERROR", "UPDATE_USER_AMOUNT_ERROR")
+	}
+
+	return true, nil
+}
+
 // InsertUserAmountRecord .
 func (b *BinanceUserRepo) InsertUserAmountRecord(ctx context.Context, userAmountRecord *biz.UserAmountRecord) (bool, error) {
 	insertUserAmountRecord := &UserAmountRecord{
@@ -364,6 +379,22 @@ func (b *BinanceUserRepo) InsertUserAmountRecord(ctx context.Context, userAmount
 	res := b.data.DB(ctx).Table("user_amount_record").Create(&insertUserAmountRecord)
 	if res.Error != nil {
 		return false, errors.New(500, "CREATE_USER_AMOUNT_RECORD_ERROR", "创建数据失败")
+	}
+
+	return true, nil
+}
+
+// InsertUserAmountRecordTwo .
+func (b *BinanceUserRepo) InsertUserAmountRecordTwo(ctx context.Context, userAmountRecord *biz.UserAmountRecord) (bool, error) {
+	insertUserAmountRecord := &UserAmountRecord{
+		UserId:  userAmountRecord.UserId,
+		OrderId: userAmountRecord.OrderId,
+		Amount:  userAmountRecord.Amount,
+	}
+
+	res := b.data.DB(ctx).Table("user_amount_record_two").Create(&insertUserAmountRecord)
+	if res.Error != nil {
+		return false, errors.New(500, "CREATE_USER_AMOUNT_RECORD_TWO_ERROR", "创建数据失败")
 	}
 
 	return true, nil
@@ -558,6 +589,21 @@ func (b *BinanceUserRepo) UpdatesUserOrderHandleStatus(ctx context.Context, id u
 	if err = b.data.DB(ctx).Table("user_order").Where("id=? and handle_status<?", id, 1).
 		Updates(map[string]interface{}{"handle_status": 1, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_ORDER_ERROR", "UPDATE_USER_ORDER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserOrderTwoHandleStatus .
+func (b *BinanceUserRepo) UpdatesUserOrderTwoHandleStatus(ctx context.Context, id uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_order_two").Where("id=? and handle_status<?", id, 1).
+		Updates(map[string]interface{}{"handle_status": 1, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_ORDER_TWO_ERROR", "UPDATE_USER_ORDER_ERROR")
 	}
 
 	return true, nil
@@ -1559,6 +1605,47 @@ func (b *BinanceUserRepo) GetUserOrderByIds(ids []int64) ([]*biz.UserOrder, erro
 		}
 
 		return nil, errors.New(500, "FIND_USER_ORDER_ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserOrder, 0)
+	for _, v := range userOrder {
+		res = append(res, &biz.UserOrder{
+			ID:            v.ID,
+			UserId:        v.UserId,
+			TraderId:      v.TraderId,
+			ClientOrderId: v.ClientOrderId,
+			OrderId:       v.OrderId,
+			Symbol:        v.Symbol,
+			Side:          v.Side,
+			PositionSide:  v.PositionSide,
+			Quantity:      v.Quantity,
+			Price:         v.Price,
+			TraderQty:     v.TraderQty,
+			OrderType:     v.OrderType,
+			ClosePosition: v.ClosePosition,
+			CumQuote:      v.CumQuote,
+			ExecutedQty:   v.ExecutedQty,
+			AvgPrice:      v.AvgPrice,
+			CreatedAt:     v.CreatedAt,
+			UpdatedAt:     v.UpdatedAt,
+			HandleStatus:  v.HandleStatus,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserOrderTwoByIds .
+func (b *BinanceUserRepo) GetUserOrderTwoByIds(ids []int64) ([]*biz.UserOrder, error) {
+	var userOrder []*UserOrder
+	if err := b.data.db.Table("user_order_two").
+		Where("id in(?)", ids).
+		Find(&userOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_ORDER_TWO_ERROR", err.Error())
 	}
 
 	res := make([]*biz.UserOrder, 0)
