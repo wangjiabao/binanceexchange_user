@@ -229,17 +229,17 @@ func (b *BinanceUserUsecase) SetUserBalanceAndUser(ctx context.Context, address 
 	if 1 == playType {
 		balance1 = balance
 		cost1 = cost
-		if open {
-			open1 = 1
-		}
+		// todo
+		//if open {
+		open1 = 1
+		//}
 	} else if 2 == playType {
 		balance2 = balance
 		cost2 = cost
-		if open {
-			open2 = 1
-		}
+		//if open {
+		open2 = 1
+		//}
 	}
-
 	user, err = b.binanceUserRepo.GetUserByAddress(ctx, address)
 	if nil != err {
 		return err
