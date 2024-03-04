@@ -1365,6 +1365,8 @@ func (b *BinanceUserUsecase) ListenTraders(ctx context.Context, req *v1.ListenTr
 }
 
 func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.ListenTraderAndUserOrderRequest, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	var (
 		initOrderReq   = req.SendBody.InitOrder
 		traderIds      []uint64
@@ -1508,6 +1510,8 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 }
 
 func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1.ListenTraderAndUserOrderRequest, wg *sync.WaitGroup) {
+	defer wg.Done()
+	
 	var (
 		initOrderReq   = req.SendBody.InitOrder
 		traderIds      []uint64
