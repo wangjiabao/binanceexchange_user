@@ -72,6 +72,8 @@ message GetUserReply {
   int64 status = 1;
   int64 amount = 2;
   string balance = 3;
+  string balanceTfi = 5;
+  int64 amountTfi = 6;
 }
 
 message PullUserDepositRequest {}
@@ -97,6 +99,7 @@ message OrderHandleReply {}
 message ListenTraderAndUserOrderRequest {
   message SendBody {
     repeated Order orders = 1;
+    uint64 init_order = 4;
     message Order {
       uint64 uid = 1;
       string base_money = 2;
@@ -111,6 +114,7 @@ message ListenTraderAndUserOrderRequest {
         string price = 3;
         string side = 4;
         string qty = 5;
+        string proportion = 6;
       }
     }
   }

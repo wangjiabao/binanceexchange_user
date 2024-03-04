@@ -78,6 +78,7 @@ type UserBindTrader struct {
 	TraderId  uint64    `gorm:"type:int;not null"`
 	Amount    uint64    `gorm:"type:bigint(20);not null"`
 	Status    uint64    `gorm:"type:int;not null"`
+	InitOrder uint64    `gorm:"type:int;not null"`
 	CreatedAt time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
@@ -433,6 +434,51 @@ func (b *BinanceUserRepo) UpdatesUserBindTraderStatus(ctx context.Context, userI
 	if err = b.data.DB(ctx).Table("user_bind_trader").Where("user_id=?", userId).
 		Updates(map[string]interface{}{"status": status, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserBindTraderStatusAndInitOrderById .
+func (b *BinanceUserRepo) UpdatesUserBindTraderStatusAndInitOrderById(ctx context.Context, id uint64, status uint64, initOrder uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_trader").Where("id=?", id).
+		Updates(map[string]interface{}{"status": status, "init_order": initOrder, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserBindTraderInitOrderById .
+func (b *BinanceUserRepo) UpdatesUserBindTraderInitOrderById(ctx context.Context, id uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_trader").Where("id=?", id).
+		Updates(map[string]interface{}{"init_order": 1, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
+	}
+
+	return true, nil
+}
+
+// UpdatesUserBindTraderTwoInitOrderById .
+func (b *BinanceUserRepo) UpdatesUserBindTraderTwoInitOrderById(ctx context.Context, id uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("user_bind_trader_two").Where("id=?", id).
+		Updates(map[string]interface{}{"init_order": 1, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_TWO_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
 	}
 
 	return true, nil
@@ -905,7 +951,27 @@ func (b *BinanceUserRepo) GetUserAmount(ctx context.Context, userId uint64) (*bi
 			return nil, nil
 		}
 
-		return nil, errors.New(500, "FIND_USER_BALANCE_ERROR", err.Error())
+		return nil, errors.New(500, "FIND_USER_AMOUNT_TWO_ERROR", err.Error())
+	}
+
+	return &biz.UserAmount{
+		ID:        userAmount.ID,
+		UserId:    userAmount.UserId,
+		Amount:    userAmount.Amount,
+		CreatedAt: userAmount.CreatedAt,
+		UpdatedAt: userAmount.UpdatedAt,
+	}, nil
+}
+
+// GetUserAmountTwo .
+func (b *BinanceUserRepo) GetUserAmountTwo(ctx context.Context, userId uint64) (*biz.UserAmount, error) {
+	var userAmount *UserAmount
+	if err := b.data.DB(ctx).Table("user_amount_two").Where("user_id=?", userId).First(&userAmount).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_AMOUNT_TWO_ERROR", err.Error())
 	}
 
 	return &biz.UserAmount{
@@ -1149,6 +1215,7 @@ func (b *BinanceUserRepo) GetUserBindTraderByStatus(status uint64) (map[uint64][
 			TraderId:  v.TraderId,
 			Amount:    v.Amount,
 			Status:    v.Status,
+			InitOrder: v.InitOrder,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 		})
@@ -1181,6 +1248,7 @@ func (b *BinanceUserRepo) GetUserBindTraderMapByUserIds(userIds []uint64) (map[u
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 			Status:    v.Status,
+			InitOrder: v.InitOrder,
 		})
 	}
 
@@ -1212,6 +1280,7 @@ func (b *BinanceUserRepo) GetUserBindTraderByTraderIds(traderIds []uint64) (map[
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 			Status:    v.Status,
+			InitOrder: v.InitOrder,
 		})
 	}
 
@@ -1243,6 +1312,7 @@ func (b *BinanceUserRepo) GetUserBindTraderTwoByTraderIds(traderIds []uint64) (m
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 			Status:    v.Status,
+			InitOrder: v.InitOrder,
 		})
 	}
 

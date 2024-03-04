@@ -198,6 +198,10 @@ components:
                     type: string
                 balance:
                     type: string
+                balanceTfi:
+                    type: string
+                amountTfi:
+                    type: string
         GoogleProtobufAny:
             type: object
             properties:
@@ -223,6 +227,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/SendBody_Order'
+                initOrder:
+                    type: string
         OrderHandleReply:
             type: object
             properties: {}
@@ -239,6 +245,8 @@ components:
                 side:
                     type: string
                 qty:
+                    type: string
+                proportion:
                     type: string
         PullUserCredentialsBscReply:
             type: object
