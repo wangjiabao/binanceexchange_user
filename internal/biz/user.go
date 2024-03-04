@@ -242,12 +242,32 @@ func (b *BinanceUserUsecase) SetUserBalanceAndUser(ctx context.Context, address 
 		//if open {
 		open1 = 1
 		//}
+
 	} else if 2 == playType {
 		balance2 = balance
 		cost2 = cost
 		//if open {
 		open2 = 1
 		//}
+
+		var balanceTmp int64
+		lengthToKeep := len(balance2) - 17 // todo 当len=19时表示1个代币，截取到10
+
+		if lengthToKeep > 0 {
+			balanceTmpStr := balance2[:lengthToKeep]
+			balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
+			if nil != err || 0 >= balanceTmp {
+				return nil
+			}
+			// todo
+			if balanceTmp*100 <= int64(cost2) {
+				cost2 = uint64(balanceTmp * 100)
+			}
+		} else {
+			// 不足1个tfi
+			cost2 = 0
+		}
+
 	}
 	user, err = b.binanceUserRepo.GetUserByAddress(ctx, address)
 	if nil != err {
@@ -1453,11 +1473,6 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 						continue
 					}
 
-					// 关了
-					if 1 != userBalance[vUserBindTrader.UserId].Open {
-						continue
-					}
-
 					if _, ok := userAmount[vUserBindTrader.UserId]; !ok {
 						continue
 					}
@@ -1480,8 +1495,8 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 							continue
 						}
 
-						// 余额不足，收益大于余额的1000倍
-						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
+						// 余额不足，收益大于余额的10倍
+						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*10 {
 							continue
 						}
 
@@ -1511,7 +1526,7 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 
 func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1.ListenTraderAndUserOrderRequest, wg *sync.WaitGroup) {
 	defer wg.Done()
-	
+
 	var (
 		initOrderReq   = req.SendBody.InitOrder
 		traderIds      []uint64
@@ -1598,11 +1613,6 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 						continue
 					}
 
-					// 关了
-					if 1 != userBalance[vUserBindTrader.UserId].Open {
-						continue
-					}
-
 					if _, ok := userAmount[vUserBindTrader.UserId]; !ok {
 						continue
 					}
@@ -1611,25 +1621,25 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					if ("SELL" == vOrdersData.Side && "LONG" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "SHORT" == vOrdersData.Type) {
 
 					} else if ("SELL" == vOrdersData.Side && "SHORT" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "LONG" == vOrdersData.Type) {
-						// 余额不足，10u的收益，要1u的余额
-						// 精度按代币18位，截取小数点后到5位计算
-						var balanceTmp int64
-						lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
-
-						if lengthToKeep > 0 {
-							balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
-							balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
-							if nil != err || 0 >= balanceTmp {
-								continue
-							}
-						} else {
-							continue
-						}
-
-						// 余额不足，收益大于余额的1000倍
-						if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
-							continue
-						}
+						//// 余额不足，10u的收益，要1u的余额
+						//// 精度按代币18位，截取小数点后到5位计算
+						//var balanceTmp int64
+						//lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
+						//
+						//if lengthToKeep > 0 {
+						//	balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
+						//	balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
+						//	if nil != err || 0 >= balanceTmp {
+						//		continue
+						//	}
+						//} else {
+						//	continue
+						//}
+						//
+						//// 余额不足，收益大于余额的1000倍
+						//if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
+						//	continue
+						//}
 					} else {
 						continue
 					}

@@ -138,17 +138,17 @@ func pullUserDepositForInfo(address string) (string, uint64, bool, error) {
 			return balance, cost, open, err
 		}
 
-		contractAddress2 := common.HexToAddress("0xCD329BEb4574Ddf10411F71383FA0d313A65A737")
-		instance2, err := abi.NewDepositOpen(contractAddress2, client)
-		if err != nil {
-			fmt.Println(err)
-			return balance, cost, open, err
-		}
+		//contractAddress2 := common.HexToAddress("0xCD329BEb4574Ddf10411F71383FA0d313A65A737")
+		//instance2, err := abi.NewDepositOpen(contractAddress2, client)
+		//if err != nil {
+		//	fmt.Println(err)
+		//	return balance, cost, open, err
+		//}
 
-		tmp3, err = instance2.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
-		if err != nil {
-			return balance, cost, open, err
-		}
+		//tmp3, err = instance2.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
+		//if err != nil {
+		//	return balance, cost, open, err
+		//}
 
 		if "0" != tmp.String() {
 			balance = tmp.String()
@@ -266,10 +266,10 @@ func pullUserStakeTfiForInfo(address string) (string, uint64, bool, error) {
 			tmp2 *big.Int
 			tmp3 bool
 		)
-		tmp3, err = instance.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
-		if err != nil {
-			return balance, cost, open, err
-		}
+		//tmp3, err = instance.UserOpen(&bind.CallOpts{}, common.HexToAddress(address))
+		//if err != nil {
+		//	return balance, cost, open, err
+		//}
 
 		tmp, err = instance.UserTfiAmount(&bind.CallOpts{}, common.HexToAddress(address))
 		if err != nil {
