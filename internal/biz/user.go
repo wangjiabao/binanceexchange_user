@@ -1840,7 +1840,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 	}
 
 	if 0 >= binanceOrder.OrderId {
-		fmt.Println("下单异常", order, currentOrder, user, binanceOrder, "是否初始化订单:", initOrderReq, proportion)
+		fmt.Println("下单异常:数量,", quantity, "下单信息:", currentOrder, "是否初始化订单:", initOrderReq, proportion)
 		return
 	}
 
@@ -2075,7 +2075,7 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 	}
 
 	if 0 >= binanceOrder.OrderId {
-		fmt.Println("下单异常", order, currentOrder, user, binanceOrder, "是否初始化订单:", initOrderReq, proportion)
+		fmt.Println("下单异常:数量,", quantity, "下单信息:", currentOrder, "是否初始化订单:", initOrderReq, proportion)
 		return
 	}
 
