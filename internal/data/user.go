@@ -331,7 +331,7 @@ func (b *BinanceUserRepo) InsertUserAmountTwo(ctx context.Context, userAmount *b
 		Amount: 0,
 	}
 
-	res := b.data.DB(ctx).Table("user_amount").Create(&insertUserAmount)
+	res := b.data.DB(ctx).Table("user_amount_two").Create(&insertUserAmount)
 	if res.Error != nil {
 		return false, errors.New(500, "CREATE_USER_AMOUNT_TWO_ERROR", "创建数据失败")
 	}
