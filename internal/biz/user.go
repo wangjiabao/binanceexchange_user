@@ -1812,7 +1812,10 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		}
 
 	} else if ("SELL" == order.Side && "SHORT" == order.Type) || ("BUY" == order.Side && "LONG" == order.Type) {
-		// 开仓
+		// 开仓 todo
+		if 5 == user.ID {
+			return
+		}
 	} else {
 		fmt.Println("err order side")
 		return
@@ -2048,7 +2051,7 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 
 	} else if ("SELL" == order.Side && "SHORT" == order.Type) || ("BUY" == order.Side && "LONG" == order.Type) {
 		// 开仓 todo
-		if 5 == user.ID {
+		if 3 == user.ID || 6 == user.ID {
 			return
 		}
 	} else {
