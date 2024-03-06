@@ -1518,6 +1518,7 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 						continue
 					}
 
+					fmt.Println(time.Now(), vOrdersData, vUserBindTrader)
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
 					go b.userOrderGoroutine(ctx, wg, &OrderData{
@@ -1657,7 +1658,7 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					if _, ok := symbol[vOrdersData.Symbol]; !ok {
 						continue
 					}
-
+					fmt.Println(time.Now(), vOrdersData, vUserBindTrader)
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
 					go b.userOrderGoroutineTwo(ctx, wg, &OrderData{
