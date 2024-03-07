@@ -1050,7 +1050,7 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 			continue
 		} else if bindCost > tmpCost {
 			// 需要减掉
-			tmpMoreCost := tmpCost - bindCost
+			tmpMoreCost := bindCost - tmpCost
 			updateBindTrader := make([]*UserBindTrader, 0)
 			// 查询的结果已经排序好按amount
 			for _, vUserBindTraderMap := range userBindTraderMap[vUsers.ID] {
