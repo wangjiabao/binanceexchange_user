@@ -42,6 +42,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/close_order_after_bind:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_CloseOrderAfterBind
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CloseOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/close_order_after_bind_tfi:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_CloseOrderAfterBindTwo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CloseOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/get_user:
         get:
             tags:
@@ -185,6 +221,9 @@ components:
             type: object
             properties: {}
         BindTraderReply:
+            type: object
+            properties: {}
+        CloseOrderAfterBindReply:
             type: object
             properties: {}
         GetUserReply:

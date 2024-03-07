@@ -1380,6 +1380,66 @@ func (b *BinanceUserRepo) GetUserBindAfterUnbindByTraderIds(traderIds []uint64) 
 	return res, nil
 }
 
+// GetUserBindAfterUnbindByStatus .
+func (b *BinanceUserRepo) GetUserBindAfterUnbindByStatus() ([]*biz.UserBindAfterUnbind, error) {
+	var userBindAfterUnbind []*UserBindAfterUnbind
+	if err := b.data.db.Table("user_bind_after_unbind").Where("status=?", 0).Find(&userBindAfterUnbind).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_AFTER_UNBIND_ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserBindAfterUnbind, 0)
+	for _, v := range userBindAfterUnbind {
+		res = append(res, &biz.UserBindAfterUnbind{
+			ID:           v.ID,
+			UserId:       v.UserId,
+			TraderId:     v.TraderId,
+			Symbol:       v.Symbol,
+			PositionSide: v.PositionSide,
+			Quantity:     v.Quantity,
+			Status:       v.Status,
+			Amount:       v.Amount,
+			CreatedAt:    v.CreatedAt,
+			UpdatedAt:    v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserBindAfterUnbindTwoByStatus .
+func (b *BinanceUserRepo) GetUserBindAfterUnbindTwoByStatus() ([]*biz.UserBindAfterUnbind, error) {
+	var userBindAfterUnbind []*UserBindAfterUnbind
+	if err := b.data.db.Table("user_bind_after_unbind_two").Where("status=?", 0).Find(&userBindAfterUnbind).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_AFTER_UNBIND_TWO_ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserBindAfterUnbind, 0)
+	for _, v := range userBindAfterUnbind {
+		res = append(res, &biz.UserBindAfterUnbind{
+			ID:           v.ID,
+			UserId:       v.UserId,
+			TraderId:     v.TraderId,
+			Symbol:       v.Symbol,
+			PositionSide: v.PositionSide,
+			Quantity:     v.Quantity,
+			Status:       v.Status,
+			Amount:       v.Amount,
+			CreatedAt:    v.CreatedAt,
+			UpdatedAt:    v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserOrderByUserTraderIdAndSymbol .
 func (b *BinanceUserRepo) GetUserOrderByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*biz.UserOrder, error) {
 	var userOrder []*UserOrder

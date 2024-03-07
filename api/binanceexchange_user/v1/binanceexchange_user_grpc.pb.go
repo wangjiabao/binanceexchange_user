@@ -28,6 +28,8 @@ const (
 	BinanceUser_OrderHandle_FullMethodName              = "/BinanceUser/OrderHandle"
 	BinanceUser_OrderHandleTwo_FullMethodName           = "/BinanceUser/OrderHandleTwo"
 	BinanceUser_Analyze_FullMethodName                  = "/BinanceUser/Analyze"
+	BinanceUser_CloseOrderAfterBind_FullMethodName      = "/BinanceUser/CloseOrderAfterBind"
+	BinanceUser_CloseOrderAfterBindTwo_FullMethodName   = "/BinanceUser/CloseOrderAfterBindTwo"
 )
 
 // BinanceUserClient is the client API for BinanceUser service.
@@ -43,6 +45,8 @@ type BinanceUserClient interface {
 	OrderHandle(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error)
 	OrderHandleTwo(ctx context.Context, in *OrderHandleRequest, opts ...grpc.CallOption) (*OrderHandleReply, error)
 	Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error)
+	CloseOrderAfterBind(ctx context.Context, in *CloseOrderAfterBindRequest, opts ...grpc.CallOption) (*CloseOrderAfterBindReply, error)
+	CloseOrderAfterBindTwo(ctx context.Context, in *CloseOrderAfterBindRequest, opts ...grpc.CallOption) (*CloseOrderAfterBindReply, error)
 }
 
 type binanceUserClient struct {
@@ -134,6 +138,24 @@ func (c *binanceUserClient) Analyze(ctx context.Context, in *AnalyzeRequest, opt
 	return out, nil
 }
 
+func (c *binanceUserClient) CloseOrderAfterBind(ctx context.Context, in *CloseOrderAfterBindRequest, opts ...grpc.CallOption) (*CloseOrderAfterBindReply, error) {
+	out := new(CloseOrderAfterBindReply)
+	err := c.cc.Invoke(ctx, BinanceUser_CloseOrderAfterBind_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *binanceUserClient) CloseOrderAfterBindTwo(ctx context.Context, in *CloseOrderAfterBindRequest, opts ...grpc.CallOption) (*CloseOrderAfterBindReply, error) {
+	out := new(CloseOrderAfterBindReply)
+	err := c.cc.Invoke(ctx, BinanceUser_CloseOrderAfterBindTwo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BinanceUserServer is the server API for BinanceUser service.
 // All implementations must embed UnimplementedBinanceUserServer
 // for forward compatibility
@@ -147,6 +169,8 @@ type BinanceUserServer interface {
 	OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
 	OrderHandleTwo(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
 	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error)
+	CloseOrderAfterBind(context.Context, *CloseOrderAfterBindRequest) (*CloseOrderAfterBindReply, error)
+	CloseOrderAfterBindTwo(context.Context, *CloseOrderAfterBindRequest) (*CloseOrderAfterBindReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
 
@@ -180,6 +204,12 @@ func (UnimplementedBinanceUserServer) OrderHandleTwo(context.Context, *OrderHand
 }
 func (UnimplementedBinanceUserServer) Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Analyze not implemented")
+}
+func (UnimplementedBinanceUserServer) CloseOrderAfterBind(context.Context, *CloseOrderAfterBindRequest) (*CloseOrderAfterBindReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloseOrderAfterBind not implemented")
+}
+func (UnimplementedBinanceUserServer) CloseOrderAfterBindTwo(context.Context, *CloseOrderAfterBindRequest) (*CloseOrderAfterBindReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloseOrderAfterBindTwo not implemented")
 }
 func (UnimplementedBinanceUserServer) mustEmbedUnimplementedBinanceUserServer() {}
 
@@ -356,6 +386,42 @@ func _BinanceUser_Analyze_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_CloseOrderAfterBind_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseOrderAfterBindRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).CloseOrderAfterBind(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_CloseOrderAfterBind_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).CloseOrderAfterBind(ctx, req.(*CloseOrderAfterBindRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BinanceUser_CloseOrderAfterBindTwo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseOrderAfterBindRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).CloseOrderAfterBindTwo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_CloseOrderAfterBindTwo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).CloseOrderAfterBindTwo(ctx, req.(*CloseOrderAfterBindRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BinanceUser_ServiceDesc is the grpc.ServiceDesc for BinanceUser service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -398,6 +464,14 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Analyze",
 			Handler:    _BinanceUser_Analyze_Handler,
+		},
+		{
+			MethodName: "CloseOrderAfterBind",
+			Handler:    _BinanceUser_CloseOrderAfterBind_Handler,
+		},
+		{
+			MethodName: "CloseOrderAfterBindTwo",
+			Handler:    _BinanceUser_CloseOrderAfterBindTwo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

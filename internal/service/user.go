@@ -386,3 +386,11 @@ func (b *BinanceUserService) OrderHandleTwo(ctx context.Context, req *v1.OrderHa
 func (b *BinanceUserService) Analyze(ctx context.Context, req *v1.AnalyzeRequest) (*v1.AnalyzeReply, error) {
 	return b.buc.Analyze(ctx, req)
 }
+
+func (b *BinanceUserService) CloseOrderAfterBind(ctx context.Context, req *v1.CloseOrderAfterBindRequest) (*v1.CloseOrderAfterBindReply, error) {
+	return b.buc.CloseOrderAfterBind(ctx, req)
+}
+
+func (b *BinanceUserService) CloseOrderAfterBindTwo(ctx context.Context, req *v1.CloseOrderAfterBindRequest) (*v1.CloseOrderAfterBindReply, error) {
+	return b.buc.CloseOrderAfterBindTwo(ctx, req)
+}
