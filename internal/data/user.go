@@ -62,6 +62,7 @@ type Trader struct {
 	ID        uint64    `gorm:"primarykey;type:int"`
 	IsOpen    uint64    `gorm:"type:int;not null"`
 	Amount    uint64    `gorm:"type:bigint(20);not null"`
+	BaseMoney float64   `gorm:"type:decimal(40,8);not null"`
 	CreatedAt time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
@@ -1113,6 +1114,7 @@ func (b *BinanceUserRepo) GetTradersOrderByAmountDesc() ([]*biz.Trader, error) {
 			ID:        v.ID,
 			Status:    v.IsOpen,
 			Amount:    v.Amount,
+			BaseMoney: v.BaseMoney,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 		})
@@ -1138,6 +1140,7 @@ func (b *BinanceUserRepo) GetTraders() (map[uint64]*biz.Trader, error) {
 			ID:        v.ID,
 			Status:    v.IsOpen,
 			Amount:    v.Amount,
+			BaseMoney: v.BaseMoney,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 		}
