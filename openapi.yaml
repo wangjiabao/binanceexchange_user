@@ -101,6 +101,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/init_order_after_bind:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_InitOrderAfterBind
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InitOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/init_order_after_bind_tfi:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_InitOrderAfterBindTwo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InitOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/listen_trader_and_user_order:
         post:
             tags:
@@ -249,6 +285,9 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        InitOrderAfterBindReply:
+            type: object
+            properties: {}
         ListenTraderAndUserOrderReply:
             type: object
             properties:

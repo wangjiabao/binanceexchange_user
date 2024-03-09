@@ -394,3 +394,11 @@ func (b *BinanceUserService) CloseOrderAfterBind(ctx context.Context, req *v1.Cl
 func (b *BinanceUserService) CloseOrderAfterBindTwo(ctx context.Context, req *v1.CloseOrderAfterBindRequest) (*v1.CloseOrderAfterBindReply, error) {
 	return b.buc.CloseOrderAfterBindTwo(ctx, req)
 }
+
+func (b *BinanceUserService) InitOrderAfterBind(ctx context.Context, req *v1.InitOrderAfterBindRequest) (*v1.InitOrderAfterBindReply, error) {
+	return b.buc.InitOrderAfterBind(ctx, req)
+}
+
+func (b *BinanceUserService) InitOrderAfterBindTwo(ctx context.Context, req *v1.InitOrderAfterBindRequest) (*v1.InitOrderAfterBindReply, error) {
+	return b.buc.InitOrderAfterBindTwo(ctx, req)
+}

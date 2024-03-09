@@ -78,6 +78,15 @@ type Trader struct {
 	UpdatedAt time.Time
 }
 
+type TraderPosition struct {
+	ID           uint64
+	TraderId     uint64
+	Symbol       string
+	Qty          float64
+	Side         string
+	PositionSide string
+}
+
 type UserBindTrader struct {
 	ID        uint64
 	UserId    uint64
@@ -189,6 +198,8 @@ type BinanceUserRepo interface {
 	GetUserBindAfterUnbindByTraderIds(traderIds []uint64) (map[uint64][]*UserBindAfterUnbind, error)
 	GetUserBindAfterUnbindByStatus() ([]*UserBindAfterUnbind, error)
 	GetUserBindAfterUnbindTwoByStatus() ([]*UserBindAfterUnbind, error)
+	GetUserBindTraderByInitOrder() (map[uint64][]*UserBindTrader, error)
+	GetUserBindTraderTwoByInitOrder() (map[uint64][]*UserBindTrader, error)
 	GetUserBindAfterUnbindByUserIdAndTraderIdAndSymbol(ctx context.Context, userId uint64, traderId uint64, symbol string, positionSide string) (*UserBindAfterUnbind, error)
 	GetSymbol() (map[string]*Symbol, error)
 	GetUserOrderByUserTraderIdAndSymbol(userId uint64, traderId uint64, symbol string) ([]*UserOrder, error)
@@ -201,6 +212,7 @@ type BinanceUserRepo interface {
 	GetUserOrderByIds(ids []int64) ([]*UserOrder, error)
 	GetUserOrderTwoByIds(ids []int64) ([]*UserOrder, error)
 	GetUserOrderById(orderId int64) (*UserOrder, error)
+	GetTraderPosition(traderId uint64) ([]*TraderPosition, error)
 
 	SAddOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error
 	SMembersOrderSetSellLongOrBuyShort(ctx context.Context) ([]string, error)
@@ -1230,10 +1242,11 @@ func (b *BinanceUserUsecase) ChangeBindTrader(ctx context.Context) error {
 			selfUpdateBindTrader := make(map[uint64]uint64, 0)
 			for _, vUserBindTradersAll := range userBindTradersAll {
 				// 因为额度调整，自己换绑的不算
-				if 3 == userBindTradersAllMap[vUserBindTradersAll.TraderId].Status {
+				if 3 == vUserBindTradersAll.Status {
 					selfUpdateBindTrader[vUserBindTradersAll.TraderId] = vUserBindTradersAll.ID
 					continue
 				}
+
 				userBindTradersAllMap[vUserBindTradersAll.TraderId] = vUserBindTradersAll
 			}
 
@@ -1317,6 +1330,8 @@ func (b *BinanceUserUsecase) ChangeBindTrader(ctx context.Context) error {
 					}
 				}
 			}
+
+			fmt.Println(1)
 
 			// 写入
 			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
@@ -2244,6 +2259,11 @@ type BinancePositionSide struct {
 	Msg  string
 }
 
+type BinanceSymbolPrice struct {
+	Symbol string
+	Price  string
+}
+
 // 更改杠杆倍率
 func requestBinanceLeverAge(symbol string, leverAge int64, apiKey string, secretKey string) (*BinanceLeverAge, error) {
 	var (
@@ -2440,6 +2460,64 @@ func requestBinancePositionSide(apiKey string, secretKey string) (*BinancePositi
 	res = &BinancePositionSide{
 		Code: l.Code,
 		Msg:  l.Msg,
+	}
+
+	return res, nil
+}
+
+// 交易对币价
+func requestBinanceSymbolPrice(symbol string) (*BinanceSymbolPrice, error) {
+	var (
+		client *http.Client
+		req    *http.Request
+		resp   *http.Response
+		res    *BinanceSymbolPrice
+		data   string
+		b      []byte
+		err    error
+		apiUrl = "https://fapi.binance.com/fapi/v2/ticker/price"
+	)
+
+	// 拼请求数据
+	data = "symbol=" + symbol
+	req, err = http.NewRequest("GET", apiUrl, strings.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	// 添加头信息
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// 请求执行
+	client = &http.Client{Timeout: 3 * time.Second}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 结果
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	var l BinanceSymbolPrice
+	err = json.Unmarshal(b, &l)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	res = &BinanceSymbolPrice{
+		Symbol: l.Symbol,
+		Price:  l.Price,
 	}
 
 	return res, nil
@@ -3444,4 +3522,61 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindGoroutineTwo(ctx context.Context
 	}
 
 	return
+}
+
+func (b *BinanceUserUsecase) InitOrderAfterBind(ctx context.Context, req *v1.InitOrderAfterBindRequest) (*v1.InitOrderAfterBindReply, error) {
+	var (
+		userBindTraders map[uint64][]*UserBindTrader
+		err             error
+	)
+
+	userBindTraders, err = b.binanceUserRepo.GetUserBindTraderByInitOrder()
+	if nil != err {
+		return nil, err
+	}
+
+	for traderId, vUserBindTraders := range userBindTraders {
+
+		var (
+			traderPositions []*TraderPosition
+		)
+
+		traderPositions, err = b.binanceUserRepo.GetTraderPosition(traderId)
+		if nil != err {
+			fmt.Println("初始化仓位，空仓位", traderId, err)
+			continue
+		}
+
+		// 按仓位
+		for _, vTraderPositions := range traderPositions {
+			var (
+				price      *BinanceSymbolPrice
+				priceFloat float64
+			)
+			// 查询币价
+			price, err = requestBinanceSymbolPrice(vTraderPositions.Symbol)
+			if nil != err {
+				fmt.Println("初始化仓位，价格查询", traderId, price, err)
+				continue
+			}
+
+			priceFloat, err = strconv.ParseFloat(price.Price, 64)
+			if nil != err {
+				fmt.Println("初始化仓位，价格查询，转化", traderId, price, err)
+				continue
+			}
+			fmt.Println(priceFloat, vUserBindTraders)
+			//for _, vVUserBindTraders := range vUserBindTraders {
+			//
+			//}
+		}
+
+	}
+
+	return nil, nil
+}
+
+func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.InitOrderAfterBindRequest) (*v1.InitOrderAfterBindReply, error) {
+
+	return nil, nil
 }

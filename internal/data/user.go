@@ -72,6 +72,15 @@ type LhCoinSymbol struct {
 	QuantityPrecision int64  `gorm:"type:int;not null"`
 }
 
+type LhTraderPosition struct {
+	ID       uint64  `gorm:"primarykey;type:int"`
+	TraderId uint64  `gorm:"type:int;not null"`
+	Symbol   string  `gorm:"type:varchar(100);not null"`
+	Side     string  `gorm:"type:varchar(100);not null"`
+	Type     string  `gorm:"type:varchar(100);not null"`
+	Qty      float64 `gorm:"type:decimal(65,20);not null"`
+}
+
 type UserBindTrader struct {
 	ID        uint64    `gorm:"primarykey;type:int"`
 	UserId    uint64    `gorm:"type:int;not null"`
@@ -1224,6 +1233,68 @@ func (b *BinanceUserRepo) GetUserBindTraderByStatus(status uint64) (map[uint64][
 	return res, nil
 }
 
+// GetUserBindTraderByInitOrder .
+func (b *BinanceUserRepo) GetUserBindTraderByInitOrder() (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader").Where("init_order=? and status=?", 0, 0).Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_ERROR", err.Error())
+	}
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.TraderId]; !ok {
+			res[v.TraderId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.TraderId] = append(res[v.TraderId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			Status:    v.Status,
+			InitOrder: v.InitOrder,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserBindTraderTwoByInitOrder .
+func (b *BinanceUserRepo) GetUserBindTraderTwoByInitOrder() (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader_two").Where("init_order=? and status=?", 0, 0).Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_TWO_ERROR", err.Error())
+	}
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.TraderId]; !ok {
+			res[v.TraderId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.TraderId] = append(res[v.TraderId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			Status:    v.Status,
+			InitOrder: v.InitOrder,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserBindTraderMapByUserIds .
 func (b *BinanceUserRepo) GetUserBindTraderMapByUserIds(userIds []uint64) (map[uint64][]*biz.UserBindTrader, error) {
 	var userBindTrader []*UserBindTrader
@@ -1865,6 +1936,32 @@ func (b *BinanceUserRepo) GetSymbol() (map[string]*biz.Symbol, error) {
 			Symbol:            v.Symbol,
 			QuantityPrecision: v.QuantityPrecision,
 		}
+	}
+
+	return res, nil
+}
+
+// GetTraderPosition .
+func (b *BinanceUserRepo) GetTraderPosition(traderId uint64) ([]*biz.TraderPosition, error) {
+	var lhTraderPosition []*LhTraderPosition
+	if err := b.data.db.Table("lh_trader_position").Where("trader_id=?", traderId).Find(&lhTraderPosition).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_LH_TRADER_POSITION_ERROR", err.Error())
+	}
+
+	res := make([]*biz.TraderPosition, 0)
+	for _, v := range lhTraderPosition {
+		res = append(res, &biz.TraderPosition{
+			ID:           v.ID,
+			TraderId:     v.TraderId,
+			Symbol:       v.Symbol,
+			Qty:          v.Qty,
+			Side:         v.Side,
+			PositionSide: v.Type,
+		})
 	}
 
 	return res, nil
