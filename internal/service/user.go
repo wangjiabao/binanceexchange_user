@@ -402,3 +402,11 @@ func (b *BinanceUserService) InitOrderAfterBind(ctx context.Context, req *v1.Ini
 func (b *BinanceUserService) InitOrderAfterBindTwo(ctx context.Context, req *v1.InitOrderAfterBindRequest) (*v1.InitOrderAfterBindReply, error) {
 	return b.buc.InitOrderAfterBindTwo(ctx, req)
 }
+
+func (b *BinanceUserService) OverOrderAfterBind(ctx context.Context, req *v1.OverOrderAfterBindRequest) (*v1.OverOrderAfterBindReply, error) {
+	return b.buc.OverOrder(ctx, req)
+}
+
+func (b *BinanceUserService) OverOrderAfterBindTwo(ctx context.Context, req *v1.OverOrderAfterBindRequest) (*v1.OverOrderAfterBindReply, error) {
+	return b.buc.OverOrderTwo(ctx, req)
+}

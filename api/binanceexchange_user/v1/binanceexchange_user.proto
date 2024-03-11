@@ -85,6 +85,18 @@ service BinanceUser {
       get: "/api/binanceexchange_user/init_order_after_bind_tfi"
     };
   };
+
+  rpc OverOrderAfterBind (OverOrderAfterBindRequest) returns (OverOrderAfterBindReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/over_order_after_bind"
+    };
+  };
+
+  rpc OverOrderAfterBindTwo (OverOrderAfterBindRequest) returns (OverOrderAfterBindReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/over_order_after_bind_tfi"
+    };
+  };
 }
 
 message GetUserRequest {
@@ -123,6 +135,10 @@ message CloseOrderAfterBindReply {}
 message InitOrderAfterBindRequest {}
 
 message InitOrderAfterBindReply {}
+
+message OverOrderAfterBindRequest {}
+
+message OverOrderAfterBindReply {}
 
 message OrderHandleRequest {}
 

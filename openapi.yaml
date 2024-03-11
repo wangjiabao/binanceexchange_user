@@ -197,6 +197,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/over_order_after_bind:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_OverOrderAfterBind
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OverOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/over_order_after_bind_tfi:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_OverOrderAfterBindTwo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OverOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/pull_user_credentials_bsc:
         get:
             tags:
@@ -326,6 +362,9 @@ components:
                     type: string
                 proportion:
                     type: string
+        OverOrderAfterBindReply:
+            type: object
+            properties: {}
         PullUserCredentialsBscReply:
             type: object
             properties: {}

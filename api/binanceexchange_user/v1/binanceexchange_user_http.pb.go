@@ -29,6 +29,8 @@ const OperationBinanceUserInitOrderAfterBindTwo = "/BinanceUser/InitOrderAfterBi
 const OperationBinanceUserListenTraderAndUserOrder = "/BinanceUser/ListenTraderAndUserOrder"
 const OperationBinanceUserOrderHandle = "/BinanceUser/OrderHandle"
 const OperationBinanceUserOrderHandleTwo = "/BinanceUser/OrderHandleTwo"
+const OperationBinanceUserOverOrderAfterBind = "/BinanceUser/OverOrderAfterBind"
+const OperationBinanceUserOverOrderAfterBindTwo = "/BinanceUser/OverOrderAfterBindTwo"
 const OperationBinanceUserPullUserCredentialsBsc = "/BinanceUser/PullUserCredentialsBsc"
 const OperationBinanceUserPullUserDeposit = "/BinanceUser/PullUserDeposit"
 const OperationBinanceUserPullUserDeposit2 = "/BinanceUser/PullUserDeposit2"
@@ -44,6 +46,8 @@ type BinanceUserHTTPServer interface {
 	ListenTraderAndUserOrder(context.Context, *ListenTraderAndUserOrderRequest) (*ListenTraderAndUserOrderReply, error)
 	OrderHandle(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
 	OrderHandleTwo(context.Context, *OrderHandleRequest) (*OrderHandleReply, error)
+	OverOrderAfterBind(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
+	OverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
 	PullUserCredentialsBsc(context.Context, *PullUserCredentialsBscRequest) (*PullUserCredentialsBscReply, error)
 	PullUserDeposit(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
 	PullUserDeposit2(context.Context, *PullUserDepositRequest) (*PullUserDepositReply, error)
@@ -64,6 +68,8 @@ func RegisterBinanceUserHTTPServer(s *http.Server, srv BinanceUserHTTPServer) {
 	r.GET("/api/binanceexchange_user/close_order_after_bind_tfi", _BinanceUser_CloseOrderAfterBindTwo0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/init_order_after_bind", _BinanceUser_InitOrderAfterBind0_HTTP_Handler(srv))
 	r.GET("/api/binanceexchange_user/init_order_after_bind_tfi", _BinanceUser_InitOrderAfterBindTwo0_HTTP_Handler(srv))
+	r.GET("/api/binanceexchange_user/over_order_after_bind", _BinanceUser_OverOrderAfterBind0_HTTP_Handler(srv))
+	r.GET("/api/binanceexchange_user/over_order_after_bind_tfi", _BinanceUser_OverOrderAfterBindTwo0_HTTP_Handler(srv))
 }
 
 func _BinanceUser_GetUser0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
@@ -316,6 +322,44 @@ func _BinanceUser_InitOrderAfterBindTwo0_HTTP_Handler(srv BinanceUserHTTPServer)
 	}
 }
 
+func _BinanceUser_OverOrderAfterBind0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in OverOrderAfterBindRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationBinanceUserOverOrderAfterBind)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.OverOrderAfterBind(ctx, req.(*OverOrderAfterBindRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OverOrderAfterBindReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _BinanceUser_OverOrderAfterBindTwo0_HTTP_Handler(srv BinanceUserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in OverOrderAfterBindRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationBinanceUserOverOrderAfterBindTwo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.OverOrderAfterBindTwo(ctx, req.(*OverOrderAfterBindRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OverOrderAfterBindReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type BinanceUserHTTPClient interface {
 	Analyze(ctx context.Context, req *AnalyzeRequest, opts ...http.CallOption) (rsp *AnalyzeReply, err error)
 	BindTrader(ctx context.Context, req *BindTraderRequest, opts ...http.CallOption) (rsp *BindTraderReply, err error)
@@ -327,6 +371,8 @@ type BinanceUserHTTPClient interface {
 	ListenTraderAndUserOrder(ctx context.Context, req *ListenTraderAndUserOrderRequest, opts ...http.CallOption) (rsp *ListenTraderAndUserOrderReply, err error)
 	OrderHandle(ctx context.Context, req *OrderHandleRequest, opts ...http.CallOption) (rsp *OrderHandleReply, err error)
 	OrderHandleTwo(ctx context.Context, req *OrderHandleRequest, opts ...http.CallOption) (rsp *OrderHandleReply, err error)
+	OverOrderAfterBind(ctx context.Context, req *OverOrderAfterBindRequest, opts ...http.CallOption) (rsp *OverOrderAfterBindReply, err error)
+	OverOrderAfterBindTwo(ctx context.Context, req *OverOrderAfterBindRequest, opts ...http.CallOption) (rsp *OverOrderAfterBindReply, err error)
 	PullUserCredentialsBsc(ctx context.Context, req *PullUserCredentialsBscRequest, opts ...http.CallOption) (rsp *PullUserCredentialsBscReply, err error)
 	PullUserDeposit(ctx context.Context, req *PullUserDepositRequest, opts ...http.CallOption) (rsp *PullUserDepositReply, err error)
 	PullUserDeposit2(ctx context.Context, req *PullUserDepositRequest, opts ...http.CallOption) (rsp *PullUserDepositReply, err error)
@@ -462,6 +508,32 @@ func (c *BinanceUserHTTPClientImpl) OrderHandleTwo(ctx context.Context, in *Orde
 	pattern := "/api/binanceexchange_user/order_handle_two"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationBinanceUserOrderHandleTwo))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *BinanceUserHTTPClientImpl) OverOrderAfterBind(ctx context.Context, in *OverOrderAfterBindRequest, opts ...http.CallOption) (*OverOrderAfterBindReply, error) {
+	var out OverOrderAfterBindReply
+	pattern := "/api/binanceexchange_user/over_order_after_bind"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationBinanceUserOverOrderAfterBind))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *BinanceUserHTTPClientImpl) OverOrderAfterBindTwo(ctx context.Context, in *OverOrderAfterBindRequest, opts ...http.CallOption) (*OverOrderAfterBindReply, error) {
+	var out OverOrderAfterBindReply
+	pattern := "/api/binanceexchange_user/over_order_after_bind_tfi"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationBinanceUserOverOrderAfterBindTwo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
