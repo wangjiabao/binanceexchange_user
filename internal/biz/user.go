@@ -1982,8 +1982,6 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 		userIds        []uint64
 		userIdsMap     map[uint64]uint64
 		users          map[uint64]*User
-		userBalance    map[uint64]*UserBalance
-		userAmount     map[uint64]*UserAmount
 		symbol         map[string]*Symbol
 		err            error
 	)
@@ -2026,16 +2024,6 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 		return
 	}
 
-	userBalance, err = b.binanceUserRepo.GetUserBalanceTwoByUserIds(ctx, userIds)
-	if nil != err {
-		return
-	}
-
-	userAmount, err = b.binanceUserRepo.GetUserAmountTwoByUserIds(ctx, userIds)
-	if nil != err {
-		return
-	}
-
 	symbol, err = b.binanceUserRepo.GetSymbol()
 	if nil != err {
 		return
@@ -2055,41 +2043,6 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					}
 
 					if _, ok := users[vUserBindTrader.UserId]; !ok {
-						continue
-					}
-
-					if _, ok := userBalance[vUserBindTrader.UserId]; !ok {
-						continue
-					}
-
-					if _, ok := userAmount[vUserBindTrader.UserId]; !ok {
-						continue
-					}
-
-					// 判断是开单还是关单，sell long 关多 buy short 关空
-					if ("SELL" == vOrdersData.Side && "LONG" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "SHORT" == vOrdersData.Type) {
-
-					} else if ("SELL" == vOrdersData.Side && "SHORT" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "LONG" == vOrdersData.Type) {
-						//// 余额不足，10u的收益，要1u的余额
-						//// 精度按代币18位，截取小数点后到5位计算
-						//var balanceTmp int64
-						//lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
-						//
-						//if lengthToKeep > 0 {
-						//	balanceTmpStr := userBalance[vUserBindTrader.UserId].Balance[:lengthToKeep]
-						//	balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
-						//	if nil != err || 0 >= balanceTmp {
-						//		continue
-						//	}
-						//} else {
-						//	continue
-						//}
-						//
-						//// 余额不足，收益大于余额的1000倍
-						//if userAmount[vUserBindTrader.UserId].Amount > balanceTmp*1000 {
-						//	continue
-						//}
-					} else {
 						continue
 					}
 
@@ -3213,8 +3166,6 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 		userIds         []uint64
 		userIdsMap      map[uint64]uint64
 		users           map[uint64]*User
-		userBalance     map[uint64]*UserBalance
-		userAmount      map[uint64]*UserAmount
 		symbol          map[string]*Symbol
 		err             error
 	)
@@ -3248,16 +3199,6 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 
 	// 获取用户信息，余额信息，收益信息
 	users, err = b.binanceUserRepo.GetUsersByUserIds(userIds)
-	if nil != err {
-		return nil, nil
-	}
-
-	userBalance, err = b.binanceUserRepo.GetUserBalanceTwoByUserIds(ctx, userIds)
-	if nil != err {
-		return nil, nil
-	}
-
-	userAmount, err = b.binanceUserRepo.GetUserAmountTwoByUserIds(ctx, userIds)
 	if nil != err {
 		return nil, nil
 	}
@@ -3320,18 +3261,11 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 						continue
 					}
 
-					if _, ok := userBalance[vVUserBindTraders.UserId]; !ok {
-						continue
-					}
-
-					if _, ok := userAmount[vVUserBindTraders.UserId]; !ok {
-						continue
-					}
-
 					// 精度
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
 					}
+
 					fmt.Println(time.Now(), vTraderPositions, vVUserBindTraders)
 
 					// 发送订单
