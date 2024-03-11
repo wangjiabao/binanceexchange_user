@@ -3328,30 +3328,6 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 						continue
 					}
 
-					// 判断是开单还是关单，sell long 关多 buy short 关空
-					if ("SELL" == vTraderPositions.Side && "SHORT" == vTraderPositions.PositionSide) || ("BUY" == vTraderPositions.Side && "LONG" == vTraderPositions.PositionSide) {
-						// 精度按代币18位，截取小数点后到5位计算
-						var balanceTmp int64
-						lengthToKeep := len(userBalance[vVUserBindTraders.UserId].Balance) - 13
-
-						if lengthToKeep > 0 {
-							balanceTmpStr := userBalance[vVUserBindTraders.UserId].Balance[:lengthToKeep]
-							balanceTmp, err = strconv.ParseInt(balanceTmpStr, 10, 64)
-							if nil != err || 0 >= balanceTmp {
-								continue
-							}
-						} else {
-							continue
-						}
-
-						// 余额不足，收益大于余额的10倍
-						if userAmount[vVUserBindTraders.UserId].Amount > balanceTmp*10 {
-							continue
-						}
-					} else {
-						continue
-					}
-
 					// 精度
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
