@@ -1633,6 +1633,11 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 	userIdsMap = make(map[uint64]uint64, 0)
 	for _, vUserBindTrader := range userBindTrader {
 		for _, vVUserBindTrader := range vUserBindTrader {
+			// 初始化仓位
+			if 1 != vVUserBindTrader.InitOrder {
+				continue
+			}
+
 			if _, ok := userIdsMap[vVUserBindTrader.UserId]; ok {
 				continue
 			}
@@ -1675,6 +1680,11 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 
 			for _, vUserBindTrader := range userBindTrader[vOrders.Uid] {
 				if 0 == vUserBindTrader.Status { // 绑定
+					// 初始化仓位
+					if 1 != vUserBindTrader.InitOrder {
+						continue
+					}
+
 					if _, ok := users[vUserBindTrader.UserId]; !ok {
 						continue
 					}
@@ -1992,6 +2002,11 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 	userIdsMap = make(map[uint64]uint64, 0)
 	for _, vUserBindTrader := range userBindTrader {
 		for _, vVUserBindTrader := range vUserBindTrader {
+			// 初始化仓位
+			if 1 != vVUserBindTrader.InitOrder {
+				continue
+			}
+
 			if _, ok := userIdsMap[vVUserBindTrader.UserId]; ok {
 				continue
 			}
@@ -2034,6 +2049,11 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 
 			for _, vUserBindTrader := range userBindTrader[vOrders.Uid] {
 				if 0 == vUserBindTrader.Status { // 绑定
+					// 初始化仓位
+					if 1 != vUserBindTrader.InitOrder {
+						continue
+					}
+
 					if _, ok := users[vUserBindTrader.UserId]; !ok {
 						continue
 					}
