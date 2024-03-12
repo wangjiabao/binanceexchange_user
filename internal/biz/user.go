@@ -2060,7 +2060,7 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					if _, ok := symbol[vOrdersData.Symbol]; !ok {
 						continue
 					}
-					fmt.Println(time.Now(), vOrdersData, vUserBindTrader)
+
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
 					go b.userOrderGoroutineTwo(ctx, wg, &OrderData{
@@ -3053,11 +3053,11 @@ func (b *BinanceUserUsecase) InitOrderAfterBind(ctx context.Context, req *v1.Ini
 		var (
 			traderPositions []*TraderPosition
 		)
-		
+
 		// 先更新状态
 		for _, vVUserBindTraders := range vUserBindTraders {
 			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-				_, err = b.binanceUserRepo.UpdatesUserBindTraderTwoInitOrderById(ctx, vVUserBindTraders.ID)
+				_, err = b.binanceUserRepo.UpdatesUserBindTraderInitOrderById(ctx, vVUserBindTraders.ID)
 				if nil != err {
 					return err
 				}
@@ -3153,7 +3153,6 @@ func (b *BinanceUserUsecase) InitOrderAfterBind(ctx context.Context, req *v1.Ini
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
 					}
-					fmt.Println(time.Now(), vTraderPositions, vVUserBindTraders)
 
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
@@ -3300,8 +3299,6 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 						continue
 					}
 
-					fmt.Println(time.Now(), vTraderPositions, vVUserBindTraders)
-
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
 					go b.userOrderGoroutineTwo(ctx, &wg, &OrderData{
@@ -3322,7 +3319,7 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 	return nil, nil
 }
 
-// OverOrder 初始化仓位
+// OverOrder 平仓
 func (b *BinanceUserUsecase) OverOrder(ctx context.Context, req *v1.OverOrderAfterBindRequest) (*v1.OverOrderAfterBindReply, error) {
 	var (
 		wg              sync.WaitGroup
@@ -3394,7 +3391,6 @@ func (b *BinanceUserUsecase) OverOrder(ctx context.Context, req *v1.OverOrderAft
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
 					}
-					fmt.Println(time.Now(), vTraderPositions, vVUserBindTraders)
 
 					// 平仓
 					var side string
@@ -3427,7 +3423,7 @@ func (b *BinanceUserUsecase) OverOrder(ctx context.Context, req *v1.OverOrderAft
 	return nil, nil
 }
 
-// OverOrderTwo 初始化仓位
+// OverOrderTwo 平仓
 func (b *BinanceUserUsecase) OverOrderTwo(ctx context.Context, req *v1.OverOrderAfterBindRequest) (*v1.OverOrderAfterBindReply, error) {
 	var (
 		wg              sync.WaitGroup
@@ -3499,7 +3495,6 @@ func (b *BinanceUserUsecase) OverOrderTwo(ctx context.Context, req *v1.OverOrder
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
 					}
-					fmt.Println(time.Now(), vTraderPositions, vVUserBindTraders)
 
 					// 平仓
 					var side string
