@@ -1298,6 +1298,37 @@ func (b *BinanceUserRepo) GetUserBindTraderByAlreadyInitOrder() (map[uint64][]*b
 	return res, nil
 }
 
+// GetUserBindTraderByOverOrder .
+func (b *BinanceUserRepo) GetUserBindTraderByOverOrder() (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader").Where("init_order=? and status=?", 2, 0).Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_ERROR", err.Error())
+	}
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.TraderId]; !ok {
+			res[v.TraderId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.TraderId] = append(res[v.TraderId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			Status:    v.Status,
+			InitOrder: v.InitOrder,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserBindTraderTwoByInitOrder .
 func (b *BinanceUserRepo) GetUserBindTraderTwoByInitOrder() (map[uint64][]*biz.UserBindTrader, error) {
 	var userBindTrader []*UserBindTrader
@@ -1333,6 +1364,37 @@ func (b *BinanceUserRepo) GetUserBindTraderTwoByInitOrder() (map[uint64][]*biz.U
 func (b *BinanceUserRepo) GetUserBindTraderTwoByAlreadyInitOrder() (map[uint64][]*biz.UserBindTrader, error) {
 	var userBindTrader []*UserBindTrader
 	if err := b.data.db.Table("user_bind_trader_two").Where("init_order=? and status=?", 1, 0).Find(&userBindTrader).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "FIND_USER_BIND_TRADER_TWO_ERROR", err.Error())
+	}
+	res := make(map[uint64][]*biz.UserBindTrader, 0)
+	for _, v := range userBindTrader {
+		if _, ok := res[v.TraderId]; !ok {
+			res[v.TraderId] = make([]*biz.UserBindTrader, 0)
+		}
+
+		res[v.TraderId] = append(res[v.TraderId], &biz.UserBindTrader{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			TraderId:  v.TraderId,
+			Amount:    v.Amount,
+			Status:    v.Status,
+			InitOrder: v.InitOrder,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+// GetUserBindTraderTwoByOverOrder .
+func (b *BinanceUserRepo) GetUserBindTraderTwoByOverOrder() (map[uint64][]*biz.UserBindTrader, error) {
+	var userBindTrader []*UserBindTrader
+	if err := b.data.db.Table("user_bind_trader_two").Where("init_order=? and status=?", 2, 0).Find(&userBindTrader).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}

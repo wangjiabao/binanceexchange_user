@@ -6,6 +6,42 @@ info:
     title: BinanceUser API
     version: 0.0.1
 paths:
+    /api/binanceexchange_user/admin_over_order_after_bind:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_AdminOverOrderAfterBind
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OverOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/admin_over_order_after_bind_tfi:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_AdminOverOrderAfterBindTwo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OverOrderAfterBindReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/analyze:
         get:
             tags:

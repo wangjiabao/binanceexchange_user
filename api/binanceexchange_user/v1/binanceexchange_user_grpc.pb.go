@@ -19,21 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BinanceUser_GetUser_FullMethodName                  = "/BinanceUser/GetUser"
-	BinanceUser_PullUserDeposit_FullMethodName          = "/BinanceUser/PullUserDeposit"
-	BinanceUser_PullUserDeposit2_FullMethodName         = "/BinanceUser/PullUserDeposit2"
-	BinanceUser_PullUserCredentialsBsc_FullMethodName   = "/BinanceUser/PullUserCredentialsBsc"
-	BinanceUser_BindTrader_FullMethodName               = "/BinanceUser/BindTrader"
-	BinanceUser_ListenTraderAndUserOrder_FullMethodName = "/BinanceUser/ListenTraderAndUserOrder"
-	BinanceUser_OrderHandle_FullMethodName              = "/BinanceUser/OrderHandle"
-	BinanceUser_OrderHandleTwo_FullMethodName           = "/BinanceUser/OrderHandleTwo"
-	BinanceUser_Analyze_FullMethodName                  = "/BinanceUser/Analyze"
-	BinanceUser_CloseOrderAfterBind_FullMethodName      = "/BinanceUser/CloseOrderAfterBind"
-	BinanceUser_CloseOrderAfterBindTwo_FullMethodName   = "/BinanceUser/CloseOrderAfterBindTwo"
-	BinanceUser_InitOrderAfterBind_FullMethodName       = "/BinanceUser/InitOrderAfterBind"
-	BinanceUser_InitOrderAfterBindTwo_FullMethodName    = "/BinanceUser/InitOrderAfterBindTwo"
-	BinanceUser_OverOrderAfterBind_FullMethodName       = "/BinanceUser/OverOrderAfterBind"
-	BinanceUser_OverOrderAfterBindTwo_FullMethodName    = "/BinanceUser/OverOrderAfterBindTwo"
+	BinanceUser_GetUser_FullMethodName                    = "/BinanceUser/GetUser"
+	BinanceUser_PullUserDeposit_FullMethodName            = "/BinanceUser/PullUserDeposit"
+	BinanceUser_PullUserDeposit2_FullMethodName           = "/BinanceUser/PullUserDeposit2"
+	BinanceUser_PullUserCredentialsBsc_FullMethodName     = "/BinanceUser/PullUserCredentialsBsc"
+	BinanceUser_BindTrader_FullMethodName                 = "/BinanceUser/BindTrader"
+	BinanceUser_ListenTraderAndUserOrder_FullMethodName   = "/BinanceUser/ListenTraderAndUserOrder"
+	BinanceUser_OrderHandle_FullMethodName                = "/BinanceUser/OrderHandle"
+	BinanceUser_OrderHandleTwo_FullMethodName             = "/BinanceUser/OrderHandleTwo"
+	BinanceUser_Analyze_FullMethodName                    = "/BinanceUser/Analyze"
+	BinanceUser_CloseOrderAfterBind_FullMethodName        = "/BinanceUser/CloseOrderAfterBind"
+	BinanceUser_CloseOrderAfterBindTwo_FullMethodName     = "/BinanceUser/CloseOrderAfterBindTwo"
+	BinanceUser_InitOrderAfterBind_FullMethodName         = "/BinanceUser/InitOrderAfterBind"
+	BinanceUser_InitOrderAfterBindTwo_FullMethodName      = "/BinanceUser/InitOrderAfterBindTwo"
+	BinanceUser_OverOrderAfterBind_FullMethodName         = "/BinanceUser/OverOrderAfterBind"
+	BinanceUser_OverOrderAfterBindTwo_FullMethodName      = "/BinanceUser/OverOrderAfterBindTwo"
+	BinanceUser_AdminOverOrderAfterBind_FullMethodName    = "/BinanceUser/AdminOverOrderAfterBind"
+	BinanceUser_AdminOverOrderAfterBindTwo_FullMethodName = "/BinanceUser/AdminOverOrderAfterBindTwo"
 )
 
 // BinanceUserClient is the client API for BinanceUser service.
@@ -55,6 +57,8 @@ type BinanceUserClient interface {
 	InitOrderAfterBindTwo(ctx context.Context, in *InitOrderAfterBindRequest, opts ...grpc.CallOption) (*InitOrderAfterBindReply, error)
 	OverOrderAfterBind(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error)
 	OverOrderAfterBindTwo(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error)
+	AdminOverOrderAfterBind(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error)
+	AdminOverOrderAfterBindTwo(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error)
 }
 
 type binanceUserClient struct {
@@ -200,6 +204,24 @@ func (c *binanceUserClient) OverOrderAfterBindTwo(ctx context.Context, in *OverO
 	return out, nil
 }
 
+func (c *binanceUserClient) AdminOverOrderAfterBind(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error) {
+	out := new(OverOrderAfterBindReply)
+	err := c.cc.Invoke(ctx, BinanceUser_AdminOverOrderAfterBind_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *binanceUserClient) AdminOverOrderAfterBindTwo(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error) {
+	out := new(OverOrderAfterBindReply)
+	err := c.cc.Invoke(ctx, BinanceUser_AdminOverOrderAfterBindTwo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BinanceUserServer is the server API for BinanceUser service.
 // All implementations must embed UnimplementedBinanceUserServer
 // for forward compatibility
@@ -219,6 +241,8 @@ type BinanceUserServer interface {
 	InitOrderAfterBindTwo(context.Context, *InitOrderAfterBindRequest) (*InitOrderAfterBindReply, error)
 	OverOrderAfterBind(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
 	OverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
+	AdminOverOrderAfterBind(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
+	AdminOverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
 
@@ -270,6 +294,12 @@ func (UnimplementedBinanceUserServer) OverOrderAfterBind(context.Context, *OverO
 }
 func (UnimplementedBinanceUserServer) OverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OverOrderAfterBindTwo not implemented")
+}
+func (UnimplementedBinanceUserServer) AdminOverOrderAfterBind(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminOverOrderAfterBind not implemented")
+}
+func (UnimplementedBinanceUserServer) AdminOverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminOverOrderAfterBindTwo not implemented")
 }
 func (UnimplementedBinanceUserServer) mustEmbedUnimplementedBinanceUserServer() {}
 
@@ -554,6 +584,42 @@ func _BinanceUser_OverOrderAfterBindTwo_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_AdminOverOrderAfterBind_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OverOrderAfterBindRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).AdminOverOrderAfterBind(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_AdminOverOrderAfterBind_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).AdminOverOrderAfterBind(ctx, req.(*OverOrderAfterBindRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BinanceUser_AdminOverOrderAfterBindTwo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OverOrderAfterBindRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).AdminOverOrderAfterBindTwo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_AdminOverOrderAfterBindTwo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).AdminOverOrderAfterBindTwo(ctx, req.(*OverOrderAfterBindRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BinanceUser_ServiceDesc is the grpc.ServiceDesc for BinanceUser service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -620,6 +686,14 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OverOrderAfterBindTwo",
 			Handler:    _BinanceUser_OverOrderAfterBindTwo_Handler,
+		},
+		{
+			MethodName: "AdminOverOrderAfterBind",
+			Handler:    _BinanceUser_AdminOverOrderAfterBind_Handler,
+		},
+		{
+			MethodName: "AdminOverOrderAfterBindTwo",
+			Handler:    _BinanceUser_AdminOverOrderAfterBindTwo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -410,3 +410,11 @@ func (b *BinanceUserService) OverOrderAfterBind(ctx context.Context, req *v1.Ove
 func (b *BinanceUserService) OverOrderAfterBindTwo(ctx context.Context, req *v1.OverOrderAfterBindRequest) (*v1.OverOrderAfterBindReply, error) {
 	return b.buc.OverOrderTwo(ctx, req)
 }
+
+func (b *BinanceUserService) AdminOverOrderAfterBind(ctx context.Context, req *v1.OverOrderAfterBindRequest) (*v1.OverOrderAfterBindReply, error) {
+	return b.buc.AdminOverOrder(ctx, req)
+}
+
+func (b *BinanceUserService) AdminOverOrderAfterBindTwo(ctx context.Context, req *v1.OverOrderAfterBindRequest) (*v1.OverOrderAfterBindReply, error) {
+	return b.buc.AdminOverOrderTwo(ctx, req)
+}
