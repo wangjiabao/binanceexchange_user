@@ -1883,7 +1883,9 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 			fmt.Println("trader的开单数量小于关单数量了，可能是精度问题", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
 			return
 		} else if 0 == historyQuantityFloat {
-			fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			if 1 != overOrderReq {
+				fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			}
 			return
 		}
 
@@ -2197,7 +2199,9 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 			fmt.Println("trader的开单数量小于关单数量了，可能是精度问题", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
 			return
 		} else if 0 == historyQuantityFloat {
-			fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			if 1 != overOrderReq {
+				fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+			}
 			return
 		}
 
