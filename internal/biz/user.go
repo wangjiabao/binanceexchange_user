@@ -2093,21 +2093,6 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 		err           error
 	)
 
-	// 新事务 写入防止锁等待可能影响订单的insert
-	if 1 == initOrderReq {
-		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-			_, err = b.binanceUserRepo.UpdatesUserBindTraderTwoInitOrderById(ctx, userBindTrader.ID)
-			if nil != err {
-				return err
-			}
-
-			return nil
-		}); err != nil {
-			fmt.Println(err, currentOrder)
-			return
-		}
-	}
-
 	// 新订单数据
 	currentOrder = &UserOrder{
 		UserId:        userBindTrader.UserId,
@@ -3068,6 +3053,21 @@ func (b *BinanceUserUsecase) InitOrderAfterBind(ctx context.Context, req *v1.Ini
 		var (
 			traderPositions []*TraderPosition
 		)
+		
+		// 先更新状态
+		for _, vVUserBindTraders := range vUserBindTraders {
+			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+				_, err = b.binanceUserRepo.UpdatesUserBindTraderTwoInitOrderById(ctx, vVUserBindTraders.ID)
+				if nil != err {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				fmt.Println(err, "修改初始化失败", traderId, vVUserBindTraders)
+				continue
+			}
+		}
 
 		if _, ok := traders[traderId]; !ok {
 			fmt.Println("初始化仓位，不存在交易员", traderId)
@@ -3232,6 +3232,21 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 			traderPositions []*TraderPosition
 		)
 
+		// 先更新状态
+		for _, vVUserBindTraders := range vUserBindTraders {
+			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+				_, err = b.binanceUserRepo.UpdatesUserBindTraderTwoInitOrderById(ctx, vVUserBindTraders.ID)
+				if nil != err {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				fmt.Println(err, "修改初始化失败", traderId, vVUserBindTraders)
+				continue
+			}
+		}
+
 		if _, ok := traders[traderId]; !ok {
 			fmt.Println("初始化仓位，不存在交易员", traderId)
 			continue
@@ -3297,7 +3312,6 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 						Qty:   "0",
 					}, "0", users[vVUserBindTraders.UserId], vVUserBindTraders, symbol[vTraderPositions.Symbol].QuantityPrecision, 1, proportion, 0)
 				}
-
 			}
 		}
 
@@ -3843,7 +3857,6 @@ func requestBinanceSymbolPrice(symbol string) (*BinanceSymbolPrice, error) {
 		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println(string(b))
 
 	var l BinanceSymbolPrice
 	err = json.Unmarshal(b, &l)
