@@ -195,8 +195,8 @@ type BinanceOrder struct {
 
 type BinanceUserRepo interface {
 	InsertUser(ctx context.Context, User *User) (*User, error)
-	UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error)
 	UpdateUserApiStatus(ctx context.Context, userId uint64) (bool, error)
+	UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error)
 	UpdateUserBindTraderStatus(ctx context.Context, userId uint64) (bool, error)
 	UpdateUserBindTraderStatusNo(ctx context.Context, userId uint64) (bool, error)
 	UpdateUserBindTraderStatusNoTfi(ctx context.Context, userId uint64) (bool, error)
@@ -1716,6 +1716,11 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 						continue
 					}
 
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vUserBindTrader.UserId].ApiStatus {
+						continue
+					}
+
 					if _, ok := userBalance[vUserBindTrader.UserId]; !ok {
 						continue
 					}
@@ -2064,6 +2069,11 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					}
 
 					if _, ok := users[vUserBindTrader.UserId]; !ok {
+						continue
+					}
+
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vUserBindTrader.UserId].ApiStatus {
 						continue
 					}
 
@@ -2672,6 +2682,15 @@ func (b *BinanceUserUsecase) CloseOrderAfterBind(ctx context.Context, req *v1.Cl
 			continue
 		}
 
+		if _, ok := users[vUserBIndAfterUnbind.UserId]; !ok {
+			continue
+		}
+
+		// todo 暂时使用检测没用api信息
+		if 0 >= users[vUserBIndAfterUnbind.UserId].ApiStatus {
+			continue
+		}
+
 		wg.Add(1) // 启动一个goroutine就登记+1
 		go b.CloseOrderAfterBindGoroutine(ctx, &wg, vUserBIndAfterUnbind, users[vUserBIndAfterUnbind.UserId], symbol[vUserBIndAfterUnbind.Symbol].QuantityPrecision)
 	}
@@ -2854,6 +2873,15 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindTwo(ctx context.Context, req *v1
 	for _, vUserBIndAfterUnbind := range userBindAfterUnbind {
 		// 精度
 		if _, ok := symbol[vUserBIndAfterUnbind.Symbol]; !ok {
+			continue
+		}
+
+		if _, ok := users[vUserBIndAfterUnbind.UserId]; !ok {
+			continue
+		}
+
+		// todo 暂时使用检测没用api信息
+		if 0 >= users[vUserBIndAfterUnbind.UserId].ApiStatus {
 			continue
 		}
 
@@ -3139,6 +3167,11 @@ func (b *BinanceUserUsecase) InitOrderAfterBind(ctx context.Context, req *v1.Ini
 						continue
 					}
 
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
+						continue
+					}
+
 					if _, ok := userBalance[vVUserBindTraders.UserId]; !ok {
 						continue
 					}
@@ -3325,6 +3358,11 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 						continue
 					}
 
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
+						continue
+					}
+
 					// 精度
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
@@ -3415,6 +3453,11 @@ func (b *BinanceUserUsecase) OverOrder(ctx context.Context, req *v1.OverOrderAft
 			for _, vVUserBindTraders := range vUserBindTraders {
 				if 0 == vVUserBindTraders.Status { // 绑定
 					if _, ok := users[vVUserBindTraders.UserId]; !ok {
+						continue
+					}
+
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
 						continue
 					}
 
@@ -3522,6 +3565,11 @@ func (b *BinanceUserUsecase) OverOrderTwo(ctx context.Context, req *v1.OverOrder
 						continue
 					}
 
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
+						continue
+					}
+
 					// 精度
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
@@ -3622,6 +3670,11 @@ func (b *BinanceUserUsecase) AdminOverOrder(ctx context.Context, req *v1.OverOrd
 						continue
 					}
 
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
+						continue
+					}
+
 					// 精度
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
@@ -3719,6 +3772,11 @@ func (b *BinanceUserUsecase) AdminOverOrderTwo(ctx context.Context, req *v1.Over
 			for _, vVUserBindTraders := range vUserBindTraders {
 				if 0 == vVUserBindTraders.Status { // 绑定
 					if _, ok := users[vVUserBindTraders.UserId]; !ok {
+						continue
+					}
+
+					// todo 暂时使用检测没用api信息
+					if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
 						continue
 					}
 
