@@ -1768,21 +1768,6 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		err           error
 	)
 
-	// 新事务 写入防止锁等待可能影响订单的insert
-	if 1 == initOrderReq { // 初始化下单
-		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-			_, err = b.binanceUserRepo.UpdatesUserBindTraderInitOrderById(ctx, userBindTrader.ID)
-			if nil != err {
-				return err
-			}
-
-			return nil
-		}); err != nil {
-			fmt.Println(err, currentOrder)
-			return
-		}
-	}
-
 	// 新订单数据
 	currentOrder = &UserOrder{
 		UserId:        userBindTrader.UserId,
