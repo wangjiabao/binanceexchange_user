@@ -176,6 +176,21 @@ func (b *BinanceUserRepo) UpdateUser(ctx context.Context, userId uint64, apiKey 
 	return true, nil
 }
 
+// UpdateUserApiStatus .
+func (b *BinanceUserRepo) UpdateUserApiStatus(ctx context.Context, userId uint64) (bool, error) {
+	var (
+		err error
+		now = time.Now()
+	)
+
+	if err = b.data.DB(ctx).Table("new_user").Where("id=?", userId).
+		Updates(map[string]interface{}{"api_status": 1, "updated_at": now}).Error; nil != err {
+		return false, errors.NotFound("UPDATE_USER_ERROR", "UPDATE_USER_ERROR")
+	}
+
+	return true, nil
+}
+
 // UpdateUserBindTraderStatus .
 func (b *BinanceUserRepo) UpdateUserBindTraderStatus(ctx context.Context, userId uint64) (bool, error) {
 	var (

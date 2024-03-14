@@ -196,6 +196,7 @@ type BinanceOrder struct {
 type BinanceUserRepo interface {
 	InsertUser(ctx context.Context, User *User) (*User, error)
 	UpdateUser(ctx context.Context, userId uint64, apiKey string, apiSecret string) (bool, error)
+	UpdateUserApiStatus(ctx context.Context, userId uint64) (bool, error)
 	UpdateUserBindTraderStatus(ctx context.Context, userId uint64) (bool, error)
 	UpdateUserBindTraderStatusNo(ctx context.Context, userId uint64) (bool, error)
 	UpdateUserBindTraderStatusNoTfi(ctx context.Context, userId uint64) (bool, error)
@@ -562,9 +563,31 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 
 	if nil == user2 || (user2.ID == user.ID) { // api不存在 或 地址和api指向相同ID(同一条记录)
 		if apiKey != user.ApiKey || apiSecret != user.ApiSecret { // api_key或api_secret发生了变化
+			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+				_, err = b.binanceUserRepo.UpdateUser(ctx, user.ID, apiKey, apiSecret)
+				if nil != err {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				return err
+			}
+
 			_, err = requestBinancePositionSide(apiKey, apiSecret)
 			if nil != err {
 				fmt.Println("更改持仓模式异常", err, user)
+				return err
+			}
+
+			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+				_, err = b.binanceUserRepo.UpdateUserApiStatus(ctx, user.ID)
+				if nil != err {
+					return err
+				}
+
+				return nil
+			}); err != nil {
 				return err
 			}
 
@@ -583,17 +606,6 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				if nil != err {
 					continue
 				}
-			}
-
-			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-				_, err = b.binanceUserRepo.UpdateUser(ctx, user.ID, apiKey, apiSecret)
-				if nil != err {
-					return err
-				}
-
-				return nil
-			}); err != nil {
-				return err
 			}
 		}
 	}
