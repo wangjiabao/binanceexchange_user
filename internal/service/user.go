@@ -324,7 +324,7 @@ func (b *BinanceUserService) PullUserCredentialsBsc(ctx context.Context, req *v1
 		err = b.buc.UpdateUser(ctx, v, apiKey, apiSecret)
 		if nil != err {
 			fmt.Println(err)
-			return nil, err
+			continue
 		}
 	}
 

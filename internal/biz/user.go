@@ -562,25 +562,15 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 
 	if nil == user2 || (user2.ID == user.ID) { // api不存在 或 地址和api指向相同ID(同一条记录)
 		if apiKey != user.ApiKey || apiSecret != user.ApiSecret { // api_key或api_secret发生了变化
-			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
-				_, err = b.binanceUserRepo.UpdateUser(ctx, user.ID, apiKey, apiSecret)
-				if nil != err {
-					return err
-				}
-
-				return nil
-			}); err != nil {
+			_, err = requestBinancePositionSide(apiKey, apiSecret)
+			if nil != err {
+				fmt.Println("更改持仓模式异常", err, user)
 				return err
 			}
 
 			symbol, err = b.binanceUserRepo.GetSymbol()
 			if nil != err {
 				return err
-			}
-
-			_, err = requestBinancePositionSide(apiKey, apiSecret)
-			if nil != err {
-				fmt.Println("更改持仓模式异常", err, user)
 			}
 
 			for k, _ := range symbol {
@@ -593,6 +583,17 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				if nil != err {
 					continue
 				}
+			}
+
+			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+				_, err = b.binanceUserRepo.UpdateUser(ctx, user.ID, apiKey, apiSecret)
+				if nil != err {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				return err
 			}
 		}
 	}
@@ -3063,6 +3064,15 @@ func (b *BinanceUserUsecase) InitOrderAfterBind(ctx context.Context, req *v1.Ini
 
 		// 先更新状态
 		for _, vVUserBindTraders := range vUserBindTraders {
+			if _, ok := users[vVUserBindTraders.UserId]; !ok {
+				continue
+			}
+
+			// todo 暂时使用检测没用api信息
+			if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
+				continue
+			}
+
 			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 				_, err = b.binanceUserRepo.UpdatesUserBindTraderInitOrderById(ctx, vVUserBindTraders.ID)
 				if nil != err {
@@ -3240,6 +3250,15 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 
 		// 先更新状态
 		for _, vVUserBindTraders := range vUserBindTraders {
+			if _, ok := users[vVUserBindTraders.UserId]; !ok {
+				continue
+			}
+
+			// todo 暂时使用检测没用api信息
+			if 0 >= users[vVUserBindTraders.UserId].ApiStatus {
+				continue
+			}
+
 			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 				_, err = b.binanceUserRepo.UpdatesUserBindTraderTwoInitOrderById(ctx, vVUserBindTraders.ID)
 				if nil != err {
