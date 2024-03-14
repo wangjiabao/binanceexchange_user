@@ -574,10 +574,18 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				return err
 			}
 
-			_, err = requestBinancePositionSide(apiKey, apiSecret)
+			var (
+				res *BinancePositionSide
+			)
+			res, err = requestBinancePositionSide(apiKey, apiSecret)
 			if nil != err {
 				fmt.Println("更改持仓模式异常", err, user)
 				return err
+			}
+
+			if -2014 == res.Code {
+				fmt.Println(user)
+				return errors.New(int(res.Code), res.Msg, "api信息不正确")
 			}
 
 			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
