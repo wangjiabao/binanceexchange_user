@@ -588,6 +588,11 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 				return errors.New(int(res.Code), res.Msg, "api信息不正确")
 			}
 
+			if -2015 == res.Code {
+				fmt.Println(user)
+				return errors.New(int(res.Code), res.Msg, "api信息不正确")
+			}
+
 			if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
 				_, err = b.binanceUserRepo.UpdateUserApiStatus(ctx, user.ID)
 				if nil != err {
