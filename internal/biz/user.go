@@ -2014,7 +2014,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 			Proportion:    proportion,
 		}
 
-		if 0 == overOrderReq {
+		if 1 == overOrderReq {
 			orderErr.InitOrder = 2
 		}
 
@@ -2381,7 +2381,7 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 			Proportion:    proportion,
 		}
 
-		if 0 == overOrderReq {
+		if 1 == overOrderReq {
 			orderErr.InitOrder = 2
 		}
 
