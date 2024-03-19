@@ -134,6 +134,32 @@ type UserOrder struct {
 	UpdatedAt     time.Time
 }
 
+type UserOrderErr struct {
+	ID            uint64
+	UserId        uint64
+	TraderId      uint64
+	ClientOrderId string
+	OrderId       string
+	Symbol        string
+	Side          string
+	PositionSide  string
+	Quantity      float64
+	Price         float64
+	TraderQty     float64
+	OrderType     string
+	ClosePosition string
+	CumQuote      float64
+	ExecutedQty   float64
+	AvgPrice      float64
+	HandleStatus  int64
+	InitOrder     int64
+	Code          int64
+	Msg           string
+	Proportion    float64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 type Symbol struct {
 	ID                uint64
 	Symbol            string
@@ -151,6 +177,11 @@ type BinanceMarginType struct {
 }
 
 type BinancePositionSide struct {
+	Code int64
+	Msg  string
+}
+
+type OrderInfo struct {
 	Code int64
 	Msg  string
 }
@@ -221,6 +252,8 @@ type BinanceUserRepo interface {
 	UpdatesUserBindTraderStatusAndAmountById(ctx context.Context, id uint64, status uint64, amount uint64) (bool, error)
 	DeleteUserBindTrader(ctx context.Context, userId uint64) (bool, error)
 	InsertUserOrder(ctx context.Context, order *UserOrder) (*UserOrder, error)
+	InsertUserOrderErr(ctx context.Context, order *UserOrderErr) (*UserOrderErr, error)
+	InsertUserOrderErrTwo(ctx context.Context, order *UserOrderErr) (*UserOrderErr, error)
 	InsertUserOrderTwo(ctx context.Context, order *UserOrder) (*UserOrder, error)
 	UpdatesUserOrderHandleStatus(ctx context.Context, id uint64) (bool, error)
 	UpdatesUserOrderTwoHandleStatus(ctx context.Context, id uint64) (bool, error)
@@ -1941,16 +1974,54 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		return
 	}
 
+	// 下单信息
+	var orderInfo *OrderInfo
 	// 请求下单
-	binanceOrder, err = requestBinanceOrder(order.Coin, order.Side, orderType, positionSide, quantity, user.ApiKey, user.ApiSecret)
+	binanceOrder, orderInfo, err = requestBinanceOrder(order.Coin, order.Side, orderType, positionSide, quantity, user.ApiKey, user.ApiSecret)
 	if nil != err {
 		fmt.Println(err)
 		return
 	}
 
+	// 下单异常
 	if 0 >= binanceOrder.OrderId {
-		fmt.Println("下单异常:数量,", quantity, "下单信息:", currentOrder, "是否初始化订单:", initOrderReq, proportion)
-		return
+		// 写入
+		orderErr := &UserOrderErr{
+			UserId:        currentOrder.UserId,
+			TraderId:      currentOrder.TraderId,
+			ClientOrderId: currentOrder.ClientOrderId,
+			OrderId:       currentOrder.OrderId,
+			Symbol:        currentOrder.Symbol,
+			Side:          currentOrder.Side,
+			PositionSide:  currentOrder.PositionSide,
+			Quantity:      currentOrder.Quantity,
+			Price:         currentOrder.Price,
+			TraderQty:     currentOrder.TraderQty,
+			OrderType:     currentOrder.OrderType,
+			ClosePosition: currentOrder.ClosePosition,
+			CumQuote:      currentOrder.CumQuote,
+			ExecutedQty:   currentOrder.ExecutedQty,
+			AvgPrice:      currentOrder.AvgPrice,
+			HandleStatus:  currentOrder.HandleStatus,
+			InitOrder:     int64(initOrderReq),
+			Code:          orderInfo.Code,
+			Msg:           orderInfo.Msg,
+			Proportion:    proportion,
+		}
+
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.InsertUserOrderErr(ctx, orderErr)
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			fmt.Println(err, orderErr)
+			return
+		}
+
+		return // 返回
 	}
 
 	currentOrder.OrderId = strconv.FormatInt(binanceOrder.OrderId, 10)
@@ -2262,16 +2333,53 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 		return
 	}
 
+	var orderInfo *OrderInfo
 	// 请求下单
-	binanceOrder, err = requestBinanceOrder(order.Coin, order.Side, orderType, positionSide, quantity, user.ApiKey, user.ApiSecret)
+	binanceOrder, orderInfo, err = requestBinanceOrder(order.Coin, order.Side, orderType, positionSide, quantity, user.ApiKey, user.ApiSecret)
 	if nil != err {
 		fmt.Println(err)
 		return
 	}
 
+	// 下单异常
 	if 0 >= binanceOrder.OrderId {
-		fmt.Println("下单异常:数量,", quantity, "下单信息:", currentOrder, "是否初始化订单:", initOrderReq, proportion)
-		return
+		// 写入
+		orderErr := &UserOrderErr{
+			UserId:        currentOrder.UserId,
+			TraderId:      currentOrder.TraderId,
+			ClientOrderId: currentOrder.ClientOrderId,
+			OrderId:       currentOrder.OrderId,
+			Symbol:        currentOrder.Symbol,
+			Side:          currentOrder.Side,
+			PositionSide:  currentOrder.PositionSide,
+			Quantity:      currentOrder.Quantity,
+			Price:         currentOrder.Price,
+			TraderQty:     currentOrder.TraderQty,
+			OrderType:     currentOrder.OrderType,
+			ClosePosition: currentOrder.ClosePosition,
+			CumQuote:      currentOrder.CumQuote,
+			ExecutedQty:   currentOrder.ExecutedQty,
+			AvgPrice:      currentOrder.AvgPrice,
+			HandleStatus:  currentOrder.HandleStatus,
+			InitOrder:     int64(initOrderReq),
+			Code:          orderInfo.Code,
+			Msg:           orderInfo.Msg,
+			Proportion:    proportion,
+		}
+
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.InsertUserOrderErrTwo(ctx, orderErr)
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			fmt.Println(err, orderErr)
+			return
+		}
+
+		return // 返回
 	}
 
 	currentOrder.OrderId = strconv.FormatInt(binanceOrder.OrderId, 10)
@@ -2761,16 +2869,51 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindGoroutine(ctx context.Context, w
 		return
 	}
 
+	var orderInfo *OrderInfo
 	// 请求下单
-	binanceOrder, err = requestBinanceOrder(userBindAfterUnbind.Symbol, currentOrder.Side, orderType, currentOrder.PositionSide, quantity, user.ApiKey, user.ApiSecret)
+	binanceOrder, orderInfo, err = requestBinanceOrder(userBindAfterUnbind.Symbol, currentOrder.Side, orderType, currentOrder.PositionSide, quantity, user.ApiKey, user.ApiSecret)
 	if nil != err {
 		fmt.Println(err)
 		return
 	}
 
+	// 下单异常
 	if 0 >= binanceOrder.OrderId {
-		fmt.Println("解绑后平单，下单异常:数量,", quantity, "下单信息:", currentOrder, userBindAfterUnbind)
-		return
+		// 写入
+		orderErr := &UserOrderErr{
+			UserId:        currentOrder.UserId,
+			TraderId:      currentOrder.TraderId,
+			ClientOrderId: currentOrder.ClientOrderId,
+			OrderId:       currentOrder.OrderId,
+			Symbol:        currentOrder.Symbol,
+			Side:          currentOrder.Side,
+			PositionSide:  currentOrder.PositionSide,
+			Quantity:      currentOrder.Quantity,
+			Price:         currentOrder.Price,
+			TraderQty:     currentOrder.TraderQty,
+			OrderType:     currentOrder.OrderType,
+			ClosePosition: currentOrder.ClosePosition,
+			CumQuote:      currentOrder.CumQuote,
+			ExecutedQty:   currentOrder.ExecutedQty,
+			AvgPrice:      currentOrder.AvgPrice,
+			HandleStatus:  currentOrder.HandleStatus,
+			Code:          orderInfo.Code,
+			Msg:           orderInfo.Msg,
+		}
+
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.InsertUserOrderErr(ctx, orderErr)
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			fmt.Println(err, orderErr)
+			return
+		}
+
+		return // 返回
 	}
 
 	currentOrder.OrderId = strconv.FormatInt(binanceOrder.OrderId, 10)
@@ -2955,16 +3098,51 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindGoroutineTwo(ctx context.Context
 		return
 	}
 
+	var orderInfo *OrderInfo
 	// 请求下单
-	binanceOrder, err = requestBinanceOrder(userBindAfterUnbind.Symbol, currentOrder.Side, orderType, currentOrder.PositionSide, quantity, user.ApiKey, user.ApiSecret)
+	binanceOrder, orderInfo, err = requestBinanceOrder(userBindAfterUnbind.Symbol, currentOrder.Side, orderType, currentOrder.PositionSide, quantity, user.ApiKey, user.ApiSecret)
 	if nil != err {
 		fmt.Println(err)
 		return
 	}
 
+	// 下单异常
 	if 0 >= binanceOrder.OrderId {
-		fmt.Println("解绑后平单，下单异常:数量,", quantity, "下单信息:", currentOrder, userBindAfterUnbind)
-		return
+		// 写入
+		orderErr := &UserOrderErr{
+			UserId:        currentOrder.UserId,
+			TraderId:      currentOrder.TraderId,
+			ClientOrderId: currentOrder.ClientOrderId,
+			OrderId:       currentOrder.OrderId,
+			Symbol:        currentOrder.Symbol,
+			Side:          currentOrder.Side,
+			PositionSide:  currentOrder.PositionSide,
+			Quantity:      currentOrder.Quantity,
+			Price:         currentOrder.Price,
+			TraderQty:     currentOrder.TraderQty,
+			OrderType:     currentOrder.OrderType,
+			ClosePosition: currentOrder.ClosePosition,
+			CumQuote:      currentOrder.CumQuote,
+			ExecutedQty:   currentOrder.ExecutedQty,
+			AvgPrice:      currentOrder.AvgPrice,
+			HandleStatus:  currentOrder.HandleStatus,
+			Code:          orderInfo.Code,
+			Msg:           orderInfo.Msg,
+		}
+
+		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+			_, err = b.binanceUserRepo.InsertUserOrderErrTwo(ctx, orderErr)
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			fmt.Println(err, orderErr)
+			return
+		}
+
+		return // 返回
 	}
 
 	currentOrder.OrderId = strconv.FormatInt(binanceOrder.OrderId, 10)
@@ -3823,16 +4001,17 @@ func (b *BinanceUserUsecase) AdminOverOrderTwo(ctx context.Context, req *v1.Over
 
 // 以下是请求binance的api
 
-func requestBinanceOrder(symbol string, side string, orderType string, positionSide string, quantity string, apiKey string, secretKey string) (*BinanceOrder, error) {
+func requestBinanceOrder(symbol string, side string, orderType string, positionSide string, quantity string, apiKey string, secretKey string) (*BinanceOrder, *OrderInfo, error) {
 	var (
-		client *http.Client
-		req    *http.Request
-		resp   *http.Response
-		res    *BinanceOrder
-		data   string
-		b      []byte
-		err    error
-		apiUrl = "https://fapi.binance.com/fapi/v1/order"
+		client       *http.Client
+		req          *http.Request
+		resp         *http.Response
+		res          *BinanceOrder
+		resOrderInfo *OrderInfo
+		data         string
+		b            []byte
+		err          error
+		apiUrl       = "https://fapi.binance.com/fapi/v1/order"
 	)
 
 	// 时间
@@ -3848,7 +4027,7 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 
 	req, err = http.NewRequest("POST", apiUrl, strings.NewReader(data+"&signature="+signature))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	// 添加头信息
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -3858,7 +4037,7 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 	client = &http.Client{Timeout: 3 * time.Second}
 	resp, err = client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// 结果
@@ -3871,17 +4050,15 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 
 	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(string(b))
-		fmt.Println(err)
-		return nil, err
+		fmt.Println(string(b), err)
+		return nil, nil, err
 	}
 
 	var o BinanceOrder
 	err = json.Unmarshal(b, &o)
 	if err != nil {
-		fmt.Println(string(b))
-		fmt.Println(err)
-		return nil, err
+		fmt.Println(string(b), err)
+		return nil, nil, err
 	}
 
 	res = &BinanceOrder{
@@ -3898,10 +4075,14 @@ func requestBinanceOrder(symbol string, side string, orderType string, positionS
 	}
 
 	if 0 >= res.OrderId {
-		fmt.Println(string(b))
+		err = json.Unmarshal(b, &resOrderInfo)
+		if err != nil {
+			fmt.Println(string(b), err)
+			return nil, nil, err
+		}
 	}
 
-	return res, nil
+	return res, resOrderInfo, nil
 }
 
 // 更改杠杆倍率

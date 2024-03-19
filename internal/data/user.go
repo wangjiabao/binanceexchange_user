@@ -128,6 +128,32 @@ type UserOrder struct {
 	UpdatedAt     time.Time
 }
 
+type UserOrderErr struct {
+	ID            uint64  `gorm:"primarykey;type:int"`
+	UserId        uint64  `gorm:"type:int;not null"`
+	TraderId      uint64  `gorm:"type:int;not null"`
+	ClientOrderId string  `gorm:"type:varchar(100)"`
+	OrderId       string  `gorm:"type:varchar(100);not null"`
+	Symbol        string  `gorm:"type:varchar(100);not null"`
+	Side          string  `gorm:"type:varchar(100);not null"`
+	PositionSide  string  `gorm:"type:varchar(100);not null"`
+	Quantity      float64 `gorm:"type:decimal(65,20);not null"`
+	Price         float64 `gorm:"type:decimal(65,20);not null"`
+	TraderQty     float64 `gorm:"type:decimal(65,20);not null"`
+	OrderType     string  `gorm:"type:varchar(100);not null"`
+	ClosePosition string  `gorm:"type:varchar(100);not null"`
+	CumQuote      float64 `gorm:"type:decimal(65,20);not null"`
+	ExecutedQty   float64 `gorm:"type:decimal(65,20);not null"`
+	AvgPrice      float64 `gorm:"type:decimal(65,20);not null"`
+	HandleStatus  int64   `gorm:"type:int;not null"`
+	Code          int64   `gorm:"type:int"`
+	Msg           string  `gorm:"type:varchar(200)"`
+	InitOrder     int64   `gorm:"type:int"`
+	Proportion    float64 `gorm:"type:decimal(65,20)"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 type BinanceUserRepo struct {
 	data *Data
 	log  *log.Helper
@@ -2107,6 +2133,120 @@ func (b *BinanceUserRepo) GetTraderPosition(traderId uint64) ([]*biz.TraderPosit
 	}
 
 	return res, nil
+}
+
+// InsertUserOrderErr .
+func (b *BinanceUserRepo) InsertUserOrderErr(ctx context.Context, order *biz.UserOrderErr) (*biz.UserOrderErr, error) {
+	insertUserOrder := &UserOrderErr{
+		ID:            order.ID,
+		UserId:        order.UserId,
+		TraderId:      order.TraderId,
+		ClientOrderId: order.ClientOrderId,
+		OrderId:       order.OrderId,
+		Symbol:        order.Symbol,
+		Side:          order.Side,
+		PositionSide:  order.PositionSide,
+		Quantity:      order.Quantity,
+		Price:         order.Price,
+		TraderQty:     order.TraderQty,
+		OrderType:     order.OrderType,
+		ClosePosition: order.ClosePosition,
+		CumQuote:      order.CumQuote,
+		ExecutedQty:   order.ExecutedQty,
+		AvgPrice:      order.AvgPrice,
+		Code:          order.Code,
+		Msg:           order.Msg,
+		InitOrder:     order.InitOrder,
+		Proportion:    order.Proportion,
+		HandleStatus:  0,
+	}
+
+	res := b.data.DB(ctx).Table("user_order_err").Create(&insertUserOrder)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_USER_ORDER_ERR_ERROR", "创建数据失败")
+	}
+
+	return &biz.UserOrderErr{
+		ID:            insertUserOrder.ID,
+		UserId:        insertUserOrder.UserId,
+		TraderId:      insertUserOrder.TraderId,
+		ClientOrderId: insertUserOrder.ClientOrderId,
+		OrderId:       insertUserOrder.OrderId,
+		Symbol:        insertUserOrder.Symbol,
+		Side:          insertUserOrder.Side,
+		PositionSide:  insertUserOrder.PositionSide,
+		Quantity:      insertUserOrder.Quantity,
+		Price:         insertUserOrder.Price,
+		TraderQty:     insertUserOrder.TraderQty,
+		OrderType:     insertUserOrder.OrderType,
+		ClosePosition: insertUserOrder.ClosePosition,
+		CumQuote:      insertUserOrder.CumQuote,
+		ExecutedQty:   insertUserOrder.ExecutedQty,
+		AvgPrice:      insertUserOrder.AvgPrice,
+		InitOrder:     insertUserOrder.InitOrder,
+		Code:          insertUserOrder.Code,
+		Msg:           insertUserOrder.Msg,
+		Proportion:    insertUserOrder.Proportion,
+		CreatedAt:     insertUserOrder.CreatedAt,
+		UpdatedAt:     insertUserOrder.UpdatedAt,
+	}, nil
+}
+
+// InsertUserOrderErrTwo .
+func (b *BinanceUserRepo) InsertUserOrderErrTwo(ctx context.Context, order *biz.UserOrderErr) (*biz.UserOrderErr, error) {
+	insertUserOrder := &UserOrderErr{
+		ID:            order.ID,
+		UserId:        order.UserId,
+		TraderId:      order.TraderId,
+		ClientOrderId: order.ClientOrderId,
+		OrderId:       order.OrderId,
+		Symbol:        order.Symbol,
+		Side:          order.Side,
+		PositionSide:  order.PositionSide,
+		Quantity:      order.Quantity,
+		Price:         order.Price,
+		TraderQty:     order.TraderQty,
+		OrderType:     order.OrderType,
+		ClosePosition: order.ClosePosition,
+		CumQuote:      order.CumQuote,
+		ExecutedQty:   order.ExecutedQty,
+		AvgPrice:      order.AvgPrice,
+		Code:          order.Code,
+		Msg:           order.Msg,
+		InitOrder:     order.InitOrder,
+		Proportion:    order.Proportion,
+		HandleStatus:  0,
+	}
+
+	res := b.data.DB(ctx).Table("user_order_err_two").Create(&insertUserOrder)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_USER_ORDER_ERR_TWO_ERROR", "创建数据失败")
+	}
+
+	return &biz.UserOrderErr{
+		ID:            insertUserOrder.ID,
+		UserId:        insertUserOrder.UserId,
+		TraderId:      insertUserOrder.TraderId,
+		ClientOrderId: insertUserOrder.ClientOrderId,
+		OrderId:       insertUserOrder.OrderId,
+		Symbol:        insertUserOrder.Symbol,
+		Side:          insertUserOrder.Side,
+		PositionSide:  insertUserOrder.PositionSide,
+		Quantity:      insertUserOrder.Quantity,
+		Price:         insertUserOrder.Price,
+		TraderQty:     insertUserOrder.TraderQty,
+		OrderType:     insertUserOrder.OrderType,
+		ClosePosition: insertUserOrder.ClosePosition,
+		CumQuote:      insertUserOrder.CumQuote,
+		ExecutedQty:   insertUserOrder.ExecutedQty,
+		AvgPrice:      insertUserOrder.AvgPrice,
+		InitOrder:     insertUserOrder.InitOrder,
+		Code:          insertUserOrder.Code,
+		Msg:           insertUserOrder.Msg,
+		Proportion:    insertUserOrder.Proportion,
+		CreatedAt:     insertUserOrder.CreatedAt,
+		UpdatedAt:     insertUserOrder.UpdatedAt,
+	}, nil
 }
 
 // SAddOrderSetSellLongOrBuyShort 平仓订单信息放入缓存.
