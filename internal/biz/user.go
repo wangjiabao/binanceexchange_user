@@ -1974,6 +1974,11 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		return
 	}
 
+	if 0 >= currentOrder.Quantity {
+		fmt.Println("下单数值太小", quantity, currentOrder, quantityPrecision)
+		return
+	}
+
 	// 下单信息
 	var orderInfo *OrderInfo
 	// 请求下单
@@ -2334,6 +2339,11 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 	currentOrder.Quantity, err = strconv.ParseFloat(quantity, 64)
 	if nil != err {
 		fmt.Println(err)
+		return
+	}
+
+	if 0 >= currentOrder.Quantity {
+		fmt.Println("下单数值太小", quantity, currentOrder, quantityPrecision)
 		return
 	}
 
@@ -2877,6 +2887,11 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindGoroutine(ctx context.Context, w
 		return
 	}
 
+	if 0 >= currentOrder.Quantity {
+		fmt.Println("下单数值太小", quantity, currentOrder, quantityPrecision)
+		return
+	}
+
 	var orderInfo *OrderInfo
 	// 请求下单
 	binanceOrder, orderInfo, err = requestBinanceOrder(userBindAfterUnbind.Symbol, currentOrder.Side, orderType, currentOrder.PositionSide, quantity, user.ApiKey, user.ApiSecret)
@@ -3103,6 +3118,11 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindGoroutineTwo(ctx context.Context
 	currentOrder.Quantity, err = strconv.ParseFloat(quantity, 64)
 	if nil != err {
 		fmt.Println(err)
+		return
+	}
+
+	if 0 >= currentOrder.Quantity {
+		fmt.Println("下单数值太小", quantity, currentOrder, quantityPrecision)
 		return
 	}
 
