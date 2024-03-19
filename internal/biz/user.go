@@ -1994,7 +1994,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 			Symbol:        currentOrder.Symbol,
 			Side:          currentOrder.Side,
 			PositionSide:  currentOrder.PositionSide,
-			Quantity:      currentOrder.Quantity,
+			Quantity:      quantityFloat,
 			Price:         currentOrder.Price,
 			TraderQty:     currentOrder.TraderQty,
 			OrderType:     currentOrder.OrderType,
@@ -2007,6 +2007,10 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 			Code:          orderInfo.Code,
 			Msg:           orderInfo.Msg,
 			Proportion:    proportion,
+		}
+
+		if 0 == overOrderReq {
+			orderErr.InitOrder = 2
 		}
 
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
@@ -2352,7 +2356,7 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 			Symbol:        currentOrder.Symbol,
 			Side:          currentOrder.Side,
 			PositionSide:  currentOrder.PositionSide,
-			Quantity:      currentOrder.Quantity,
+			Quantity:      quantityFloat,
 			Price:         currentOrder.Price,
 			TraderQty:     currentOrder.TraderQty,
 			OrderType:     currentOrder.OrderType,
@@ -2365,6 +2369,10 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 			Code:          orderInfo.Code,
 			Msg:           orderInfo.Msg,
 			Proportion:    proportion,
+		}
+
+		if 0 == overOrderReq {
+			orderErr.InitOrder = 2
 		}
 
 		if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
@@ -2888,7 +2896,7 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindGoroutine(ctx context.Context, w
 			Symbol:        currentOrder.Symbol,
 			Side:          currentOrder.Side,
 			PositionSide:  currentOrder.PositionSide,
-			Quantity:      currentOrder.Quantity,
+			Quantity:      quantityFloat,
 			Price:         currentOrder.Price,
 			TraderQty:     currentOrder.TraderQty,
 			OrderType:     currentOrder.OrderType,
@@ -3117,7 +3125,7 @@ func (b *BinanceUserUsecase) CloseOrderAfterBindGoroutineTwo(ctx context.Context
 			Symbol:        currentOrder.Symbol,
 			Side:          currentOrder.Side,
 			PositionSide:  currentOrder.PositionSide,
-			Quantity:      currentOrder.Quantity,
+			Quantity:      quantityFloat,
 			Price:         currentOrder.Price,
 			TraderQty:     currentOrder.TraderQty,
 			OrderType:     currentOrder.OrderType,
