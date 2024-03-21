@@ -789,7 +789,6 @@ func (b *BinanceUserUsecase) UserBindTrader(ctx context.Context, users []*User) 
 
 		// 初始化
 		tmpCost := userBalance[vUsers.ID].Cost
-		var limitAmount uint64
 		bindTrader := make(map[uint64]*Trader, 0)
 
 		// 第一轮
@@ -802,6 +801,10 @@ func (b *BinanceUserUsecase) UserBindTrader(ctx context.Context, users []*User) 
 				continue
 			}
 
+			if 100 >= vTraders.Amount {
+				continue
+			}
+
 			if tmpCost*30/100 >= vTraders.Amount {
 				// 绑定
 				if _, ok := bindTrader[vTraders.ID]; ok {
@@ -810,22 +813,16 @@ func (b *BinanceUserUsecase) UserBindTrader(ctx context.Context, users []*User) 
 
 				bindTrader[vTraders.ID] = vTraders
 				tmpCost -= vTraders.Amount
-
-				limitAmount = vTraders.Amount // 最后的限制金额
 			}
 		}
 
 		// 第二轮，跳过分配限制的额度，剩下的按顺序分配
 		for _, vTraders := range traders {
-			if 0 >= tmpCost {
+			if 100 > tmpCost {
 				break
 			}
 
-			if 0 < limitAmount && vTraders.Amount > limitAmount {
-				continue
-			}
-
-			if 0 >= vTraders.Amount {
+			if 0 >= vTraders.Amount || 100 < vTraders.Amount {
 				continue
 			}
 
@@ -952,9 +949,7 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 		// 不存在绑定记录, 新增
 		if _, exists := userBindTraderMap[vUsers.ID]; !exists {
 			// 新增
-			var limitAmount uint64
 			bindTrader := make(map[uint64]*Trader, 0)
-
 			// 第一轮
 			for _, vTraders := range traders {
 				if 0 >= tmpCost {
@@ -962,6 +957,10 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 				}
 
 				if 0 >= vTraders.Amount {
+					continue
+				}
+
+				if 100 >= vTraders.Amount {
 					continue
 				}
 
@@ -973,22 +972,16 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 
 					bindTrader[vTraders.ID] = vTraders
 					tmpCost -= vTraders.Amount
-
-					limitAmount = vTraders.Amount // 最后的限制金额
 				}
 			}
 
 			// 第二轮，跳过分配限制的额度，剩下的按顺序分配
 			for _, vTraders := range traders {
-				if 0 >= tmpCost {
+				if 100 > tmpCost {
 					break
 				}
 
-				if 0 < limitAmount && vTraders.Amount > limitAmount {
-					continue
-				}
-
-				if 0 >= vTraders.Amount {
+				if 0 >= vTraders.Amount || 100 < vTraders.Amount {
 					continue
 				}
 
@@ -1072,7 +1065,6 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 			if bindCost < tmpCost {
 				tmpCost -= bindCost
 
-				var limitAmount uint64
 				bindTrader := make(map[uint64]*Trader, 0)
 
 				// 第一轮
@@ -1090,6 +1082,10 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 						continue
 					}
 
+					if 100 >= vTraders.Amount {
+						continue
+					}
+
 					if tmpCost*30/100 >= vTraders.Amount {
 						// 绑定
 						if _, ok := bindTrader[vTraders.ID]; ok {
@@ -1098,8 +1094,6 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 
 						bindTrader[vTraders.ID] = vTraders
 						tmpCost -= vTraders.Amount
-
-						limitAmount = vTraders.Amount // 最后的限制金额
 					}
 				}
 
@@ -1110,15 +1104,11 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 						continue
 					}
 
-					if 0 >= tmpCost {
+					if 100 > tmpCost {
 						break
 					}
 
-					if 0 < limitAmount && vTraders.Amount > limitAmount {
-						continue
-					}
-
-					if 0 >= vTraders.Amount {
+					if 0 >= vTraders.Amount || 100 < vTraders.Amount {
 						continue
 					}
 
