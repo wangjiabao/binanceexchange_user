@@ -491,14 +491,14 @@ func (b *BinanceUserRepo) UpdatesUserBindTraderStatus(ctx context.Context, userI
 }
 
 // UpdatesUserBindTraderStatusAndInitOrderById .
-func (b *BinanceUserRepo) UpdatesUserBindTraderStatusAndInitOrderById(ctx context.Context, id uint64, status uint64, initOrder uint64) (bool, error) {
+func (b *BinanceUserRepo) UpdatesUserBindTraderStatusAndInitOrderById(ctx context.Context, id uint64, status uint64, initOrder uint64, amount uint64) (bool, error) {
 	var (
 		err error
 		now = time.Now()
 	)
 
 	if err = b.data.DB(ctx).Table("user_bind_trader").Where("id=?", id).
-		Updates(map[string]interface{}{"status": status, "init_order": initOrder, "updated_at": now}).Error; nil != err {
+		Updates(map[string]interface{}{"status": status, "init_order": initOrder, "amount": amount, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_BIND_TRADER_ERROR", "UPDATE_USER_BIND_TRADER_ERROR")
 	}
 
