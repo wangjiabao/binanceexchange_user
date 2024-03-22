@@ -1281,6 +1281,18 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 					}
 				}
 
+				// 写入
+				if err = b.tx.ExecTx(ctx, func(ctx context.Context) error {
+					_, err = b.binanceUserRepo.UpdateUserBindTraderStatus(ctx, vUsers.ID)
+					if nil != err {
+						return err
+					}
+
+					return nil
+				}); err != nil {
+					fmt.Println("换绑交易员写入异常", vUsers, err)
+				}
+
 				continue
 			} else {
 				continue

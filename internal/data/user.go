@@ -209,7 +209,7 @@ func (b *BinanceUserRepo) UpdateUserApiStatus(ctx context.Context, userId uint64
 		now = time.Now()
 	)
 
-	if err = b.data.DB(ctx).Table("new_user").Where("id=?", userId).
+	if err = b.data.DB(ctx).Table("user").Where("id=?", userId).
 		Updates(map[string]interface{}{"api_status": 1, "updated_at": now}).Error; nil != err {
 		return false, errors.NotFound("UPDATE_USER_ERROR", "UPDATE_USER_ERROR")
 	}
