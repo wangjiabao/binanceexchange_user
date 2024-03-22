@@ -846,22 +846,15 @@ func (b *BinanceUserUsecase) UserBindTrader(ctx context.Context, users []*User) 
 			continue
 		}
 
-		num := 0
 		// 新增 和 更新
 		insertUserBindTrader := make([]*UserBindTrader, 0)
 		for k, v := range bindTrader {
-			// todo 分配暂时10人 1人100
-			if 9 < num {
-				break
-			}
 
 			insertUserBindTrader = append(insertUserBindTrader, &UserBindTrader{
 				UserId:   vUsers.ID,
 				TraderId: k,
 				Amount:   v.Amount,
 			})
-
-			num++
 		}
 
 		// 写入
@@ -1005,22 +998,14 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 				continue
 			}
 
-			// 新增 和 更新
-			num := 0
 			insertUserBindTrader := make([]*UserBindTrader, 0)
 			for k, v := range bindTrader {
-				// todo 分配暂时10人 1人100
-				if 9 < num {
-					break
-				}
 
 				insertUserBindTrader = append(insertUserBindTrader, &UserBindTrader{
 					UserId:   vUsers.ID,
 					TraderId: k,
 					Amount:   v.Amount,
 				})
-
-				num++
 			}
 
 			// 写入
@@ -1132,26 +1117,13 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 					continue
 				}
 
-				// 新增 和 更新
-				// todo 分配暂时10人 1人100
-				if alreadyBindTraderCount >= 10 {
-					continue
-				}
-
-				num := uint64(0)
 				insertUserBindTrader := make([]*UserBindTrader, 0)
 				for k, v := range bindTrader {
-					if 10-alreadyBindTraderCount <= num {
-						break
-					}
-
 					insertUserBindTrader = append(insertUserBindTrader, &UserBindTrader{
 						UserId:   vUsers.ID,
 						TraderId: k,
 						Amount:   v.Amount,
 					})
-
-					num++
 				}
 
 				// 写入
