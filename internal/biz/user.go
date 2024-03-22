@@ -12,6 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"io"
 	"io/ioutil"
+	"math"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -580,6 +581,11 @@ func (b *BinanceUserUsecase) SetUserBalanceAndUser(ctx context.Context, address 
 	}
 
 	return nil
+}
+
+func isZero(x float64) bool {
+	const epsilon = 1e-9 // 定义一个足够小的阈值
+	return math.Abs(x) < epsilon
 }
 
 func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey string, apiSecret string) error {
@@ -1234,7 +1240,7 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 								}
 
 								// 当前代币的多单还剩多少, 有的记录
-								if 0 < historyQuantityFloatMore {
+								if !isZero(historyQuantityFloatMore) && 0 < historyQuantityFloatMore {
 									userBindAfterUnbind = append(userBindAfterUnbind, &UserBindAfterUnbind{
 										UserId:       vUpdateBindTrader.UserId,
 										TraderId:     vUpdateBindTrader.TraderId,
@@ -1246,7 +1252,7 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 								}
 
 								// 当前代币的空单还剩多少, 有的记录
-								if 0 < historyQuantityFloatEmpty {
+								if !isZero(historyQuantityFloatEmpty) && 0 < historyQuantityFloatEmpty {
 									userBindAfterUnbind = append(userBindAfterUnbind, &UserBindAfterUnbind{
 										UserId:       vUpdateBindTrader.UserId,
 										TraderId:     vUpdateBindTrader.TraderId,
@@ -1290,7 +1296,7 @@ func (b *BinanceUserUsecase) ReBindTrader(ctx context.Context) error {
 
 					return nil
 				}); err != nil {
-					fmt.Println("换绑交易员写入异常", vUsers, err)
+					fmt.Println("用户额度变更换绑失败", err)
 				}
 
 				continue
@@ -1428,7 +1434,7 @@ func (b *BinanceUserUsecase) ChangeBindTrader(ctx context.Context) error {
 						}
 
 						// 当前代币的多单还剩多少, 有的记录
-						if 0 < historyQuantityFloatMore {
+						if !isZero(historyQuantityFloatMore) && 0 < historyQuantityFloatMore {
 							userBindAfterUnbind = append(userBindAfterUnbind, &UserBindAfterUnbind{
 								UserId:       vVUserBindTrader.UserId,
 								TraderId:     vVUserBindTrader.TraderId,
@@ -1440,7 +1446,7 @@ func (b *BinanceUserUsecase) ChangeBindTrader(ctx context.Context) error {
 						}
 
 						// 当前代币的空单还剩多少, 有的记录
-						if 0 < historyQuantityFloatEmpty {
+						if !isZero(historyQuantityFloatEmpty) && 0 < historyQuantityFloatEmpty {
 							userBindAfterUnbind = append(userBindAfterUnbind, &UserBindAfterUnbind{
 								UserId:       vVUserBindTrader.UserId,
 								TraderId:     vVUserBindTrader.TraderId,
@@ -1933,13 +1939,12 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		}
 
 		// 开单历史数量不足了
-		if 0 > historyQuantityFloat {
+		if isZero(historyQuantityFloat) || 0 > historyQuantityFloat {
 			fmt.Println("trader的开单数量小于关单数量了，可能是精度问题", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
-			return
-		} else if 0 == historyQuantityFloat {
 			if 1 != overOrderReq {
-				fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+				fmt.Println("全平")
 			}
+
 			return
 		}
 
@@ -2301,12 +2306,10 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 		}
 
 		// 开单历史数量不足了
-		if 0 > historyQuantityFloat {
+		if isZero(historyQuantityFloat) || 0 > historyQuantityFloat {
 			fmt.Println("trader的开单数量小于关单数量了，可能是精度问题", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
-			return
-		} else if 0 == historyQuantityFloat {
 			if 1 != overOrderReq {
-				fmt.Println("trader的开单数量等于关单数量了", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
+				fmt.Println("全平功能")
 			}
 			return
 		}
