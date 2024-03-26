@@ -3664,6 +3664,43 @@ func (b *BinanceUserUsecase) OverOrder(ctx context.Context, req *v1.OverOrderAft
 						continue
 					}
 
+					// 订单统计
+					var currentOrders []*UserOrder
+					currentOrders, err = b.binanceUserRepo.GetUserOrderByUserTraderIdAndSymbol(vVUserBindTraders.UserId, vVUserBindTraders.TraderId, vTraderPositions.Symbol)
+					if nil != err {
+						fmt.Println(err)
+						continue
+					}
+					// 查出用户的BUY单的币的数量，在对应的trader下，超过了BUY不能SELL todo 使用数据库量太大以后
+					if 0 >= len(currentOrders) {
+						continue
+					}
+					var historyQuantityFloat float64
+					// 多的部分不管，按剩余的数量关 todo 交易员全部平仓，少的部分另一个程序解决
+					for _, vCurrentOrders := range currentOrders {
+						// 本次平多
+						if "SELL" == side && "LONG" == vTraderPositions.PositionSide {
+							// 历史开多和平多
+							if "BUY" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide {
+								historyQuantityFloat += vCurrentOrders.ExecutedQty
+							} else if "SELL" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide {
+								historyQuantityFloat -= vCurrentOrders.ExecutedQty
+							}
+						} else if "BUY" == side && "SHORT" == vTraderPositions.PositionSide {
+							// 历史开空和平空
+							if "SELL" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide {
+								historyQuantityFloat += vCurrentOrders.ExecutedQty
+							} else if "BUY" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide {
+								historyQuantityFloat -= vCurrentOrders.ExecutedQty
+							}
+						}
+					}
+
+					// 开单历史数量不足了
+					if isZero(historyQuantityFloat) || 0 > historyQuantityFloat {
+						continue
+					}
+
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
 					go b.userOrderGoroutine(ctx, &wg, &OrderData{
@@ -3770,6 +3807,43 @@ func (b *BinanceUserUsecase) OverOrderTwo(ctx context.Context, req *v1.OverOrder
 					} else if "SHORT" == vTraderPositions.PositionSide {
 						side = "BUY"
 					} else {
+						continue
+					}
+
+					// 订单统计
+					var currentOrders []*UserOrder
+					currentOrders, err = b.binanceUserRepo.GetUserOrderByUserTraderIdAndSymbol(vVUserBindTraders.UserId, vVUserBindTraders.TraderId, vTraderPositions.Symbol)
+					if nil != err {
+						fmt.Println(err)
+						continue
+					}
+					// 查出用户的BUY单的币的数量，在对应的trader下，超过了BUY不能SELL todo 使用数据库量太大以后
+					if 0 >= len(currentOrders) {
+						continue
+					}
+					var historyQuantityFloat float64
+					// 多的部分不管，按剩余的数量关 todo 交易员全部平仓，少的部分另一个程序解决
+					for _, vCurrentOrders := range currentOrders {
+						// 本次平多
+						if "SELL" == side && "LONG" == vTraderPositions.PositionSide {
+							// 历史开多和平多
+							if "BUY" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide {
+								historyQuantityFloat += vCurrentOrders.ExecutedQty
+							} else if "SELL" == vCurrentOrders.Side && "LONG" == vCurrentOrders.PositionSide {
+								historyQuantityFloat -= vCurrentOrders.ExecutedQty
+							}
+						} else if "BUY" == side && "SHORT" == vTraderPositions.PositionSide {
+							// 历史开空和平空
+							if "SELL" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide {
+								historyQuantityFloat += vCurrentOrders.ExecutedQty
+							} else if "BUY" == vCurrentOrders.Side && "SHORT" == vCurrentOrders.PositionSide {
+								historyQuantityFloat -= vCurrentOrders.ExecutedQty
+							}
+						}
+					}
+
+					// 开单历史数量不足了
+					if isZero(historyQuantityFloat) || 0 > historyQuantityFloat {
 						continue
 					}
 
