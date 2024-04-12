@@ -519,7 +519,7 @@ func (b *BinanceUserService) PullTradingBoxOpen(ctx context.Context, req *v1.Pul
 	if 0 < len(incomeAmounts) {
 		err = setIncomeTradingBox(incomeTokenIds, incomeAmounts)
 		if nil != err {
-			fmt.Println(err)
+			fmt.Println("记录开盒数据请求区块链失败", err, incomeTokenIds[0], incomeTokenIds[len(incomeTokenIds)-1])
 			return nil, err
 		}
 	}
@@ -567,7 +567,7 @@ func pullTradingBoxOpen() ([]uint64, map[uint64]uint64, error) {
 			//return usdtAmount, err
 		}
 
-		contractAddress := common.HexToAddress("0xc1ef8aE645aFc6a20bB46662994E8C8cF1C62Bf1")
+		contractAddress := common.HexToAddress("0x7a0E6153d0FEB55B83c977e064A64C4b4A8a76b0")
 		instance, err := abi.NewTradingBox(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
@@ -648,7 +648,7 @@ func pullBoxTerm() ([]uint64, map[uint64]uint64, error) {
 			//return usdtAmount, err
 		}
 
-		contractAddress := common.HexToAddress("0x1104282cA7B0A6FFfcDd2737bc16bb937fd097CB")
+		contractAddress := common.HexToAddress("0xDbcbFc8c250Fad5CAe8b6f08d5273AA366f218c0")
 		instance, err := abi.NewTradingAdmin(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
@@ -752,7 +752,7 @@ func setIncomeTradingBox(tokenIds []uint64, amounts []string) error {
 			//return usdtAmount, err
 		}
 
-		contractAddress := common.HexToAddress("0xc1ef8aE645aFc6a20bB46662994E8C8cF1C62Bf1")
+		contractAddress := common.HexToAddress("0x7a0E6153d0FEB55B83c977e064A64C4b4A8a76b0")
 		instance, err := abi.NewTradingBox(contractAddress, client)
 		if err != nil {
 			fmt.Println(err)
