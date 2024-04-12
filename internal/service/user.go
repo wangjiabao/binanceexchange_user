@@ -452,7 +452,7 @@ func (b *BinanceUserService) PullTradingBoxOpen(ctx context.Context, req *v1.Pul
 	for k, vTerms := range terms {
 		if 0 == k {
 			var tmpBalance float64
-			tmpBalance, err = b.buc.GetTermBinanceCurrentBalance(ctx, 17)
+			tmpBalance, err = b.buc.GetTermBinanceCurrentBalance(ctx, 896)
 			if err != nil {
 				fmt.Println(err)
 				return nil, nil
