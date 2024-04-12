@@ -36,6 +36,8 @@ const (
 	BinanceUser_OverOrderAfterBindTwo_FullMethodName      = "/BinanceUser/OverOrderAfterBindTwo"
 	BinanceUser_AdminOverOrderAfterBind_FullMethodName    = "/BinanceUser/AdminOverOrderAfterBind"
 	BinanceUser_AdminOverOrderAfterBindTwo_FullMethodName = "/BinanceUser/AdminOverOrderAfterBindTwo"
+	BinanceUser_PullTradingBoxOpen_FullMethodName         = "/BinanceUser/PullTradingBoxOpen"
+	BinanceUser_SettleTradingBoxOpen_FullMethodName       = "/BinanceUser/SettleTradingBoxOpen"
 )
 
 // BinanceUserClient is the client API for BinanceUser service.
@@ -59,6 +61,8 @@ type BinanceUserClient interface {
 	OverOrderAfterBindTwo(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error)
 	AdminOverOrderAfterBind(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error)
 	AdminOverOrderAfterBindTwo(ctx context.Context, in *OverOrderAfterBindRequest, opts ...grpc.CallOption) (*OverOrderAfterBindReply, error)
+	PullTradingBoxOpen(ctx context.Context, in *PullTradingBoxOpenRequest, opts ...grpc.CallOption) (*PullTradingBoxOpenReply, error)
+	SettleTradingBoxOpen(ctx context.Context, in *SettleTradingBoxOpenRequest, opts ...grpc.CallOption) (*SettleTradingBoxOpenReply, error)
 }
 
 type binanceUserClient struct {
@@ -222,6 +226,24 @@ func (c *binanceUserClient) AdminOverOrderAfterBindTwo(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *binanceUserClient) PullTradingBoxOpen(ctx context.Context, in *PullTradingBoxOpenRequest, opts ...grpc.CallOption) (*PullTradingBoxOpenReply, error) {
+	out := new(PullTradingBoxOpenReply)
+	err := c.cc.Invoke(ctx, BinanceUser_PullTradingBoxOpen_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *binanceUserClient) SettleTradingBoxOpen(ctx context.Context, in *SettleTradingBoxOpenRequest, opts ...grpc.CallOption) (*SettleTradingBoxOpenReply, error) {
+	out := new(SettleTradingBoxOpenReply)
+	err := c.cc.Invoke(ctx, BinanceUser_SettleTradingBoxOpen_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BinanceUserServer is the server API for BinanceUser service.
 // All implementations must embed UnimplementedBinanceUserServer
 // for forward compatibility
@@ -243,6 +265,8 @@ type BinanceUserServer interface {
 	OverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
 	AdminOverOrderAfterBind(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
 	AdminOverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error)
+	PullTradingBoxOpen(context.Context, *PullTradingBoxOpenRequest) (*PullTradingBoxOpenReply, error)
+	SettleTradingBoxOpen(context.Context, *SettleTradingBoxOpenRequest) (*SettleTradingBoxOpenReply, error)
 	mustEmbedUnimplementedBinanceUserServer()
 }
 
@@ -300,6 +324,12 @@ func (UnimplementedBinanceUserServer) AdminOverOrderAfterBind(context.Context, *
 }
 func (UnimplementedBinanceUserServer) AdminOverOrderAfterBindTwo(context.Context, *OverOrderAfterBindRequest) (*OverOrderAfterBindReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminOverOrderAfterBindTwo not implemented")
+}
+func (UnimplementedBinanceUserServer) PullTradingBoxOpen(context.Context, *PullTradingBoxOpenRequest) (*PullTradingBoxOpenReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PullTradingBoxOpen not implemented")
+}
+func (UnimplementedBinanceUserServer) SettleTradingBoxOpen(context.Context, *SettleTradingBoxOpenRequest) (*SettleTradingBoxOpenReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SettleTradingBoxOpen not implemented")
 }
 func (UnimplementedBinanceUserServer) mustEmbedUnimplementedBinanceUserServer() {}
 
@@ -620,6 +650,42 @@ func _BinanceUser_AdminOverOrderAfterBindTwo_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BinanceUser_PullTradingBoxOpen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PullTradingBoxOpenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).PullTradingBoxOpen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_PullTradingBoxOpen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).PullTradingBoxOpen(ctx, req.(*PullTradingBoxOpenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BinanceUser_SettleTradingBoxOpen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SettleTradingBoxOpenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BinanceUserServer).SettleTradingBoxOpen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BinanceUser_SettleTradingBoxOpen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BinanceUserServer).SettleTradingBoxOpen(ctx, req.(*SettleTradingBoxOpenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BinanceUser_ServiceDesc is the grpc.ServiceDesc for BinanceUser service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -694,6 +760,14 @@ var BinanceUser_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminOverOrderAfterBindTwo",
 			Handler:    _BinanceUser_AdminOverOrderAfterBindTwo_Handler,
+		},
+		{
+			MethodName: "PullTradingBoxOpen",
+			Handler:    _BinanceUser_PullTradingBoxOpen_Handler,
+		},
+		{
+			MethodName: "SettleTradingBoxOpen",
+			Handler:    _BinanceUser_SettleTradingBoxOpen_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

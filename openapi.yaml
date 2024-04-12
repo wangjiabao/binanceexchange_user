@@ -269,6 +269,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/pull_trading_box_open:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_PullTradingBoxOpen
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PullTradingBoxOpenReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/binanceexchange_user/pull_user_credentials_bsc:
         get:
             tags:
@@ -317,6 +335,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PullUserDepositReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/binanceexchange_user/settle_trading_box_open:
+        get:
+            tags:
+                - BinanceUser
+            operationId: BinanceUser_SettleTradingBoxOpen
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SettleTradingBoxOpenReply'
                 default:
                     description: Default error response
                     content:
@@ -401,6 +437,9 @@ components:
         OverOrderAfterBindReply:
             type: object
             properties: {}
+        PullTradingBoxOpenReply:
+            type: object
+            properties: {}
         PullUserCredentialsBscReply:
             type: object
             properties: {}
@@ -422,6 +461,9 @@ components:
                     type: string
                 rate:
                     type: string
+        SettleTradingBoxOpenReply:
+            type: object
+            properties: {}
         Status:
             type: object
             properties:

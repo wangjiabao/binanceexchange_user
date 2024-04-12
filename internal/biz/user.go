@@ -161,6 +161,19 @@ type UserOrderErr struct {
 	UpdatedAt     time.Time
 }
 
+type TradingBoxOpen struct {
+	ID             uint64
+	TokenId        uint64
+	Amount         uint64
+	AmountTotal    uint64
+	WithdrawStatus uint64
+	AmountRate     float64
+	Total          float64
+	WithdrawAmount float64
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type Symbol struct {
 	ID                uint64
 	Symbol            string
@@ -210,6 +223,15 @@ type OrderData struct {
 	Price string
 	Side  string
 	Qty   string
+}
+
+type BinanceUserBalance struct {
+	Balance            string
+	Asset              string
+	CrossUnPnl         string
+	AvailableBalance   string
+	CrossWalletBalance string
+	MaxWithdrawAmount  string
 }
 
 type BinanceOrder struct {
@@ -306,6 +328,11 @@ type BinanceUserRepo interface {
 	GetUserOrderTwoByIds(ids []int64) ([]*UserOrder, error)
 	GetUserOrderById(orderId int64) (*UserOrder, error)
 	GetTraderPosition(traderId uint64) ([]*TraderPosition, error)
+	InsertTradingBoxOpen(ctx context.Context, box *TradingBoxOpen) (*TradingBoxOpen, error)
+	UpdateTradingBoxOpenStatus(ctx context.Context, tokenId uint64) (bool, error)
+	GetTradingBoxOpen() ([]*TradingBoxOpen, error)
+	GetTradingBoxOpenMap() (map[uint64]*TradingBoxOpen, error)
+	GetTradingBoxOpenMapByStatus(status uint64) (map[uint64]*TradingBoxOpen, error)
 
 	SAddOrderSetSellLongOrBuyShort(ctx context.Context, OrderId int64) error
 	SMembersOrderSetSellLongOrBuyShort(ctx context.Context) ([]string, error)
@@ -667,6 +694,32 @@ func (b *BinanceUserUsecase) UpdateUser(ctx context.Context, user *User, apiKey 
 
 func (b *BinanceUserUsecase) GetUsers() ([]*User, error) {
 	return b.binanceUserRepo.GetUsers()
+}
+
+func (b *BinanceUserUsecase) GetTradingBoxOpen() ([]*TradingBoxOpen, error) {
+	return b.binanceUserRepo.GetTradingBoxOpen()
+}
+
+func (b *BinanceUserUsecase) GetTradingBoxOpenMap() (map[uint64]*TradingBoxOpen, error) {
+	return b.binanceUserRepo.GetTradingBoxOpenMap()
+}
+
+func (b *BinanceUserUsecase) GetTradingBoxOpenMapByStatus(status uint64) (map[uint64]*TradingBoxOpen, error) {
+	return b.binanceUserRepo.GetTradingBoxOpenMapByStatus(status)
+}
+
+func (b *BinanceUserUsecase) InsertTradingBoxOpen(context context.Context, tokenId uint64, amount uint64, amountTotal uint64, amountRate float64, total float64, withdrawAmount float64) error {
+	_, err := b.binanceUserRepo.InsertTradingBoxOpen(context, &TradingBoxOpen{
+		TokenId:        tokenId,
+		Amount:         amount,
+		AmountTotal:    amountTotal,
+		WithdrawStatus: 0,
+		AmountRate:     amountRate,
+		Total:          total,
+		WithdrawAmount: withdrawAmount,
+	})
+
+	return err
 }
 
 func (b *BinanceUserUsecase) GetUser(ctx context.Context, req *v1.GetUserRequest) (*v1.GetUserReply, error) {
@@ -1913,7 +1966,7 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		// 开单历史数量不足了
 		if isZero(historyQuantityFloat) || 0 > historyQuantityFloat {
 			fmt.Println("trader的开单数量小于关单数量了，可能是精度问题", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
-			if 1 != overOrderReq {
+			if 1 == overOrderReq {
 				fmt.Println("全平")
 			}
 
@@ -2280,7 +2333,7 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 		// 开单历史数量不足了
 		if isZero(historyQuantityFloat) || 0 > historyQuantityFloat {
 			fmt.Println("trader的开单数量小于关单数量了，可能是精度问题", order.Coin, userBindTrader.UserId, userBindTrader.TraderId, historyQuantityFloat)
-			if 1 != overOrderReq {
+			if 1 == overOrderReq {
 				fmt.Println("全平功能")
 			}
 			return
@@ -4078,6 +4131,40 @@ func (b *BinanceUserUsecase) AdminOverOrderTwo(ctx context.Context, req *v1.Over
 	return nil, nil
 }
 
+// GetTermBinanceCurrentBalance 平仓
+func (b *BinanceUserUsecase) GetTermBinanceCurrentBalance(ctx context.Context, userId uint64) (float64, error) {
+	var (
+		user           *User
+		binanceBalance *BinanceUserBalance
+		balanceFloat   float64
+		crossUnPnl     float64
+		err            error
+	)
+
+	user, err = b.binanceUserRepo.GetUserById(ctx, userId)
+	if nil != err {
+		return 0, err
+	}
+
+	binanceBalance, err = requestBinanceUserBalance(user.ApiKey, user.ApiSecret)
+	if nil != err {
+		return 0, err
+	}
+
+	balanceFloat, err = strconv.ParseFloat(binanceBalance.Balance, 64)
+	if nil != err {
+		return 0, err
+	}
+
+	crossUnPnl, err = strconv.ParseFloat(binanceBalance.CrossUnPnl, 64)
+	if nil != err {
+		return 0, err
+	}
+
+	return balanceFloat + crossUnPnl, nil
+
+}
+
 // 以下是请求binance的api
 
 func requestBinanceOrder(symbol string, side string, orderType string, positionSide string, quantity string, apiKey string, secretKey string) (*BinanceOrder, *OrderInfo, error) {
@@ -4565,6 +4652,80 @@ func requestBinanceOrderHistory(apiKey string, secretKey string, symbol string, 
 	res = make([]*OrderHistory, 0)
 	for _, v := range i {
 		res = append(res, v)
+	}
+
+	return res, nil
+}
+
+// 用户余额
+func requestBinanceUserBalance(apiKey string, secretKey string) (*BinanceUserBalance, error) {
+	var (
+		client *http.Client
+		req    *http.Request
+		resp   *http.Response
+		res    *BinanceUserBalance
+		data   string
+		b      []byte
+		err    error
+		apiUrl = "https://fapi.binance.com/fapi/v2/balance"
+	)
+
+	// 时间
+	now := strconv.FormatInt(time.Now().UTC().UnixMilli(), 10)
+	// 拼请求数据
+	data = "timestamp=" + now
+	// 加密
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+	// 构造请求
+
+	req, err = http.NewRequest("GET", apiUrl, strings.NewReader(data+"&signature="+signature))
+	if err != nil {
+		return nil, err
+	}
+	// 添加头信息
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-MBX-APIKEY", apiKey)
+
+	// 请求执行
+	client = &http.Client{Timeout: 3 * time.Second}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 结果
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	var o []*BinanceUserBalance
+	err = json.Unmarshal(b, &o)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	for _, v := range o {
+		if "USDT" == v.Asset {
+			res = &BinanceUserBalance{
+				Balance:            v.Balance,
+				CrossUnPnl:         v.CrossUnPnl,
+				AvailableBalance:   v.AvailableBalance,
+				CrossWalletBalance: v.CrossWalletBalance,
+				MaxWithdrawAmount:  v.MaxWithdrawAmount,
+			}
+		}
 	}
 
 	return res, nil

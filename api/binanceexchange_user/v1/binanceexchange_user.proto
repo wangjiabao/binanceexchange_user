@@ -109,6 +109,18 @@ service BinanceUser {
       get: "/api/binanceexchange_user/admin_over_order_after_bind_tfi"
     };
   };
+
+  rpc PullTradingBoxOpen (PullTradingBoxOpenRequest) returns (PullTradingBoxOpenReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/pull_trading_box_open"
+    };
+  };
+
+  rpc SettleTradingBoxOpen (SettleTradingBoxOpenRequest) returns (SettleTradingBoxOpenReply) {
+    option (google.api.http) = {
+      get: "/api/binanceexchange_user/settle_trading_box_open"
+    };
+  };
 }
 
 message GetUserRequest {
@@ -185,3 +197,11 @@ message ListenTraderAndUserOrderRequest {
 message ListenTraderAndUserOrderReply {
   string status = 1;
 }
+
+message PullTradingBoxOpenRequest {}
+
+message PullTradingBoxOpenReply {}
+
+message SettleTradingBoxOpenRequest {}
+
+message SettleTradingBoxOpenReply {}
