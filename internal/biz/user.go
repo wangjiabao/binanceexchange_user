@@ -1804,6 +1804,11 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 					if ("SELL" == vOrdersData.Side && "LONG" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "SHORT" == vOrdersData.Type) {
 
 					} else if ("SELL" == vOrdersData.Side && "SHORT" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "LONG" == vOrdersData.Type) {
+						// todo 暂时只关不开
+						if 5 != vOrders.Uid && 83 != vOrders.Uid {
+							continue
+						}
+
 						// 精度按代币18位，截取小数点后到5位计算
 						var balanceTmp int64
 						lengthToKeep := len(userBalance[vUserBindTrader.UserId].Balance) - 13
@@ -2197,6 +2202,13 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					// 精度
 					if _, ok := symbol[vOrdersData.Symbol]; !ok {
 						continue
+					}
+
+					// todo 暂时只关不开
+					if ("SELL" == vOrdersData.Side && "SHORT" == vOrdersData.Type) || ("BUY" == vOrdersData.Side && "LONG" == vOrdersData.Type) {
+						if 5 != vOrders.Uid && 83 != vOrders.Uid {
+							continue
+						}
 					}
 
 					// 发送订单
@@ -3423,6 +3435,11 @@ func (b *BinanceUserUsecase) InitOrderAfterBind(ctx context.Context, req *v1.Ini
 
 					// 判断是开单还是关单，sell long 关多 buy short 关空
 					if ("SELL" == vTraderPositions.Side && "SHORT" == vTraderPositions.PositionSide) || ("BUY" == vTraderPositions.Side && "LONG" == vTraderPositions.PositionSide) {
+						// todo 暂时只关不开
+						if 5 != vVUserBindTraders.TraderId && 83 != vVUserBindTraders.TraderId {
+							continue
+						}
+
 						// 精度按代币18位，截取小数点后到5位计算
 						var balanceTmp int64
 						lengthToKeep := len(userBalance[vVUserBindTraders.UserId].Balance) - 13
@@ -3607,6 +3624,13 @@ func (b *BinanceUserUsecase) InitOrderAfterBindTwo(ctx context.Context, req *v1.
 					// 精度
 					if _, ok := symbol[vTraderPositions.Symbol]; !ok {
 						continue
+					}
+
+					if ("SELL" == vTraderPositions.Side && "SHORT" == vTraderPositions.PositionSide) || ("BUY" == vTraderPositions.Side && "LONG" == vTraderPositions.PositionSide) {
+						// todo 暂时只关不开
+						if 5 != vVUserBindTraders.TraderId && 83 != vVUserBindTraders.TraderId {
+							continue
+						}
 					}
 
 					// 发送订单
