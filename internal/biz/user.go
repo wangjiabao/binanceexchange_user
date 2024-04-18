@@ -3889,7 +3889,7 @@ func (b *BinanceUserUsecase) OverOrderTwo(ctx context.Context, req *v1.OverOrder
 
 					// 订单统计
 					var currentOrders []*UserOrder
-					currentOrders, err = b.binanceUserRepo.GetUserOrderByUserTraderIdAndSymbol(vVUserBindTraders.UserId, vVUserBindTraders.TraderId, vTraderPositions.Symbol)
+					currentOrders, err = b.binanceUserRepo.GetUserOrderTwoByUserTraderIdAndSymbol(vVUserBindTraders.UserId, vVUserBindTraders.TraderId, vTraderPositions.Symbol)
 					if nil != err {
 						fmt.Println(err)
 						continue
