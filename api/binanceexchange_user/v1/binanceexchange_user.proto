@@ -187,6 +187,7 @@ message ListenTraderAndUserOrderRequest {
         string side = 4;
         string qty = 5;
         string proportion = 6;
+        string position = 7;
       }
     }
   }

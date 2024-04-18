@@ -434,6 +434,8 @@ components:
                     type: string
                 proportion:
                     type: string
+                position:
+                    type: string
         OverOrderAfterBindReply:
             type: object
             properties: {}

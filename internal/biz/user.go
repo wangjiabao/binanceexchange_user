@@ -218,11 +218,12 @@ type OrderHistory struct {
 }
 
 type OrderData struct {
-	Coin  string
-	Type  string
-	Price string
-	Side  string
-	Qty   string
+	Coin     string
+	Type     string
+	Price    string
+	Side     string
+	Qty      string
+	Position string
 }
 
 type BinanceUserBalance struct {
@@ -1840,11 +1841,12 @@ func (b *BinanceUserUsecase) ListenTradersHandle(ctx context.Context, req *v1.Li
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
 					go b.userOrderGoroutine(ctx, wg, &OrderData{
-						Coin:  vOrdersData.Symbol,
-						Type:  vOrdersData.Type,
-						Price: vOrdersData.Price,
-						Side:  vOrdersData.Side,
-						Qty:   vOrdersData.Qty,
+						Coin:     vOrdersData.Symbol,
+						Type:     vOrdersData.Type,
+						Price:    vOrdersData.Price,
+						Side:     vOrdersData.Side,
+						Qty:      vOrdersData.Qty,
+						Position: vOrdersData.Position,
 					}, vOrders.BaseMoney, users[vUserBindTrader.UserId], vUserBindTrader, symbol[vOrdersData.Symbol].QuantityPrecision, 0, 0, 0)
 				}
 			}
@@ -1981,6 +1983,23 @@ func (b *BinanceUserUsecase) userOrderGoroutine(ctx context.Context, wg *sync.Wa
 		if 1 == overOrderReq { // 全平仓
 			quantityFloat = historyQuantityFloat
 		} else {
+			// 按仓位百分比平仓
+			if 0 < len(order.Position) {
+				var (
+					tmpPositionTotal float64
+				)
+
+				tmpPositionTotal, err = strconv.ParseFloat(order.Position, 64)
+				if nil != err {
+					fmt.Println(err, order, userBindTrader)
+					return
+				}
+
+				if 0 < tmpPositionTotal {
+					quantityFloat = historyQuantityFloat * traderAmount / tmpPositionTotal // 本次平仓数量
+				}
+			}
+
 			// 超过了净开单数量
 			// todo 并发操作时数据不一致的可能性，会导致数量对不上，例如下单程序和更换绑定程序同时执行时，是否程序中统计的总数字会漏计算这里的新增的订单的数字
 			if quantityFloat > historyQuantityFloat {
@@ -2214,11 +2233,12 @@ func (b *BinanceUserUsecase) ListenTradersHandleTwo(ctx context.Context, req *v1
 					// 发送订单
 					wg.Add(1) // 启动一个goroutine就登记+1
 					go b.userOrderGoroutineTwo(ctx, wg, &OrderData{
-						Coin:  vOrdersData.Symbol,
-						Type:  vOrdersData.Type,
-						Price: vOrdersData.Price,
-						Side:  vOrdersData.Side,
-						Qty:   vOrdersData.Qty,
+						Coin:     vOrdersData.Symbol,
+						Type:     vOrdersData.Type,
+						Price:    vOrdersData.Price,
+						Side:     vOrdersData.Side,
+						Qty:      vOrdersData.Qty,
+						Position: vOrdersData.Position,
 					}, vOrders.BaseMoney, users[vUserBindTrader.UserId], vUserBindTrader, symbol[vOrdersData.Symbol].QuantityPrecision, 0, 0, 0)
 				}
 			}
@@ -2354,6 +2374,23 @@ func (b *BinanceUserUsecase) userOrderGoroutineTwo(ctx context.Context, wg *sync
 		if 1 == overOrderReq { // 全平仓
 			quantityFloat = historyQuantityFloat
 		} else {
+			// 按仓位百分比平仓
+			if 0 < len(order.Position) {
+				var (
+					tmpPositionTotal float64
+				)
+
+				tmpPositionTotal, err = strconv.ParseFloat(order.Position, 64)
+				if nil != err {
+					fmt.Println(err, order, userBindTrader)
+					return
+				}
+
+				if 0 < tmpPositionTotal {
+					quantityFloat = historyQuantityFloat * traderAmount / tmpPositionTotal // 本次平仓数量
+				}
+			}
+
 			// 超过了净开单数量
 			// todo 并发操作时数据不一致的可能性，会导致数量对不上，例如下单程序和更换绑定程序同时执行时，是否程序中统计的总数字会漏计算这里的新增的订单的数字
 			if quantityFloat > historyQuantityFloat {
